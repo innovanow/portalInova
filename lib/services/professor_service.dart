@@ -5,8 +5,16 @@ class ProfessorService {
 
   // Buscar todas os professores
   Future<List<Map<String, dynamic>>> buscarprofessor() async {
-    final response = await supabase.from('professores').select();
+    final response = await supabase.from('professores').select().eq('status', 'ativo');
     return response;
+  }
+
+  Future<void> inativarProfessor(String id) async {
+    await supabase.from('professores').update({'status': 'inativo'}).eq('id', id);
+  }
+
+  Future<void> ativarProfessor(String id) async {
+    await supabase.from('professores').update({'status': 'ativo'}).eq('id', id);
   }
 
   double converterParaNumero(String valor) {
@@ -72,6 +80,7 @@ class ProfessorService {
         'formacao': formacao,
         'pais': pais,
         'cidade_natal': cidadeNatal,
+        'status': 'ativo',
       });
 
       return null;

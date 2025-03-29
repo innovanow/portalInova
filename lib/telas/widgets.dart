@@ -1,77 +1,104 @@
 import 'package:chips_choice/chips_choice.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:inova/cadastros/register_empresa.dart';
 import 'package:inova/cadastros/register_escola.dart';
 import 'package:inova/cadastros/register_jovem.dart';
+import 'package:inova/telas/splash.dart';
 import '../cadastros/register_modulo.dart';
 import '../cadastros/register_professor.dart';
 import '../cadastros/register_turma.dart';
+import '../services/auth_service.dart';
+import 'calendar.dart';
+import 'home.dart';
 
 /// 📌 Função para criar um item do menu lateral
 Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
   return Tooltip(
     message: 'Abrir $title',
-    child: InkWell(
-      onTap: () {
-        if (title == "Cadastro de Empresa") {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const EmpresaScreen()));
-        }
-        if (title == "Cadastro de Colégio") {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const EscolaScreen()));
-        }
-        if (title == "Cadastro de Jovem") {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const CadastroJovem()));
-        }
-        if (title == "Cadastro de Turma") {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const TurmaScreen()));
-        }
-        if (title == "Cadastro de Professor") {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const CadastroProfessor()));
-        }
-        if (title == "Cadastro de Módulo") {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const ModuloScreen()));
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide()),
+    child: MouseRegion(
+      cursor: SystemMouseCursors.click, // 👈 Mãozinha na web
+      child: ListTile(
+        onTap: () {
+          if (title == "Cadastro de Empresa") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const EmpresaScreen()));
+          }
+          if (title == "Cadastro de Colégio") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const EscolaScreen()));
+          }
+          if (title == "Cadastro de Jovem") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const CadastroJovem()));
+          }
+          if (title == "Cadastro de Turma") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const TurmaScreen()));
+          }
+          if (title == "Cadastro de Professor") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const CadastroProfessor()));
+          }
+          if (title == "Cadastro de Módulo") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const ModuloScreen()));
+          }
+          if (title == "Calendário") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const ModulosCalendarScreen()));
+          }
+          if (title == "Home") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const Home()));
+          }
+        },
+        leading: Icon(
+          icon,
+          size: 30,
+          color: const Color(0xFF0A63AC),
         ),
-        child: ListTile(
-          leading: Icon(
-            icon,
-            size: 30,
-            color: const Color(0xFF0A63AC),
-          ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontFamily: 'FuturaBold',
-              color: Color(0xFF0A63AC),
-            ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'FuturaBold',
+            color: Color(0xFF0A63AC),
           ),
         ),
+        shape: const Border(bottom: BorderSide()), // 👈 Borda visual separadora
       ),
     ),
   );
 }
 
-Widget buildIcon(IconData icon) {
+Widget buildIcon(IconData icon, String? title, {BuildContext? context}) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10),
-    child: Icon(icon, size: 24, color: Colors.white,),
+    child: IconButton(
+      tooltip: title,
+      onPressed: () async {
+        if (icon == Icons.logout) {
+          final authService = AuthService();
+          await authService.signOut();
+          if (context!.mounted) {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const SplashScreen(title: "Carregando...")));
+          }
+        }
+        if (icon == Icons.search) {
+          if (context!.mounted) {
+            Navigator.of(context).pushReplacementNamed('/validar-token');
+          }
+        }
+      },
+      icon: Icon(icon, color: Colors.white),)
   );
 }
 
 Widget buildNotificationIcon(IconData icon, int count) {
   return Stack(
     children: [
-      buildIcon(icon),
+      buildIcon(icon, null),
       Positioned(
         right: 5,
         top: 5,
@@ -177,6 +204,85 @@ class _MultiSelectChipsState extends State<MultiSelectChips> {
           wrapped: true,
         ),
       ],
+    );
+  }
+}
+
+Color selectedColor = Colors.blue; // Cor inicial
+
+class ColorWheelPicker extends StatefulWidget {
+  final Function(Color) onColorSelected;
+
+  const ColorWheelPicker({super.key, required this.onColorSelected});
+
+  @override
+  State<ColorWheelPicker> createState() => _ColorWheelPickerState();
+}
+
+class _ColorWheelPickerState extends State<ColorWheelPicker> {
+
+  void _showColorPickerDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF0A63AC),
+          title: const Text("Selecione uma cor",
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.white,
+              fontFamily: 'FuturaBold',
+            ),),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: selectedColor,
+              onColorChanged: (color) {
+                setState(() {
+                  selectedColor = color;
+                });
+              },
+              pickerAreaHeightPercent: 0.8,
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancelar",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text("Selecionar",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () {
+                widget.onColorSelected(selectedColor);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _showColorPickerDialog,
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        decoration: BoxDecoration(
+          color: selectedColor,
+          border: Border.all(color: Colors.white, width: 1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Text(
+            "Cor: 0x${selectedColor.toARGB32().toRadixString(16).toUpperCase()}",
+            style: const TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        ),
+      ),
     );
   }
 }

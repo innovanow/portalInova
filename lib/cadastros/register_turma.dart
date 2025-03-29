@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../services/turma_service.dart';
+import '../telas/home.dart';
 
 class TurmaScreen extends StatefulWidget {
   const TurmaScreen({super.key});
@@ -87,10 +88,9 @@ class _TurmaScreenState extends State<TurmaScreen> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  _turmas.removeWhere((turma) => turma['id'] == id);
-                  _turmasFiltradas = List.from(_turmas); // Atualiza a lista filtrada
-                });
+                _turmaService
+                    .inativarTurma(id);
+                _carregarTurmas();
                 Navigator.of(context).pop(); // Fecha o alerta
               },
               child: const Text("Excluir", style: TextStyle(
@@ -116,247 +116,253 @@ class _TurmaScreenState extends State<TurmaScreen> {
           });
         }
       },
-      child: Scaffold(
-        backgroundColor: Color(0xFF0A63AC),
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(60.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: AppBar(
-              backgroundColor: const Color(0xFF0A63AC),
-              title: modoPesquisa
-                  ? TextField(
-                controller: _pesquisaController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: "Pesquisar turma...",
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(color: Colors.white70),
-                ),
-                style: const TextStyle(color: Colors.white),
-                onChanged: (value) {
-                  filtrarLista(
-                    query: value,
-                    listaOriginal: _turmas,
-                    atualizarListaFiltrada: (novaLista) {
-                      setState(() => _turmasFiltradas = novaLista);
-                    },
-                  );
-                },
-              )
-                  : const Text(
-                'Turmas',
-                style: TextStyle(
-                  fontFamily: 'FuturaBold',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.white,
-                ),
-              ),
-              actions: [
-                modoPesquisa
-                    ? IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => fecharPesquisa(
-                    setState,
-                    _pesquisaController,
-                    _turmas,
-                        (novaLista) => setState(() {
-                      _turmasFiltradas = novaLista;
-                      modoPesquisa = false; // 🔹 Agora o modo pesquisa é atualizado corretamente
-                    }),
+      child: PopScope(
+        canPop: false,
+        child: Scaffold(
+          backgroundColor: Color(0xFF0A63AC),
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(60.0),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: AppBar(
+                backgroundColor: const Color(0xFF0A63AC),
+                title: modoPesquisa
+                    ? TextField(
+                  controller: _pesquisaController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: "Pesquisar turma...",
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(color: Colors.white70),
                   ),
-
-                )
-                    : IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white),
-                  onPressed: () => setState(() {
-                    modoPesquisa = true; //
-                  }),
-                ),
-              ],
-              iconTheme: const IconThemeData(color: Colors.white),
-              automaticallyImplyLeading: false,
-              // Evita que o Flutter gere um botão automático
-              leading: Builder(
-                builder:
-                    (context) => Tooltip(
-                  message: "Abrir Menu", // Texto do tooltip
-                  child: IconButton(
-                    icon: Icon(Icons.menu,
-                      color: Colors.white,) ,// Ícone do Drawer
-                    onPressed: () {
-                      Scaffold.of(
-                        context,
-                      ).openDrawer(); // Abre o Drawer manualmente
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        drawer: Drawer(
-          child: ListView(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(color: Colors.white,),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 100,
-                      width: 150,
-                      child: Image.asset("assets/logo.png"),
-                    ),
-                    const Text(
-                      'Usuário: João Victor',
-                      style: TextStyle(
-                        color: Color(0xFF0A63AC),
-                        fontFamily: 'FuturaBold',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
-              buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-              buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-              buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-              buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
-              buildDrawerItem(Icons.man, "Cadastro de Professor", context),
-            ],
-          ),
-        ),
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            image: DecorationImage(
-              opacity: 0.2,
-              image: AssetImage("assets/fundo.png"),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Ondas decorativas
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(),
-                  child: Container(height: 45, color: Colors.orange),
-                ),
-              ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(heightFactor: 0.6),
-                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true),
-                  child: Container(height: 60, color: Colors.orange),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                  child: Container(height: 50, color: const Color(0xFF0A63AC)),
-                ),
-              ),
-
-              // Formulário centralizado
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 40, 20, 30),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: 500,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child:
-                        _isFetching
-                            ? const Center(
-                          child: CircularProgressIndicator(),
-                        )
-                            : ListView.builder(
-                          itemCount: _turmasFiltradas.length,
-                          itemBuilder: (context, index) {
-                            final turma = _turmasFiltradas[index];
-                            return Card(
-                              color: Color(0xFF0A63AC),
-                              child: ListTile(
-                                title: Text(
-                                  "Turma: ${turma['codigo_turma']}",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                subtitle: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Ano: ${turma['ano']} - ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_termino']))}",
-                                      style: const TextStyle(color: Colors.white),
-                                    ),
-                                    Divider(color: Colors.white),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.edit,
-                                            color: Colors.white,
-                                          ),
-                                          onPressed:
-                                              () => _abrirFormulario(
-                                            turma: turma,
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 2, // Espessura da linha
-                                          height: 30, // Altura da linha
-                                          color: Colors.white.withValues(alpha: 0.2), // Cor da linha
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.white, size: 20,),
-                                          onPressed: () => excluirTurma(turma['id']),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                  style: const TextStyle(color: Colors.white),
+                  onChanged: (value) {
+                    filtrarLista(
+                      query: value,
+                      listaOriginal: _turmas,
+                      atualizarListaFiltrada: (novaLista) {
+                        setState(() => _turmasFiltradas = novaLista);
+                      },
                     );
                   },
+                )
+                    : const Text(
+                  'Turmas',
+                  style: TextStyle(
+                    fontFamily: 'FuturaBold',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+                actions: [
+                  modoPesquisa
+                      ? IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => fecharPesquisa(
+                      setState,
+                      _pesquisaController,
+                      _turmas,
+                          (novaLista) => setState(() {
+                        _turmasFiltradas = novaLista;
+                        modoPesquisa = false; // 🔹 Agora o modo pesquisa é atualizado corretamente
+                      }),
+                    ),
+
+                  )
+                      : IconButton(
+                    icon: const Icon(Icons.search, color: Colors.white),
+                    onPressed: () => setState(() {
+                      modoPesquisa = true; //
+                    }),
+                  ),
+                ],
+                iconTheme: const IconThemeData(color: Colors.white),
+                automaticallyImplyLeading: false,
+                // Evita que o Flutter gere um botão automático
+                leading: Builder(
+                  builder:
+                      (context) => Tooltip(
+                    message: "Abrir Menu", // Texto do tooltip
+                    child: IconButton(
+                      icon: Icon(Icons.menu,
+                        color: Colors.white,) ,// Ícone do Drawer
+                      onPressed: () {
+                        Scaffold.of(
+                          context,
+                        ).openDrawer(); // Abre o Drawer manualmente
+                      },
+                    ),
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _abrirFormulario(),
-          backgroundColor: Color(0xFF0A63AC),
-          child: const Icon(Icons.add, color: Colors.white),
+          drawer: Drawer(
+            child: ListView(
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(color: Colors.white,),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 80,
+                        width: 150,
+                        child: Image.asset("assets/logo.png"),
+                      ),
+                      Text(
+                        'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
+                        style: const TextStyle(color: Color(0xFF0A63AC)),
+                      ),
+                      Text(
+                        'Email: ${auth.emailUsuario ?? "Carregando..."}',
+                        style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                buildDrawerItem(Icons.home, "Home", context),
+                buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
+                buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
+                buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
+                buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
+                buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
+                buildDrawerItem(Icons.man, "Cadastro de Professor", context),
+                buildDrawerItem(Icons.calendar_month, "Calendário", context),
+              ],
+            ),
+          ),
+          body: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              image: DecorationImage(
+                opacity: 0.2,
+                image: AssetImage("assets/fundo.png"),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Stack(
+              children: [
+                // Ondas decorativas
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(),
+                    child: Container(height: 45, color: Colors.orange),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(heightFactor: 0.6),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true),
+                    child: Container(height: 60, color: Colors.orange),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true, heightFactor: 0.6),
+                    child: Container(height: 50, color: const Color(0xFF0A63AC)),
+                  ),
+                ),
+
+                // Formulário centralizado
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 40, 20, 30),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: 500,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child:
+                          _isFetching
+                              ? const Center(
+                            child: CircularProgressIndicator(),
+                          )
+                              : ListView.builder(
+                            itemCount: _turmasFiltradas.length,
+                            itemBuilder: (context, index) {
+                              final turma = _turmasFiltradas[index];
+                              return Card(
+                                color: Color(0xFF0A63AC),
+                                child: ListTile(
+                                  title: Text(
+                                    "Turma: ${turma['codigo_turma']}",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  subtitle: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Ano: ${turma['ano']} - ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_termino']))}",
+                                        style: const TextStyle(color: Colors.white),
+                                      ),
+                                      Divider(color: Colors.white),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Colors.white,
+                                            ),
+                                            onPressed:
+                                                () => _abrirFormulario(
+                                              turma: turma,
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 2, // Espessura da linha
+                                            height: 30, // Altura da linha
+                                            color: Colors.white.withValues(alpha: 0.2), // Cor da linha
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.white, size: 20,),
+                                            onPressed: () => excluirTurma(turma['id']),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _abrirFormulario(),
+            backgroundColor: Color(0xFF0A63AC),
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
         ),
       ),
     );

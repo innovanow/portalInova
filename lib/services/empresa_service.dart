@@ -5,8 +5,16 @@ class EmpresaService {
 
   // Buscar todas as empresas
   Future<List<Map<String, dynamic>>> buscarEmpresas() async {
-    final response = await supabase.from('empresas').select();
+    final response = await supabase.from('empresas').select().eq('status', 'ativo');
     return response;
+  }
+
+ Future<void> inativarEmpresa(String id) async {
+  await supabase.from('empresas').update({'status': 'inativo'}).eq('id', id);
+ }
+
+  Future<void> ativarEmpresa(String id) async {
+    await supabase.from('empresas').update({'status': 'ativo'}).eq('id', id);
   }
 
   // Cadastrar uma nova empresa
@@ -48,6 +56,7 @@ class EmpresaService {
         'numero': numero,
         'cep': cep,
         'telefone': telefone,
+        'status': 'ativo',
       });
 
       return null;

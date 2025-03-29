@@ -5,14 +5,22 @@ class TurmaService {
 
   // Buscar todas as turmas
   Future<List<Map<String, dynamic>>> buscarTurmas() async {
-    final response = await supabase.from('turmas').select();
+    final response = await supabase.from('turmas').select().eq('status', 'ativo');
     return response;
   }
 
   // Buscar todos os modulos
   Future<List<Map<String, dynamic>>> buscarModulos() async {
-    final response = await supabase.from('modulos').select();
+    final response = await supabase.from('modulos').select().eq('status', 'ativo');
     return response;
+  }
+
+  Future<void> inativarTurma(String id) async {
+    await supabase.from('turmas').update({'status': 'inativo'}).eq('id', id);
+  }
+
+  Future<void> ativarTurma(String id) async {
+    await supabase.from('turmas').update({'status': 'ativo'}).eq('id', id);
   }
 
   // Cadastrar uma nova turma
@@ -31,6 +39,7 @@ class TurmaService {
         'data_inicio': dataInicio,
         'data_termino': dataTermino,
         'modulos_ids': modulosSelecionados,
+        'status': 'ativo',
       });
 
       return null;

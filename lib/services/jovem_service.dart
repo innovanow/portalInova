@@ -5,8 +5,16 @@ class JovemService {
 
   // Buscar todas os jovens
   Future<List<Map<String, dynamic>>> buscarjovem() async {
-    final response = await supabase.from('jovens_aprendizes').select();
+    final response = await supabase.from('jovens_aprendizes').select().eq('status', 'ativo');
     return response;
+  }
+
+  Future<void> inativarJovem(String id) async {
+    await supabase.from('jovens_aprendizes').update({'status': 'inativo'}).eq('id', id);
+  }
+
+  Future<void> ativarJovem(String id) async {
+    await supabase.from('jovens_aprendizes').update({'status': 'ativo'}).eq('id', id);
   }
 
   double converterParaNumero(String valor) {
@@ -104,6 +112,7 @@ class JovemService {
         'rg_pai': rgPai,
         'rg_mae': rgMae,
         'turma_id': turma,
+        'status': 'ativo',
       });
 
       return null;
@@ -192,19 +201,19 @@ class JovemService {
   }
   // Buscar escolas para o dropdown
   Future<List<Map<String, dynamic>>> buscarEscolas() async {
-    final response = await supabase.from('escolas').select();
+    final response = await supabase.from('escolas').select().eq('status', 'ativo');
     return response;
   }
 
   // Buscar empresas para o dropdown
   Future<List<Map<String, dynamic>>> buscarEmpresas() async {
-    final response = await supabase.from('empresas').select();
+    final response = await supabase.from('empresas').select().eq('status', 'ativo');
     return response;
   }
 
   // Buscar turmas para o dropdown
   Future<List<Map<String, dynamic>>> buscarTurmas() async {
-    final response = await supabase.from('turmas').select();
+    final response = await supabase.from('turmas').select().eq('status', 'ativo');
     return response;
   }
 }

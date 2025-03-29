@@ -5,8 +5,16 @@ class EscolaService {
 
   // Buscar todas as escolas
   Future<List<Map<String, dynamic>>> buscarescolas() async {
-    final response = await supabase.from('escolas').select();
+    final response = await supabase.from('escolas').select().eq('status', 'ativo');
     return response;
+  }
+
+  Future<void> inativarEscola(String id) async {
+    await supabase.from('escolas').update({'status': 'inativo'}).eq('id', id);
+  }
+
+  Future<void> ativarEscola(String id) async {
+    await supabase.from('escolas').update({'status': 'ativo'}).eq('id', id);
   }
 
   // Cadastrar uma nova escola
@@ -48,6 +56,7 @@ class EscolaService {
         'numero': numero,
         'cep': cep,
         'telefone': telefone,
+        'status': 'ativo',
       });
 
       return null;

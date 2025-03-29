@@ -5,8 +5,16 @@ class ModuloService {
 
   // Buscar todas os modulos
   Future<List<Map<String, dynamic>>> buscarModulos() async {
-    final response = await supabase.from('modulos').select();
+    final response = await supabase.from('modulos').select().eq('status', 'ativo');
     return response;
+  }
+
+  Future<void> inativarModulo(String id) async {
+    await supabase.from('modulos').update({'status': 'inativo'}).eq('id', id);
+  }
+
+  Future<void> ativarModulo(String id) async {
+    await supabase.from('modulos').update({'status': 'ativo'}).eq('id', id);
   }
 
   // Cadastrar uma nova modulo
@@ -17,6 +25,8 @@ class ModuloService {
     required String? dataTermino,
     required String? horarioInicial,
     required String? horarioFinal,
+    required String? diaSemana,
+    required String? cor,
   }) async {
     try {
 
@@ -27,6 +37,9 @@ class ModuloService {
         'data_termino': dataTermino,
         'horario_inicial': horarioInicial,
         'horario_final': horarioFinal,
+        'dia_semana': diaSemana,
+        'status': 'ativo',
+        'cor': cor,
       });
 
       return null;
@@ -44,6 +57,8 @@ class ModuloService {
     required String? dataTermino,
     required String? horarioInicial,
     required String? horarioFinal,
+    required String? diaSemana,
+    required String? cor,
   }) async {
     try {
       await supabase.from('modulos').update({
@@ -53,6 +68,8 @@ class ModuloService {
         'data_termino': dataTermino,
         'horario_inicial': horarioInicial,
         'horario_final': horarioFinal,
+        'dia_semana': diaSemana,
+        'cor': cor,
       }).match({'id': id});
       return null;
     } catch (e) {
