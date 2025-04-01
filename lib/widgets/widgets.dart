@@ -4,13 +4,15 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:inova/cadastros/register_empresa.dart';
 import 'package:inova/cadastros/register_escola.dart';
 import 'package:inova/cadastros/register_jovem.dart';
-import 'package:inova/telas/splash.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../cadastros/register_modulo.dart';
 import '../cadastros/register_professor.dart';
 import '../cadastros/register_turma.dart';
 import '../services/auth_service.dart';
-import 'calendar.dart';
-import 'home.dart';
+import '../telas/calendar.dart';
+import '../telas/home.dart';
+import '../telas/jovem.dart';
+import '../telas/login.dart';
 
 /// 📌 Função para criar um item do menu lateral
 Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
@@ -19,7 +21,7 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
     child: MouseRegion(
       cursor: SystemMouseCursors.click, // 👈 Mãozinha na web
       child: ListTile(
-        onTap: () {
+        onTap: () async {
           if (title == "Cadastro de Empresa") {
             Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const EmpresaScreen()));
@@ -52,6 +54,32 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
             Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const Home()));
           }
+          if (title == "Sair") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()));
+          }
+          if (title == "Meu Perfil") {
+            final response = await Supabase.instance.client
+                .from('jovens_aprendizes')
+                .select()
+                .eq('id', auth.idUsuario.toString())
+                .maybeSingle();
+
+            if (response != null && context.mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => JovemAprendizDetalhes(jovem: response),
+                ),
+              );
+            } else {
+              if (context.mounted){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Perfil não encontrado para este usuário.")),
+                );
+              }
+            }
+          }
         },
         leading: Icon(
           icon,
@@ -75,6 +103,11 @@ Widget buildIcon(IconData icon, String? title, {BuildContext? context}) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10),
     child: IconButton(
+      focusColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      enableFeedback: false,
       tooltip: title,
       onPressed: () async {
         if (icon == Icons.logout) {
@@ -82,12 +115,7 @@ Widget buildIcon(IconData icon, String? title, {BuildContext? context}) {
           await authService.signOut();
           if (context!.mounted) {
             Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const SplashScreen(title: "Carregando...")));
-          }
-        }
-        if (icon == Icons.search) {
-          if (context!.mounted) {
-            Navigator.of(context).pushReplacementNamed('/validar-token');
+                MaterialPageRoute(builder: (_) => const LoginScreen()));
           }
         }
       },

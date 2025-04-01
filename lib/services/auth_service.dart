@@ -15,6 +15,8 @@ class AuthService {
 
   String? nomeUsuario;
   String? emailUsuario;
+  String? tipoUsuario;
+  String? idUsuario;
 
   void _listenAuthChanges() {
     supabase.auth.onAuthStateChange.listen((data) async {
@@ -47,7 +49,7 @@ class AuthService {
     });
   }
 
-  Future<String?> signIn(String email, String password) async {
+  Future<String?> signIn(String email, String password, bool lembrar) async {
     try {
       if (kDebugMode) print("➡️ Iniciando login com $email");
       final response = await supabase.auth.signInWithPassword(email: email, password: password);
@@ -56,7 +58,7 @@ class AuthService {
         if (kDebugMode) print("✅ Login realizado com sucesso");
 
         await _saveSession(response.session!);
-        await _saveCredentials(email, password);
+        await _saveCredentials(email, password, lembrar);
         await _carregarDadosUsuario(); // 👈 carrega nome/email aqui também
 
         return null;
@@ -81,15 +83,17 @@ class AuthService {
     if (user != null) {
       final response = await supabase
           .from('users')
-          .select('nome, email')
+          .select('nome, email, tipo')
           .eq('id', user.id)
           .single();
 
       nomeUsuario = response['nome'] ?? 'Sem nome';
       emailUsuario = response['email'] ?? 'Sem e-mail';
+      tipoUsuario = response['tipo'] ?? 'Sem tipo';
+      idUsuario = user.id;
 
       if (kDebugMode) {
-        print("👤 Nome: $nomeUsuario | 📧 Email: $emailUsuario");
+        print("👤 Nome: $nomeUsuario | 📧 Email: $emailUsuario | 🔑 Tipo: $tipoUsuario | ID: ${user.id}");
       }
     }
   }
@@ -142,11 +146,11 @@ class AuthService {
 
     // Tentativa de login automático
     final credentials = await getSavedCredentials();
-    if (credentials['email']!.isNotEmpty && credentials['password']!.isNotEmpty) {
+    if (credentials['email']!.isNotEmpty && credentials['password']!.isNotEmpty && true) {
       if (kDebugMode) {
         print("➡️ Tentando login automático com ${credentials['email']}");
       }
-      final loginError = await signIn(credentials['email']!, credentials['password']!);
+      final loginError = await signIn(credentials['email']!, credentials['password']!, true);
       return loginError == null;
     }
 
@@ -158,12 +162,13 @@ class AuthService {
     await prefs.remove('supabase_session');
   }
 
-  Future<void> _saveCredentials(String email, String password) async {
+  Future<void> _saveCredentials(String email, String password, bool lembrar) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('saved_email', email);
     await prefs.setString('saved_password', password);
+    await prefs.setBool('lembrar_dados', lembrar);
     if (kDebugMode) {
-      print('💾 Credenciais salvas: $email / $password');
+      print('💾 Credenciais salvas: $email / $password / $lembrar');
     }
   }
 
@@ -172,12 +177,14 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('saved_email') ?? '';
     final password = prefs.getString('saved_password') ?? '';
+    final lembrar = prefs.getBool('lembrar_dados') ?? false;
     if (kDebugMode) {
       print('📥 Credenciais recuperadas: $email / $password');
     }
     return {
       'email': email,
       'password': password,
+      'lembrarDados': lembrar.toString(),
     };
   }
 

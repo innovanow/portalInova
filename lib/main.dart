@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:inova/telas/home.dart';
-import 'package:inova/telas/login.dart';
+import 'package:inova/telas/splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
-import 'cadastros/reset_senha.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,12 +37,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      initialRoute: sessionRestaurada ? '/home' : '/login',
-      routes: <String, WidgetBuilder>{
-        '/login': (BuildContext context) => const LoginScreen(),
-        '/home': (BuildContext context) => const Home(),
-        '/validar-token': (context) => const VerificarTokenScreen(),
-      },
+      home: const SplashScreen(title: "Carregando..."),
     );
   }
 }

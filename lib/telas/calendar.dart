@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:inova/telas/widgets.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../widgets/wave.dart';
+import 'home.dart';
 
 class ModulosCalendarScreen extends StatefulWidget {
   const ModulosCalendarScreen({super.key});
@@ -26,7 +28,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
   }
 
   Future<void> _carregarModulos() async {
-    final response = await supabase.from('modulos').select('nome, data_inicio, data_termino, dia_semana, cor');
+    final response = await supabase.from('modulos').select('nome, data_inicio, data_termino, dia_semana, cor').eq('status', 'ativo');
 
     Map<DateTime, String> novosDiasModulos = {};
 
@@ -102,6 +104,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: AppBar(
+              elevation: 0,
               backgroundColor: const Color(0xFF0A63AC),
               title: LayoutBuilder(
                   builder: (context, constraints) {
@@ -119,8 +122,20 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          IconButton(onPressed: () => _mudarAno(-1), icon: Icon(Icons.arrow_back)),
-                          IconButton(onPressed: () => _mudarAno(1), icon: Icon(Icons.arrow_forward)),
+                          IconButton(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              enableFeedback: false,
+                              onPressed: () => _mudarAno(-1), icon: Icon(Icons.arrow_back)),
+                          IconButton(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              enableFeedback: false,
+                              onPressed: () => _mudarAno(1), icon: Icon(Icons.arrow_forward)),
                         ],
                       ),
                     ],
@@ -135,6 +150,11 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                     (context) => Tooltip(
                   message: "Abrir Menu", // Texto do tooltip
                   child: IconButton(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    enableFeedback: false,
                     icon: Icon(Icons.menu,
                       color: Colors.white,) ,// Ícone do Drawer
                     onPressed: () {
@@ -153,32 +173,49 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
             children: [
               DrawerHeader(
                 decoration: BoxDecoration(color: Colors.white,),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 100,
-                      width: 150,
-                      child: Image.asset("assets/logo.png"),
-                    ),
-                    const Text(
-                      'Usuário: João Victor',
-                      style: TextStyle(
-                        color: Color(0xFF0A63AC),
-                        fontFamily: 'FuturaBold',
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 50,
+                        width: 150,
+                        child: SvgPicture.asset("assets/logoInova.svg"),
                       ),
-                    ),
-                  ],
+                      Text(
+                        'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
+                        style: const TextStyle(color: Color(0xFF0A63AC)),
+                      ),
+                      Text(
+                        'Email: ${auth.emailUsuario ?? "Carregando..."}',
+                        style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
+                      ),
+                      Text(
+                        'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").toUpperCase() ?? "Carregando..."}',
+                        style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
-              buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-              buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-              buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-              buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
-              buildDrawerItem(Icons.man, "Cadastro de Professor", context),
+              buildDrawerItem(Icons.home, "Home", context),
+              if (auth.tipoUsuario == "jovem_aprendiz")
+                buildDrawerItem(Icons.account_circle, "Meu Perfil", context),
+              if (auth.tipoUsuario == "administrador")
+                buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
+              if (auth.tipoUsuario == "administrador")
+                buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
+              if (auth.tipoUsuario == "administrador")
+                buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
+              if (auth.tipoUsuario == "administrador")
+                buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
+              if (auth.tipoUsuario == "administrador")
+                buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
+              if (auth.tipoUsuario == "administrador")
+                buildDrawerItem(Icons.man, "Cadastro de Professor", context),
               buildDrawerItem(Icons.calendar_month, "Calendário", context),
+              buildDrawerItem(Icons.logout, "Sair", context),
             ],
           ),
         ),

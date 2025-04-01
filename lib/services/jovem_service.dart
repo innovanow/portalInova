@@ -4,8 +4,8 @@ class JovemService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas os jovens
-  Future<List<Map<String, dynamic>>> buscarjovem() async {
-    final response = await supabase.from('jovens_aprendizes').select().eq('status', 'ativo');
+  Future<List<Map<String, dynamic>>> buscarjovem(status) async {
+    final response = await supabase.from('jovens_aprendizes').select().eq('status', '$status');
     return response;
   }
 
@@ -18,10 +18,15 @@ class JovemService {
   }
 
   double converterParaNumero(String valor) {
-    // Remove tudo que não for número ou vírgula e substitui ',' por '.'
-    String numeroLimpo = valor.replaceAll(RegExp(r'[^0-9,]'), '').replaceAll(',', '.');
+    // Remove qualquer caractere que não seja número ou vírgula
+    String numeroLimpo = valor
+        .replaceAll('.', '')               // remove ponto de milhar
+        .replaceAll(RegExp(r'[^\d,]'), '') // mantém apenas números e vírgula
+        .replaceAll(',', '.');             // troca vírgula decimal por ponto
+
     return double.tryParse(numeroLimpo) ?? 0.0;
   }
+
 
   // Cadastrar um novo jovem
   Future<String?> cadastrarjovem({
@@ -62,21 +67,37 @@ class JovemService {
     required String? turma,
   }) async {
     try {
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: senha,
-      );
+      // 🔍 Verifica se já existe usuário cadastrado com esse email
+      final existingUsers = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
 
-      final userId = response.user?.id;
-      if (userId == null) return "Erro ao criar usuário.";
+      String userId;
 
-      await supabase.from('users').insert({
-        'id': userId,
-        'nome': nome,
-        'email': email,
-        'tipo': 'jovem_aprendiz',
-      });
+      if (existingUsers != null) {
+        userId = existingUsers['id'];
+      } else {
+        // 🧾 Cria novo usuário
+        final response = await supabase.auth.signUp(
+          email: email,
+          password: senha,
+        );
 
+        userId = response.user?.id ?? '';
+        if (userId.isEmpty) return "Erro ao criar usuário.";
+
+        // 👤 Cria o registro na tabela 'users'
+        await supabase.from('users').insert({
+          'id': userId,
+          'nome': nome,
+          'email': email,
+          'tipo': 'jovem_aprendiz',
+        });
+      }
+
+      // ✅ Cria o registro na tabela 'jovens_aprendizes'
       await supabase.from('jovens_aprendizes').insert({
         'id': userId,
         'nome': nome,
@@ -117,9 +138,10 @@ class JovemService {
 
       return null;
     } catch (e) {
-      return e.toString();
+      return "Erro ao cadastrar jovem: ${e.toString()}";
     }
   }
+
 
   // Atualizar escola
   Future<String?> atualizarjovem({

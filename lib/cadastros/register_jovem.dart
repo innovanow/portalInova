@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/formatters/currency_input_formatter.dart';
 import 'package:flutter_multi_formatter/formatters/money_input_enums.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:inova/cadastros/register_ocorrencia.dart';
+import 'package:inova/telas/jovem.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
-import 'package:inova/telas/widgets.dart';
+import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../services/jovem_service.dart';
 import '../telas/home.dart';
 
+String statusJovem = "ativo";
+
 class CadastroJovem extends StatefulWidget {
+
   const CadastroJovem({super.key});
 
   @override
@@ -27,11 +33,11 @@ class _CadastroJovemState extends State<CadastroJovem> {
   @override
   void initState() {
     super.initState();
-    _carregarjovens();
+    _carregarjovens(statusJovem);
   }
 
-  void _carregarjovens() async {
-    final jovens = await _jovemService.buscarjovem();
+  void _carregarjovens(status) async {
+    final jovens = await _jovemService.buscarjovem(status);
     setState(() {
       _jovens = jovens;
       _jovensFiltrados = List.from(_jovens);
@@ -56,7 +62,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
           content: _Formjovem(
             jovem: jovem,
             onjovemSalva: () {
-              _carregarjovens(); // Atualiza lista ao fechar modal
+              _carregarjovens(statusJovem); // Atualiza lista ao fechar modal
               Navigator.pop(context);
             },
           ),
@@ -65,19 +71,19 @@ class _CadastroJovemState extends State<CadastroJovem> {
     );
   }
 
-  void excluirJovem(String id) {
+  void inativarJovem(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: const Text("Confirmar Exclusão",
+          title: const Text("Inativar?",
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
               fontFamily: 'FuturaBold',
             ),),
-          content: const Text("Tem certeza de que deseja excluir este jovem?",
+          content: const Text("Tem certeza de que deseja inativar este jovem?",
             style: TextStyle(
               fontSize: 15,
               color: Colors.white,
@@ -88,14 +94,58 @@ class _CadastroJovemState extends State<CadastroJovem> {
               child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
             ),
             TextButton(
-              onPressed: () {
-                _jovemService
+              onPressed: () async {
+                await _jovemService
                     .inativarJovem(id);
-                _carregarjovens();
-                Navigator.of(context).pop(); // Fecha o alerta
+                _carregarjovens(statusJovem);
+                if (context.mounted){
+                  Navigator.of(context).pop(); // Fecha o alerta
+                }
               },
-              child: const Text("Excluir", style: TextStyle(
+              child: const Text("Inativar", style: TextStyle(
                   color: Colors.red,
+                  fontWeight: FontWeight.bold
+              )),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void ativarJovem(String id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF0A63AC),
+          title: const Text("Ativar?",
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.white,
+              fontFamily: 'FuturaBold',
+            ),),
+          content: const Text("Tem certeza de que deseja ativar este jovem?",
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+            ),),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
+              child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () async {
+                await _jovemService
+                    .ativarJovem(id);
+                _carregarjovens(statusJovem);
+                if (context.mounted){
+                  Navigator.of(context).pop(); // Fecha o alerta
+                }
+              },
+              child: const Text("Ativar", style: TextStyle(
+                  color: Colors.green,
                   fontWeight: FontWeight.bold
               )),
             ),
@@ -107,6 +157,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
 
   @override
   Widget build(BuildContext context) {
+    final isAtivo = statusJovem.toLowerCase() == 'ativo';
     return GestureDetector(
       onTap: () {
         if (modoPesquisa) {
@@ -126,6 +177,8 @@ class _CadastroJovemState extends State<CadastroJovem> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: AppBar(
+                elevation: 0,
+                surfaceTintColor: Colors.transparent,
                 backgroundColor: const Color(0xFF0A63AC),
                 title: modoPesquisa
                     ? TextField(
@@ -157,26 +210,37 @@ class _CadastroJovemState extends State<CadastroJovem> {
                   ),
                 ),
                 actions: [
-                  modoPesquisa
-                      ? IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => fecharPesquisa(
-                      setState,
-                      _pesquisaController,
-                      _jovens,
-                          (novaLista) => setState(() {
-                        _jovensFiltrados = novaLista;
-                        modoPesquisa = false; // 🔹 Agora o modo pesquisa é atualizado corretamente
-                      }),
-                    ),
-
-                  )
-                      : IconButton(
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    onPressed: () => setState(() {
-                      modoPesquisa = true;
+                modoPesquisa
+                    ? IconButton(
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  enableFeedback: false,
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => fecharPesquisa(
+                    setState,
+                    _pesquisaController,
+                    _jovens,
+                        (novaLista) => setState(() {
+                      _jovensFiltrados = novaLista;
+                      modoPesquisa = false; // 🔹 Agora o modo pesquisa é atualizado corretamente
                     }),
                   ),
+
+                )
+                    : IconButton(
+                  tooltip: "Pesquisar",
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  enableFeedback: false,
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: () => setState(() {
+                    modoPesquisa = true;
+                  }),
+                ),
                 ],
                 iconTheme: const IconThemeData(color: Colors.white),
                 automaticallyImplyLeading: false,
@@ -186,6 +250,11 @@ class _CadastroJovemState extends State<CadastroJovem> {
                       (context) => Tooltip(
                     message: "Abrir Menu", // Texto do tooltip
                     child: IconButton(
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      enableFeedback: false,
                       icon: Icon(Icons.menu,
                         color: Colors.white,) ,// Ícone do Drawer
                       onPressed: () {
@@ -209,9 +278,9 @@ class _CadastroJovemState extends State<CadastroJovem> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        height: 80,
+                        height: 50,
                         width: 150,
-                        child: Image.asset("assets/logo.png"),
+                        child: SvgPicture.asset("assets/logoInova.svg"),
                       ),
                       Text(
                         'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
@@ -221,17 +290,28 @@ class _CadastroJovemState extends State<CadastroJovem> {
                         'Email: ${auth.emailUsuario ?? "Carregando..."}',
                         style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
                       ),
+                      Text(
+                        'Perfil: ${auth.tipoUsuario?.toUpperCase() ?? "Carregando..."}',
+                        style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
                 buildDrawerItem(Icons.home, "Home", context),
-                buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
-                buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-                buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-                buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-                buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
-                buildDrawerItem(Icons.man, "Cadastro de Professor", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.man, "Cadastro de Professor", context),
                 buildDrawerItem(Icons.calendar_month, "Calendário", context),
+                buildDrawerItem(Icons.logout, "Sair", context),
               ],
             ),
           ),
@@ -290,68 +370,143 @@ class _CadastroJovemState extends State<CadastroJovem> {
                 padding: const EdgeInsets.fromLTRB(20, 40, 20, 30),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    return SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: 500,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child:
-                        _isFetching
-                            ? const Center(
-                          child: CircularProgressIndicator(),
-                        )
-                            : ListView.builder(
-                          itemCount: _jovensFiltrados.length,
-                          itemBuilder: (context, index) {
-                            final jovem = _jovensFiltrados[index];
-                            return Card(
-                              color: Color(0xFF0A63AC),
-                              child: ListTile(
-                                title: Text(
-                                  jovem['nome'] ?? '',
-                                  style: TextStyle(color: Colors.white),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                "Jovens: ${isAtivo ? "Ativos" : "Inativos"}",
+                                textAlign: TextAlign.end,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Tooltip(
+                                message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                child: Switch(
+                                  value: isAtivo,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      statusJovem = value ? "ativo" : "inativo";
+                                    });
+                                    _carregarjovens(statusJovem);
+                                  },
+                                  activeColor: Color(0xFF0A63AC),
                                 ),
-                                subtitle: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Turma: ${jovem['cod_turma'] ?? ''}\nColégio: ${jovem['escola'] ?? ''}\nEmpresa: ${jovem['empresa'] ??''}",
-                                      style: const TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: 500,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child:
+                            _isFetching
+                                ? const Center(
+                              child: CircularProgressIndicator(),
+                            )
+                                : ListView.builder(
+                              itemCount: _jovensFiltrados.length,
+                              itemBuilder: (context, index) {
+                                final jovem = _jovensFiltrados[index];
+                                return Card(
+                                  color: Color(0xFF0A63AC),
+                                  child: ListTile(
+                                    title: Text(
+                                      jovem['nome'] ?? '',
+                                      style: TextStyle(color: Colors.white),
                                     ),
-                                    Divider(color: Colors.white),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    subtitle: Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        IconButton(
-                                          icon: const Icon(
-                                              Icons.edit,
-                                              color: Colors.white,
-                                              size: 20
-                                          ),
-                                          onPressed:
-                                              () => _abrirFormulario(
-                                            jovem: jovem,
-                                          ),
+                                        Text(
+                                          "Turma: ${jovem['cod_turma'] ?? ''}\nColégio: ${jovem['escola'] ?? ''}\nEmpresa: ${jovem['empresa'] ??''}",
+                                          style: const TextStyle(color: Colors.white),
                                         ),
-                                        Container(
-                                          width: 2, // Espessura da linha
-                                          height: 30, // Altura da linha
-                                          color: Colors.white.withValues(alpha: 0.2), // Cor da linha
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.white, size: 20,),
-                                          onPressed: () => excluirJovem(jovem['id']),
+                                        Divider(color: Colors.white),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            IconButton(
+                                                tooltip: "Visualizar",
+                                                focusColor: Colors.transparent,
+                                                hoverColor: Colors.transparent,
+                                                splashColor: Colors.transparent,
+                                                highlightColor: Colors.transparent,
+                                                enableFeedback: false,
+                                                icon: const Icon(Icons.remove_red_eye, color: Colors.white, size: 20,),
+                                                onPressed: () => Navigator.of(context).pushReplacement(
+                                                    MaterialPageRoute(builder: (_) => JovemAprendizDetalhes(jovem: jovem)))),
+                                            Container(
+                                              width: 2, // Espessura da linha
+                                              height: 30, // Altura da linha
+                                              color: Colors.white.withValues(alpha: 0.2), // Cor da linha
+                                            ),
+                                            IconButton(
+                                                tooltip: "Ocorrências",
+                                                focusColor: Colors.transparent,
+                                                hoverColor: Colors.transparent,
+                                                splashColor: Colors.transparent,
+                                                highlightColor: Colors.transparent,
+                                                enableFeedback: false,
+                                                icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 20,),
+                                                onPressed: () => Navigator.of(context).pushReplacement(
+                                                    MaterialPageRoute(builder: (_) => OcorrenciasScreen(jovemId: jovem['id'], nomeJovem: jovem['nome'],)))),
+                                            Container(
+                                              width: 2, // Espessura da linha
+                                              height: 30, // Altura da linha
+                                              color: Colors.white.withValues(alpha: 0.2), // Cor da linha
+                                            ),
+                                            IconButton(
+                                              tooltip: "Editar",
+                                              focusColor: Colors.transparent,
+                                              hoverColor: Colors.transparent,
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
+                                              enableFeedback: false,
+                                              icon: const Icon(
+                                                  Icons.edit,
+                                                  color: Colors.white,
+                                                  size: 20
+                                              ),
+                                              onPressed:
+                                                  () => _abrirFormulario(
+                                                jovem: jovem,
+                                              ),
+                                            ),
+                                            Container(
+                                              width: 2, // Espessura da linha
+                                              height: 30, // Altura da linha
+                                              color: Colors.white.withValues(alpha: 0.2), // Cor da linha
+                                            ),
+                                            IconButton(
+                                              tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                              focusColor: Colors.transparent,
+                                              hoverColor: Colors.transparent,
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
+                                              enableFeedback: false,
+                                              icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.white, size: 20,),
+                                              onPressed: () => isAtivo == true ? inativarJovem(jovem['id']) : ativarJovem(jovem['id']),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     );
                   },
                 ),
@@ -360,6 +515,11 @@ class _CadastroJovemState extends State<CadastroJovem> {
           ),
           ),
           floatingActionButton: FloatingActionButton(
+            tooltip: "Cadastrar Jovem",
+            focusColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            enableFeedback: false,
             onPressed: () => _abrirFormulario(),
             backgroundColor: Color(0xFF0A63AC),
             child: const Icon(Icons.add, color: Colors.white),
@@ -654,7 +814,7 @@ class _FormjovemState extends State<_Formjovem> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                 dropdownColor: const Color(0xFF0A63AC),
                 style: const TextStyle(color: Colors.white),
               ),
@@ -687,7 +847,7 @@ class _FormjovemState extends State<_Formjovem> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                 dropdownColor: const Color(0xFF0A63AC),
                 style: const TextStyle(color: Colors.white),
               ),
@@ -725,7 +885,7 @@ class _FormjovemState extends State<_Formjovem> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                 dropdownColor: const Color(0xFF0A63AC),
                 style: const TextStyle(color: Colors.white),
               ),

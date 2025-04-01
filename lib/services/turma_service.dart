@@ -4,8 +4,8 @@ class TurmaService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas as turmas
-  Future<List<Map<String, dynamic>>> buscarTurmas() async {
-    final response = await supabase.from('turmas').select().eq('status', 'ativo');
+  Future<List<Map<String, dynamic>>> buscarTurmas(status) async {
+    final response = await supabase.from('turmas').select().eq('status', '$status');
     return response;
   }
 

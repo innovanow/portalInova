@@ -4,8 +4,8 @@ class ProfessorService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas os professores
-  Future<List<Map<String, dynamic>>> buscarprofessor() async {
-    final response = await supabase.from('professores').select().eq('status', 'ativo');
+  Future<List<Map<String, dynamic>>> buscarprofessor(statusProfessor) async {
+    final response = await supabase.from('professores').select().eq('status', '$statusProfessor');
     return response;
   }
 

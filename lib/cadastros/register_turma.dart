@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
-import 'package:inova/telas/widgets.dart';
+import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../services/turma_service.dart';
 import '../telas/home.dart';
+
+String statusTurma = "ativo";
 
 class TurmaScreen extends StatefulWidget {
   const TurmaScreen({super.key});
@@ -26,11 +29,11 @@ class _TurmaScreenState extends State<TurmaScreen> {
   @override
   void initState() {
     super.initState();
-    _carregarTurmas();
+    _carregarTurmas(statusTurma);
   }
 
-  void _carregarTurmas() async {
-    final turmas = await _turmaService.buscarTurmas();
+  void _carregarTurmas(statusTurma) async {
+    final turmas = await _turmaService.buscarTurmas(statusTurma);
     setState(() {
       _turmas = turmas;
       _turmasFiltradas = List.from(_turmas);
@@ -55,7 +58,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
           content: _FormTurma(
             turma: turma,
             onTurmaSalva: () {
-              _carregarTurmas(); // Atualiza lista ao fechar modal
+              _carregarTurmas(statusTurma); // Atualiza lista ao fechar modal
               Navigator.pop(context);
             },
           ),
@@ -64,19 +67,19 @@ class _TurmaScreenState extends State<TurmaScreen> {
     );
   }
 
-  void excluirTurma(String id) {
+  void inativarTurma(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: const Text("Confirmar Exclusão",
+          title: const Text("Inativar?",
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
               fontFamily: 'FuturaBold',
             ),),
-          content: const Text("Tem certeza de que deseja excluir esta turma?",
+          content: const Text("Tem certeza de que deseja inativar esta turma?",
             style: TextStyle(
               fontSize: 15,
               color: Colors.white,
@@ -87,14 +90,58 @@ class _TurmaScreenState extends State<TurmaScreen> {
               child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
             ),
             TextButton(
-              onPressed: () {
-                _turmaService
+              onPressed: () async {
+                await _turmaService
                     .inativarTurma(id);
-                _carregarTurmas();
-                Navigator.of(context).pop(); // Fecha o alerta
+                _carregarTurmas(statusTurma);
+                if (context.mounted){
+                  Navigator.of(context).pop(); // Fecha o alerta
+                }
               },
-              child: const Text("Excluir", style: TextStyle(
+              child: const Text("Inativar", style: TextStyle(
                   color: Colors.red,
+                  fontWeight: FontWeight.bold
+              )),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void ativarTurma(String id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF0A63AC),
+          title: const Text("Ativar?",
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.white,
+              fontFamily: 'FuturaBold',
+            ),),
+          content: const Text("Tem certeza de que deseja ativar esta turma?",
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+            ),),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
+              child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () async {
+                await _turmaService
+                    .ativarTurma(id);
+                _carregarTurmas(statusTurma);
+                if (context.mounted){
+                  Navigator.of(context).pop(); // Fecha o alerta
+                }
+              },
+              child: const Text("Ativar", style: TextStyle(
+                  color: Colors.green,
                   fontWeight: FontWeight.bold
               )),
             ),
@@ -106,6 +153,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAtivo = statusTurma.toLowerCase() == 'ativo';
     return GestureDetector(
       onTap: () {
         if (modoPesquisa) {
@@ -125,6 +173,8 @@ class _TurmaScreenState extends State<TurmaScreen> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: AppBar(
+                elevation: 0,
+                surfaceTintColor: Colors.transparent,
                 backgroundColor: const Color(0xFF0A63AC),
                 title: modoPesquisa
                     ? TextField(
@@ -158,6 +208,11 @@ class _TurmaScreenState extends State<TurmaScreen> {
                 actions: [
                   modoPesquisa
                       ? IconButton(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    enableFeedback: false,
                     icon: const Icon(Icons.close, color: Colors.white),
                     onPressed: () => fecharPesquisa(
                       setState,
@@ -171,6 +226,12 @@ class _TurmaScreenState extends State<TurmaScreen> {
 
                   )
                       : IconButton(
+                    tooltip: "Pesquisar",
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    enableFeedback: false,
                     icon: const Icon(Icons.search, color: Colors.white),
                     onPressed: () => setState(() {
                       modoPesquisa = true; //
@@ -185,6 +246,11 @@ class _TurmaScreenState extends State<TurmaScreen> {
                       (context) => Tooltip(
                     message: "Abrir Menu", // Texto do tooltip
                     child: IconButton(
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      enableFeedback: false,
                       icon: Icon(Icons.menu,
                         color: Colors.white,) ,// Ícone do Drawer
                       onPressed: () {
@@ -208,9 +274,9 @@ class _TurmaScreenState extends State<TurmaScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        height: 80,
+                        height: 50,
                         width: 150,
-                        child: Image.asset("assets/logo.png"),
+                        child: SvgPicture.asset("assets/logoInova.svg"),
                       ),
                       Text(
                         'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
@@ -220,17 +286,28 @@ class _TurmaScreenState extends State<TurmaScreen> {
                         'Email: ${auth.emailUsuario ?? "Carregando..."}',
                         style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
                       ),
+                      Text(
+                        'Perfil: ${auth.tipoUsuario?.toUpperCase() ?? "Carregando..."}',
+                        style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
                 buildDrawerItem(Icons.home, "Home", context),
-                buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
-                buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-                buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-                buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-                buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
-                buildDrawerItem(Icons.man, "Cadastro de Professor", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
+                if (auth.tipoUsuario == "administrador")
+                  buildDrawerItem(Icons.man, "Cadastro de Professor", context),
                 buildDrawerItem(Icons.calendar_month, "Calendário", context),
+                buildDrawerItem(Icons.logout, "Sair", context),
               ],
             ),
           ),
@@ -290,67 +367,112 @@ class _TurmaScreenState extends State<TurmaScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 40, 20, 30),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      return SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: 500,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child:
-                          _isFetching
-                              ? const Center(
-                            child: CircularProgressIndicator(),
-                          )
-                              : ListView.builder(
-                            itemCount: _turmasFiltradas.length,
-                            itemBuilder: (context, index) {
-                              final turma = _turmasFiltradas[index];
-                              return Card(
-                                color: Color(0xFF0A63AC),
-                                child: ListTile(
-                                  title: Text(
-                                    "Turma: ${turma['codigo_turma']}",
-                                    style: TextStyle(color: Colors.white),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "Turmas: ${isAtivo ? "Ativas" : "Inativas"}",
+                                  textAlign: TextAlign.end,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Tooltip(
+                                  message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                  child: Switch(
+                                    value: isAtivo,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        statusTurma = value ? "ativo" : "inativo";
+                                      });
+                                      _carregarTurmas(statusTurma);
+                                    },
+                                    activeColor: Color(0xFF0A63AC),
                                   ),
-                                  subtitle: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Ano: ${turma['ano']} - ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_termino']))}",
-                                        style: const TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: 500,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child:
+                              _isFetching
+                                  ? const Center(
+                                child: CircularProgressIndicator(),
+                              )
+                                  : ListView.builder(
+                                itemCount: _turmasFiltradas.length,
+                                itemBuilder: (context, index) {
+                                  final turma = _turmasFiltradas[index];
+                                  return Card(
+                                    color: Color(0xFF0A63AC),
+                                    child: ListTile(
+                                      title: Text(
+                                        "Turma: ${turma['codigo_turma']}",
+                                        style: TextStyle(color: Colors.white),
                                       ),
-                                      Divider(color: Colors.white),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      subtitle: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.edit,
-                                              color: Colors.white,
-                                            ),
-                                            onPressed:
-                                                () => _abrirFormulario(
-                                              turma: turma,
-                                            ),
+                                          Text(
+                                            "Ano: ${turma['ano']} - ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_termino']))}",
+                                            style: const TextStyle(color: Colors.white),
                                           ),
-                                          Container(
-                                            width: 2, // Espessura da linha
-                                            height: 30, // Altura da linha
-                                            color: Colors.white.withValues(alpha: 0.2), // Cor da linha
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.delete, color: Colors.white, size: 20,),
-                                            onPressed: () => excluirTurma(turma['id']),
+                                          Divider(color: Colors.white),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              IconButton(
+                                                tooltip: "Editar",
+                                                focusColor: Colors.transparent,
+                                                hoverColor: Colors.transparent,
+                                                splashColor: Colors.transparent,
+                                                highlightColor: Colors.transparent,
+                                                enableFeedback: false,
+                                                icon: const Icon(
+                                                  Icons.edit,
+                                                  color: Colors.white,
+                                                ),
+                                                onPressed:
+                                                    () => _abrirFormulario(
+                                                  turma: turma,
+                                                ),
+                                              ),
+                                              Container(
+                                                width: 2, // Espessura da linha
+                                                height: 30, // Altura da linha
+                                                color: Colors.white.withValues(alpha: 0.2), // Cor da linha
+                                              ),
+                                              IconButton(
+                                                tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                                focusColor: Colors.transparent,
+                                                hoverColor: Colors.transparent,
+                                                splashColor: Colors.transparent,
+                                                highlightColor: Colors.transparent,
+                                                enableFeedback: false,
+                                                icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.white, size: 20,),
+                                                onPressed: () => isAtivo == true ? inativarTurma(turma['id']) : ativarTurma(turma['id']),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       );
                     },
                   ),
@@ -359,6 +481,11 @@ class _TurmaScreenState extends State<TurmaScreen> {
             ),
           ),
           floatingActionButton: FloatingActionButton(
+            tooltip: "Cadastrar Turma",
+            focusColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            enableFeedback: false,
             onPressed: () => _abrirFormulario(),
             backgroundColor: Color(0xFF0A63AC),
             child: const Icon(Icons.add, color: Colors.white),

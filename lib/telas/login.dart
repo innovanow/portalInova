@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
 import 'home.dart';
-import 'package:web/web.dart' as web;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
   bool _isLoading = false;
   final AuthService _authService = AuthService();
+  bool lembrarDados = false;
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _emailController.text = credentials['email'] ?? '';
       _passwordController.text = credentials['password'] ?? '';
+      lembrarDados = credentials['lembrarDados'] == 'true';
     });
   }
 
@@ -51,12 +53,12 @@ class _LoginScreenState extends State<LoginScreen> {
       String? error = await _authService.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
+        lembrarDados,
       );
 
       setState(() => _isLoading = false);
 
       if (error == null) {
-        web.window.location.hash = '#/home';
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const Home()));
@@ -166,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                     const SizedBox(height: 20),
                     if (localErro != null)
-                      Text(localErro!, style: const TextStyle(color: Colors.red)),
+                      SelectableText(localErro!, style: const TextStyle(color: Colors.red)),
                     if (localSucesso != null)
                       Text(localSucesso!, style: const TextStyle(color: Colors.green)),
                   ],
@@ -317,10 +319,11 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(
-                    width: 250,
-                    height: 80,
-                    child: Image.asset("assets/logo.png", fit: BoxFit.contain)
+                InkWell(
+                  child: SizedBox(
+                      height: 80,
+                      child: SvgPicture.asset("assets/logoInova.svg")
+                  ),
                 ),
                 Text(
                   "Login",
@@ -407,41 +410,46 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                         const SizedBox(height: 10),
                                         if (_errorMessage != null)
-                                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                                        TextButton(
-                                          onPressed: _showResetPasswordDialog,
-                                          child: const Text(
-                                            "Esqueceu a senha?",
-                                            style: TextStyle(color: Colors.white),
+                                          SelectableText(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Row(
+                                                spacing: 5,
+                                                children: [
+                                                  SizedBox(
+                                                    height: 24.0,
+                                                    width: 24.0,
+                                                    child: Transform.scale(
+                                                      scale: 0.9,
+                                                      child: Checkbox(
+                                                        value: lembrarDados, // Variável booleana para controlar o estado do checkbox
+                                                        onChanged: (bool? value) {
+                                                          setState(() {
+                                                            lembrarDados = value ?? false; // Atualiza o estado ao clicar no checkbox
+                                                          });
+                                                        },
+                                                        splashRadius: 0, // Remove o efeito de splash ao clicar
+                                                        overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                                        checkColor: Colors.white,
+                                                        activeColor: Colors.orange,
+                                                        side: BorderSide(color: Colors.white, width: 2.0), // Define a cor e a espessura do contorno
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Lembrar dados',
+                                                    style: TextStyle(fontSize: 14,
+                                                        color: Colors.white), // Estiliza o texto, se necessário
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        TextButton(
-                                          onPressed: () async {
-                                            await _authService.clearCredentials();
-
-                                            // Opcional: limpar os campos da tela
-                                            setState(() {
-                                              _emailController.clear();
-                                              _passwordController.clear();
-                                            });
-                                            if(context.mounted){
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text("Credenciais apagadas com sucesso.",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                      )),
-                                                  backgroundColor: Color(0xFF0A63AC),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          child: const Text(
-                                            "Limpar dados",
-                                            style: TextStyle(color: Colors.white),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 20),
                                         _isLoading
                                             ? const CircularProgressIndicator()
                                             : ElevatedButton(
@@ -459,6 +467,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                             style: TextStyle(color: Colors.white), // Mantém o texto branco para contraste
                                           ),
                                         ),
+                                        const SizedBox(height: 10),
+                                        TextButton(
+                                          style: ButtonStyle(
+                                            overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                                          ),
+                                          onPressed: _showResetPasswordDialog,
+                                          child: const Text(
+                                            "Esqueceu a senha?",
+                                            style: TextStyle(color: Colors.white),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -467,13 +486,33 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             SizedBox(height: 20),
                             TextButton(
-                                onPressed: () {
-                                  web.window.location.reload();
+                                style: ButtonStyle(
+                                  overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                                ),
+                                onPressed: () async {
+                                  await _authService.clearCredentials();
+
+                                  // Opcional: limpar os campos da tela
+                                  setState(() {
+                                    _emailController.clear();
+                                    _passwordController.clear();
+                                  });
+                                  if(context.mounted){
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Credenciais apagadas com sucesso.",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            )),
+                                        backgroundColor: Color(0xFF0A63AC),
+                                      ),
+                                    );
+                                  }
                                 },
-                                child: const Text("Verificar atualização",
+                                child: const Text("Limpar Dados",
                                   style: TextStyle(color: Color(0xFF0A63AC)),)
                             ),
-                            Text("Versão: 0.12",
+                            Text("Versão: 0.19",
                               style: TextStyle(color: Color(0xFF0A63AC)),)
                           ],
                         );

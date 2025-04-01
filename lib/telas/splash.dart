@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/auth_service.dart';
+import 'home.dart';
+import 'login.dart'; // 🔁 Certifique-se que está importando corretamente
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.title});
@@ -16,7 +20,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   String _textoExibido = "";
   int _indexLetra = 0;
   late Timer _timer;
-  StreamSubscription<AuthState>? _authSubscription;
   bool _redirecionado = false;
 
   @override
@@ -32,37 +35,34 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _iniciarAnimacaoTexto();
 
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      if (!mounted || _redirecionado) return;
+    _iniciarSplashComTempoMinimo();
+  }
 
-      final session = data.session;
-      if (kDebugMode) print('📡 onAuthStateChange chamado');
+  Future<void> _iniciarSplashComTempoMinimo() async {
+    final authService = AuthService();
+    final prefs = await SharedPreferences.getInstance();
+    final lembrarDados = prefs.getBool('lembrar_dados') ?? false;
 
-      _redirecionado = true;
+    // Garante tempo mínimo de 3 segundos para splash + tempo da verificação da sessão
+    final resultados = await Future.wait([
+      authService.restoreSessionAndLogin(),
+      Future.delayed(const Duration(seconds: 3)),
+    ]);
 
-      if (session != null) {
-        if (kDebugMode) print('✅ Sessão ativa detectada. Indo para Home...');
-        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
-      } else {
-        if (kDebugMode) print('🔒 Sem sessão. Indo para Login...');
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-      }
-    });
+    if (!mounted || _redirecionado) return;
 
-    Future.delayed(const Duration(seconds: 5), () {
-      if (!mounted || _redirecionado) return;
+    final restaurou = resultados[0] as bool;
+    _redirecionado = true;
 
-      final session = Supabase.instance.client.auth.currentSession;
-      _redirecionado = true;
-
-      if (session != null) {
-        if (kDebugMode) print('⚠️ Timeout: sessão ainda ativa. Indo para Home...');
-        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
-      } else {
-        if (kDebugMode) print('⚠️ Timeout: sem sessão. Indo para Login...');
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-      }
-    });
+    if (restaurou && lembrarDados == true) {
+      if (kDebugMode) print('✅ Sessão restaurada com sucesso. Indo para Home...');
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const Home()));
+    } else {
+      if (kDebugMode) print('🔒 Nenhuma sessão ativa. Indo para Login...');
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()));
+    }
   }
 
   void _iniciarAnimacaoTexto() {
@@ -91,7 +91,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void dispose() {
     _controller.dispose();
     _timer.cancel();
-    _authSubscription?.cancel();
     super.dispose();
   }
 
@@ -112,25 +111,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Center(
             child: ScaleTransition(
               scale: _controller,
-              child: SizedBox(
-                height: 180,
-                width: 200,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _textoExibido,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'FuturaBold',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25,
-                        color: Color(0xFF0A63AC),
-                      ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                      "assets/logoInova.svg",
+                      fit: BoxFit.contain,
+                      width: 200,
+                  ),
+                  Text(
+                    _textoExibido,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'FuturaBold',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 25,
+                      color: Color(0xFF0A63AC),
                     ),
-                    Image.asset("assets/logo.png", fit: BoxFit.contain),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

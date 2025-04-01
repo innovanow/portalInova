@@ -4,8 +4,18 @@ class ModuloService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas os modulos
-  Future<List<Map<String, dynamic>>> buscarModulos() async {
-    final response = await supabase.from('modulos').select().eq('status', 'ativo');
+  Future<List<Map<String, dynamic>>> buscarModulos(String statusModulo) async {
+    final response = await supabase
+        .from('modulos')
+        .select('*, professores(nome)')
+        .eq('status', statusModulo);
+
+    return response;
+  }
+
+
+  Future<List<Map<String, dynamic>>> buscarProfessores() async {
+    final response = await supabase.from('professores').select().eq('status', 'ativo');
     return response;
   }
 
