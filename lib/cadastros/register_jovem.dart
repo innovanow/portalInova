@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/formatters/currency_input_formatter.dart';
 import 'package:flutter_multi_formatter/formatters/money_input_enums.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:inova/cadastros/register_ocorrencia.dart';
 import 'package:inova/telas/jovem.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
-import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/jovem_service.dart';
-import '../telas/home.dart';
+import '../widgets/drawer.dart';
 
 String statusJovem = "ativo";
 
@@ -29,6 +28,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
   List<Map<String, dynamic>> _jovensFiltrados = [];
   bool modoPesquisa = false;
   final TextEditingController _pesquisaController = TextEditingController();
+  String? fotoUrlAssinada;
 
   @override
   void initState() {
@@ -155,6 +155,30 @@ class _CadastroJovemState extends State<CadastroJovem> {
     );
   }
 
+  Future<String?> _getSignedUrl(String? path) async {
+    if (path == null || path.trim().isEmpty) return null;
+
+    try {
+      final url = await Supabase.instance.client.storage
+          .from('fotosjovens')
+          .createSignedUrl(path, 3600);
+      return url;
+    } catch (e) {
+      debugPrint("Erro ao gerar signed URL: $e");
+      return null;
+    }
+  }
+
+
+  String _getIniciais(String? nomeCompleto) {
+    if (nomeCompleto == null || nomeCompleto.trim().isEmpty) return "JA";
+
+    final partes = nomeCompleto.trim().split(" ");
+    if (partes.length == 1) return partes[0][0].toUpperCase();
+
+    return (partes[0][0] + partes[1][0]).toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isAtivo = statusJovem.toLowerCase() == 'ativo';
@@ -268,53 +292,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
               ),
             ),
           ),
-          drawer: Drawer(
-            child: ListView(
-              children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(color: Colors.white,),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 50,
-                        width: 150,
-                        child: SvgPicture.asset("assets/logoInova.svg"),
-                      ),
-                      Text(
-                        'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
-                        style: const TextStyle(color: Color(0xFF0A63AC)),
-                      ),
-                      Text(
-                        'Email: ${auth.emailUsuario ?? "Carregando..."}',
-                        style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
-                      ),
-                      Text(
-                        'Perfil: ${auth.tipoUsuario?.toUpperCase() ?? "Carregando..."}',
-                        style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                buildDrawerItem(Icons.home, "Home", context),
-                if (auth.tipoUsuario == "administrador")
-                  buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
-                if (auth.tipoUsuario == "administrador")
-                  buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-                if (auth.tipoUsuario == "administrador")
-                  buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-                if (auth.tipoUsuario == "administrador")
-                  buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-                if (auth.tipoUsuario == "administrador")
-                  buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
-                if (auth.tipoUsuario == "administrador")
-                  buildDrawerItem(Icons.man, "Cadastro de Professor", context),
-                buildDrawerItem(Icons.calendar_month, "Calendário", context),
-                buildDrawerItem(Icons.logout, "Sair", context),
-              ],
-            ),
-          ),
+          drawer: InovaDrawer(context: context),
           body: Container(
           width: double.infinity,
           height: double.infinity,
@@ -418,7 +396,29 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                 return Card(
                                   color: Color(0xFF0A63AC),
                                   child: ListTile(
-                                    title: Text(
+                                  leading: FutureBuilder<String?>(
+                                  future: _getSignedUrl(jovem['foto_url']),
+                                  builder: (context, snapshot) {
+                                    final temFoto = snapshot.hasData && snapshot.data!.isNotEmpty;
+
+                                    return CircleAvatar(
+                                      radius: 30,
+                                      backgroundColor: const Color(0xFFFF9800),
+                                      backgroundImage: temFoto ? NetworkImage(snapshot.data!) : null,
+                                      child: !temFoto
+                                          ? Text(
+                                        _getIniciais(jovem['nome']),
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                          : null,
+                                    );
+                                  },
+                                ),
+                                title: Text(
                                       jovem['nome'] ?? '',
                                       style: TextStyle(color: Colors.white),
                                     ),

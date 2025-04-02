@@ -1,8 +1,10 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:inova/widgets/widgets.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../cadastros/register_jovem.dart';
 import '../widgets/wave.dart';
@@ -288,18 +290,53 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                       message: fotoUrlAssinada == null ? "Adicionar foto" : "Alterar foto",
                       child: GestureDetector(
                         onTap: () async {
-                          final picker = ImagePicker();
-                          final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                          try {
+                            Uint8List? bytes;
+                            String ext = 'jpg';
 
-                          if (pickedFile != null) {
-                            final extension = pickedFile.path.split('.').last.toLowerCase();
-                            final extValida = (extension == 'png' || extension == 'jpg' || extension == 'jpeg') ? extension : 'jpg';
-                            final fileName = '${widget.jovem['id']}_${DateTime.now().millisecondsSinceEpoch}.$extValida';
+                            if (kIsWeb) {
+                              // ✅ Web: usa image_picker_for_web
+                              final picker = ImagePicker();
+                              final picked = await picker.pickImage(source: ImageSource.gallery);
 
-                            try {
+                              if (picked != null) {
+                                bytes = await picked.readAsBytes();
+                                ext = picked.name.split('.').last.toLowerCase();
+                              }
+                            } else {
+                              if (await Permission.photos.isDenied && await Permission.storage.isDenied) {
+                                await Permission.photos.request();
+                                await Permission.storage.request();
+                              }
+                              // ✅ Mobile: solicita permissão antes
+                              final status = await Permission.photos.request();
+                              if (!status.isGranted) {
+                                if(context.mounted){
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Permissão negada para acessar fotos')),
+                                  );
+                                }
+                                return;
+                              }
+
+                              // ✅ Mobile: usa file_picker
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                allowMultiple: false,
+                                withData: true,
+                              );
+
+                              if (result != null && result.files.single.bytes != null) {
+                                bytes = result.files.single.bytes;
+                                ext = result.files.single.extension?.toLowerCase() ?? 'jpg';
+                              }
+                            }
+
+                            if (bytes != null) {
+                              final extValida = (ext == 'png' || ext == 'jpg' || ext == 'jpeg') ? ext : 'jpg';
+                              final fileName = '${widget.jovem['id']}_${DateTime.now().millisecondsSinceEpoch}.$extValida';
+
                               final storage = Supabase.instance.client.storage.from('fotosjovens');
-
-                              final bytes = await pickedFile.readAsBytes();
                               await storage.uploadBinary(fileName, bytes, fileOptions: const FileOptions(upsert: true));
 
                               await Supabase.instance.client
@@ -308,20 +345,16 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                                   .eq('id', widget.jovem['id']);
 
                               setState(() {
-                                widget.jovem['foto_url'] = fileName; // atualiza o valor local
+                                widget.jovem['foto_url'] = fileName;
                               });
 
-                              await _carregarFotoAssinada(); // agora ele tem o caminho certo
-
-                            } catch (e) {
-                              if (kDebugMode) {
-                                print('Erro ao fazer upload da imagem: $e');
-                              }
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Erro ao fazer upload da imagem: $e')),
-                                );
-                              }
+                              await _carregarFotoAssinada();
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Erro ao fazer upload da imagem: $e')),
+                              );
                             }
                           }
                         },

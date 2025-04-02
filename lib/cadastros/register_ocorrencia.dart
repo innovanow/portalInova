@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inova/cadastros/register_jovem.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/ocorrencia_service.dart';
 import '../telas/home.dart';
 import '../widgets/wave.dart';
@@ -23,12 +24,45 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
     DateTime dataConvertida = DateTime.parse(data);
     return DateFormat('dd/MM/yyyy').format(dataConvertida);
   }
+  String? fotoUrlAssinada;
+  String? nomeJovem = '';
 
   @override
   void initState() {
     super.initState();
     _carregarOcorrencias();
+    _carregarFotoJovem(); // carrega imagem e nome
   }
+
+  Future<void> _carregarFotoJovem() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('jovens_aprendizes')
+          .select('nome, foto_url')
+          .eq('id', widget.jovemId)
+          .single();
+
+      if (mounted) {
+        setState(() {
+          nomeJovem = response['nome'];
+        });
+      }
+
+      if (response['foto_url'] != null && response['foto_url'].toString().isNotEmpty) {
+        final urlAssinada = await Supabase.instance.client.storage
+            .from('fotosjovens')
+            .createSignedUrl(response['foto_url'], 3600);
+        if (mounted) {
+          setState(() {
+            fotoUrlAssinada = urlAssinada;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Erro ao buscar foto do jovem: $e");
+    }
+  }
+
 
   Future<void> _carregarOcorrencias() async {
     final ocorrencias = await _ocorrenciaService.buscarOcorrenciasPorJovem(widget.jovemId);
@@ -323,6 +357,13 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
     );
   }
 
+  String _getIniciais(String? nomeCompleto) {
+    if (nomeCompleto == null || nomeCompleto.trim().isEmpty) return "JA";
+    final partes = nomeCompleto.trim().split(" ");
+    return (partes.first[0] + (partes.length > 1 ? partes[1][0] : '')).toUpperCase();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,6 +388,23 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                             fontSize: constraints.maxWidth > 800 ? 20 : 15,
                             color: Colors.white,
                           ),
+                        ),
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: const Color(0xFFFF9800),
+                          backgroundImage: (fotoUrlAssinada != null)
+                              ? NetworkImage(fotoUrlAssinada!)
+                              : null,
+                          child: (fotoUrlAssinada == null)
+                              ? Text(
+                            _getIniciais(nomeJovem),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                              : null,
                         ),
                       ],
                     );
