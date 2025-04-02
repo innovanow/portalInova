@@ -314,21 +314,29 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                     context: context,
                                     builder: (_) => AlertDialog(
                                       backgroundColor: const Color(0xFF0A63AC),
-                                      title: const Text("Excluir ocorrência",
+                                      title: const Text("Tem certeza que deseja excluir esta ocorrência?",
                                         style: TextStyle(
                                           fontSize: 20,
                                           color: Colors.white,
                                           fontFamily: 'FuturaBold',
                                         ),),
-                                      content: const Text("Tem certeza que deseja excluir esta ocorrência?", style: TextStyle(color: Colors.white)),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.pop(context, false),
-                                          child: const Text("Cancelar", style: TextStyle(color: Colors.orange)),
+                                          child: const Text("Cancelar",
+                                              style: TextStyle(color: Colors.orange,
+                                                fontFamily: 'FuturaBold',
+                                                fontSize: 15,
+                                              )
+                                          ),
                                         ),
                                         TextButton(
                                           onPressed: () => Navigator.pop(context, true),
-                                          child: const Text("Excluir", style: TextStyle(color: Colors.redAccent)),
+                                          child: const Text("Excluir",
+                                              style: TextStyle(color: Colors.red,
+                                                fontFamily: 'FuturaBold',
+                                                fontSize: 15,
+                                              )),
                                         ),
                                       ],
                                     ),

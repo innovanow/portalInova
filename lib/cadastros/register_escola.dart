@@ -77,21 +77,21 @@ class _EscolaScreenState extends State<EscolaScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: const Text("Inativar?",
+          title: const Text("Tem certeza de que deseja inativar esta empresa?",
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
               fontFamily: 'FuturaBold',
             ),),
-          content: const Text("Tem certeza de que deseja inativar esta empresa?",
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white,
-            ),),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
-              child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
+              child: const Text("Cancelar",
+                  style: TextStyle(color: Colors.orange,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )
+              ),
             ),
             TextButton(
               onPressed: () async {
@@ -102,10 +102,11 @@ class _EscolaScreenState extends State<EscolaScreen> {
                   Navigator.of(context).pop(); // Fecha o alerta
                 }
               },
-              child: const Text("Inativar", style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold
-              )),
+              child: const Text("Inativar",
+                  style: TextStyle(color: Colors.red,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )),
             ),
           ],
         );
@@ -119,21 +120,21 @@ class _EscolaScreenState extends State<EscolaScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: const Text("Ativar?",
+          title: const Text("Tem certeza de que deseja ativar este colégio?",
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
               fontFamily: 'FuturaBold',
             ),),
-          content: const Text("Tem certeza de que deseja ativar este colégio?",
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white,
-            ),),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
-              child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
+              child: const Text("Cancelar",
+                  style: TextStyle(color: Colors.orange,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )
+              ),
             ),
             TextButton(
               onPressed: () async {
@@ -144,10 +145,12 @@ class _EscolaScreenState extends State<EscolaScreen> {
                   Navigator.of(context).pop(); // Fecha o alerta
                 }
               },
-              child: const Text("Ativar", style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold
-              )),
+              child: const Text("Ativar",
+                  style: TextStyle(color: Colors.green,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )
+              ),
             ),
           ],
         );

@@ -13,11 +13,12 @@ import '../telas/calendar.dart';
 import '../telas/home.dart';
 import '../telas/jovem.dart';
 import '../telas/login.dart';
+import '../telas/presenca.dart';
 
 /// 📌 Função para criar um item do menu lateral
 Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
   return Tooltip(
-    message: 'Abrir $title',
+    message: title == "Sair" ? "Sair da conta" : 'Abrir $title',
     child: MouseRegion(
       cursor: SystemMouseCursors.click, // 👈 Mãozinha na web
       child: ListTile(
@@ -57,6 +58,10 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
           if (title == "Sair") {
             Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const LoginScreen()));
+          }
+          if (title == "Presenças") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => RegistrarPresencaPage(professorId: auth.idUsuario.toString(),)));
           }
           if (title == "Meu Perfil") {
             final response = await Supabase.instance.client

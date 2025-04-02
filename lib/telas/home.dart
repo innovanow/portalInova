@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:inova/widgets/widgets.dart';
 import 'package:inova/services/auth_service.dart';
+
+import '../widgets/drawer.dart';
 
 final auth = AuthService();
 
@@ -129,55 +130,7 @@ class _HomeState extends State<Home> {
             ),
           ),
         ),
-        drawer: Drawer(
-          child: ListView(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(color: Colors.white,),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 50,
-                      width: 150,
-                      child: SvgPicture.asset("assets/logoInova.svg"),
-                    ),
-                    Text(
-                      'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
-                      style: const TextStyle(color: Color(0xFF0A63AC)),
-                    ),
-                    Text(
-                      'Email: ${auth.emailUsuario ?? "Carregando..."}',
-                      style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
-                    ),
-                    Text(
-                      'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").toUpperCase() ?? "Carregando..."}',
-                      style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              buildDrawerItem(Icons.home, "Home", context),
-              if (auth.tipoUsuario == "jovem_aprendiz")
-                buildDrawerItem(Icons.account_circle, "Meu Perfil", context),
-              if (auth.tipoUsuario == "administrador")
-                buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
-              if (auth.tipoUsuario == "administrador")
-                buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-              if (auth.tipoUsuario == "administrador")
-                buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-              if (auth.tipoUsuario == "administrador")
-                buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-              if (auth.tipoUsuario == "administrador")
-                buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
-              if (auth.tipoUsuario == "administrador")
-                buildDrawerItem(Icons.man, "Cadastro de Professor", context),
-              buildDrawerItem(Icons.calendar_month, "Calendário", context),
-              buildDrawerItem(Icons.logout, "Sair", context),
-            ],
-          ),
-        ),
+        drawer: InovaDrawer(context: context),
         body: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(

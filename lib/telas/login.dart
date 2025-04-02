@@ -63,7 +63,39 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const Home()));
       } else {
-        setState(() => _errorMessage = error);
+        if (error.contains("invalid_credentials")) {
+          setState(() {
+            _errorMessage = "Credenciais inválidas!";
+          });
+        } else if (error.contains("email_not_confirmed")) {
+          setState(() {
+            _errorMessage = "E-mail ainda não confirmado. Verifique sua caixa de entrada.";
+          });
+        } else if (error.contains("user_not_found")) {
+          setState(() {
+            _errorMessage = "Usuário não encontrado.";
+          });
+        } else if (error.contains("unauthorized")) {
+          setState(() {
+            _errorMessage = "Acesso não autorizado.";
+          });
+        } else if (error.contains("invalid_email")) {
+          setState(() {
+            _errorMessage = "E-mail inválido.";
+          });
+        } else if (error.contains("invalid_password")) {
+          setState(() {
+            _errorMessage = "Senha inválida.";
+          });
+        } else if (error.contains("network_error")) {
+          setState(() {
+            _errorMessage = "Erro de conexão. Verifique sua internet.";
+          });
+        } else {
+          setState(() {
+            _errorMessage = "Erro desconhecido: $error";
+          });
+        }
       }
     }
   }
@@ -177,7 +209,12 @@ class _LoginScreenState extends State<LoginScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text("Cancelar", style: TextStyle(color: Colors.orange)),
+                  child: const Text("Cancelar",
+                      style: TextStyle(color: Colors.orange,
+                        fontFamily: 'FuturaBold',
+                        fontSize: 15,
+                      )
+                  ),
                 ),
                 if (!localTokenEnviado)
                   localCarregando
@@ -214,7 +251,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         });
                       }
                     },
-                    child: const Text("Enviar código", style: TextStyle(color: Colors.orange)),
+                    child: const Text("Enviar código",
+                        style: TextStyle(color: Colors.orange,
+                          fontFamily: 'FuturaBold',
+                          fontSize: 15,
+                        )),
                   ),
                 if (localTokenEnviado)
                   localCarregando
@@ -285,7 +326,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         localCarregando = false;
                       });
                     },
-                    child: const Text("Redefinir senha", style: TextStyle(color: Colors.orange)),
+                    child: const Text("Redefinir senha",
+                        style: TextStyle(color: Colors.orange,
+                          fontFamily: 'FuturaBold',
+                          fontSize: 15,
+                        )
+                    ),
                   ),
               ],
             );
@@ -294,9 +340,6 @@ class _LoginScreenState extends State<LoginScreen> {
       },
     );
   }
-
-
-
 
 
   @override
@@ -512,7 +555,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: const Text("Limpar Dados",
                                   style: TextStyle(color: Color(0xFF0A63AC)),)
                             ),
-                            Text("Versão: 0.22",
+                            Text("Versão: 0.23",
                               style: TextStyle(color: Color(0xFF0A63AC)),)
                           ],
                         );

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:inova/widgets/widgets.dart';
@@ -36,7 +35,7 @@ class InovaDrawer extends StatelessWidget {
                   style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
                 ),
                 Text(
-                  'Perfil: ${auth.tipoUsuario?.toUpperCase() ?? "Carregando..."}',
+                  'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").toUpperCase() ?? "Carregando..."}',
                   style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
                 ),
               ],
@@ -52,6 +51,10 @@ class InovaDrawer extends StatelessWidget {
             buildDrawerItem(Icons.man, "Cadastro de Professor", context),
           ],
           buildDrawerItem(Icons.calendar_month, "Calendário", context),
+          if (auth.tipoUsuario == "professor" || auth.tipoUsuario == "administrador")
+          buildDrawerItem(Icons.check_circle_outline, "Presenças", context),
+          if (auth.tipoUsuario == "jovem_aprendiz")
+          buildDrawerItem(Icons.event_available, "Histórico de Frequência", context),
           buildDrawerItem(Icons.logout, "Sair", context),
         ],
       ),
