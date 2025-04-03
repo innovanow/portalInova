@@ -7,15 +7,14 @@ class ModuloService {
   Future<List<Map<String, dynamic>>> buscarModulos(String statusModulo) async {
     final response = await supabase
         .from('modulos')
-        .select('*, professores(nome)')
+        .select('*, professores!modulos_professor_id_fkey(nome)')
         .eq('status', statusModulo);
 
     return response;
   }
 
-
   Future<List<Map<String, dynamic>>> buscarProfessores() async {
-    final response = await supabase.from('professores').select().eq('status', 'ativo');
+    final response = await supabase.from('professores').select().eq('status', 'ativo').order('nome', ascending: true);
     return response;
   }
 
@@ -37,6 +36,7 @@ class ModuloService {
     required String? horarioFinal,
     required String? diaSemana,
     required String? cor,
+    required String professorId,
   }) async {
     try {
 
@@ -50,6 +50,7 @@ class ModuloService {
         'dia_semana': diaSemana,
         'status': 'ativo',
         'cor': cor,
+        'professor_id': professorId,
       });
 
       return null;
@@ -69,6 +70,7 @@ class ModuloService {
     required String? horarioFinal,
     required String? diaSemana,
     required String? cor,
+    required String professorId,
   }) async {
     try {
       await supabase.from('modulos').update({
@@ -80,6 +82,7 @@ class ModuloService {
         'horario_final': horarioFinal,
         'dia_semana': diaSemana,
         'cor': cor,
+        'professor_id': professorId,
       }).match({'id': id});
       return null;
     } catch (e) {

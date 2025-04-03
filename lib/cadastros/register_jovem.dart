@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_multi_formatter/formatters/currency_input_formatter.dart';
-import 'package:flutter_multi_formatter/formatters/money_input_enums.dart';
 import 'package:inova/cadastros/register_ocorrencia.dart';
 import 'package:inova/telas/jovem.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:intl/intl.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/jovem_service.dart';
 import '../widgets/drawer.dart';
+import '../widgets/widgets.dart';
 
 String statusJovem = "ativo";
 
@@ -36,14 +34,22 @@ class _CadastroJovemState extends State<CadastroJovem> {
     _carregarjovens(statusJovem);
   }
 
-  void _carregarjovens(status) async {
-    final jovens = await _jovemService.buscarjovem(status);
+  void _carregarjovens(String status) async {
+    List<Map<String, dynamic>> jovens;
+
+    if (auth.tipoUsuario == "professor") {
+      jovens = await _jovemService.buscarJovensDoProfessor(auth.idUsuario.toString(), status);
+    } else {
+      jovens = await _jovemService.buscarjovem(status);
+    }
+
     setState(() {
       _jovens = jovens;
-      _jovensFiltrados = List.from(_jovens);
+      _jovensFiltrados = List.from(jovens);
       _isFetching = false;
     });
   }
+
 
   void _abrirFormulario({Map<String, dynamic>? jovem}) {
     showDialog(
@@ -51,13 +57,28 @@ class _CadastroJovemState extends State<CadastroJovem> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: Text(
-            jovem == null ? "Cadastrar Jovem" : "Editar Jovem",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white,
-              fontFamily: 'FuturaBold',
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                jovem == null ? "Cadastrar Jovem" : "Editar Jovem",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontFamily: 'FuturaBold',
+                ),
+              ),
+              IconButton(
+                tooltip: "Fechar",
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                enableFeedback: false,
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
           content: _Formjovem(
             jovem: jovem,
@@ -85,6 +106,9 @@ class _CadastroJovemState extends State<CadastroJovem> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -94,6 +118,9 @@ class _CadastroJovemState extends State<CadastroJovem> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _jovemService
                     .inativarJovem(id);
@@ -128,6 +155,9 @@ class _CadastroJovemState extends State<CadastroJovem> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -137,6 +167,9 @@ class _CadastroJovemState extends State<CadastroJovem> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _jovemService
                     .ativarJovem(id);
@@ -355,6 +388,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
+                        if (auth.tipoUsuario == "administrador")
                         Align(
                           alignment: Alignment.topRight,
                           child: Column(
@@ -398,105 +432,111 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                 final jovem = _jovensFiltrados[index];
                                 return Card(
                                   color: Color(0xFF0A63AC),
-                                  child: ListTile(
-                                  leading: FutureBuilder<String?>(
-                                  future: _getSignedUrl(jovem['foto_url']),
-                                  builder: (context, snapshot) {
-                                    final temFoto = snapshot.hasData && snapshot.data!.isNotEmpty;
-
-                                    return CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: const Color(0xFFFF9800),
-                                      backgroundImage: temFoto ? NetworkImage(snapshot.data!) : null,
-                                      child: !temFoto
-                                          ? Text(
-                                        _getIniciais(jovem['nome']),
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                          : null,
-                                    );
-                                  },
-                                ),
-                                title: Text(
-                                      jovem['nome'] ?? '',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    subtitle: Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          "Turma: ${jovem['cod_turma'] ?? ''}\nColégio: ${jovem['escola'] ?? ''}\nEmpresa: ${jovem['empresa'] ??''}",
-                                          style: const TextStyle(color: Colors.white),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          spacing: 10,
+                                          children: [
+                                            FutureBuilder<String?>(
+                                              future: _getSignedUrl(jovem['foto_url']),
+                                              builder: (context, snapshot) {
+                                                final temFoto = snapshot.hasData && snapshot.data!.isNotEmpty;
+
+                                                return CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundColor: const Color(0xFFFF9800),
+                                                  backgroundImage: temFoto ? NetworkImage(snapshot.data!) : null,
+                                                  child: !temFoto
+                                                      ? Text(
+                                                    _getIniciais(jovem['nome']),
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  )
+                                                      : null,
+                                                );
+                                              },
+                                            ),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  jovem['nome'] ?? '',
+                                                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  "Colégio: ${jovem['escola'] ?? ''}\nEmpresa: ${jovem['empresa'] ?? ''}",
+                                                  style: const TextStyle(color: Colors.white),
+                                                ),
+                                                if (auth.tipoUsuario == "professor")
+                                                SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Text(
+                                                  auth.tipoUsuario == "professor"
+                                                      ? "Turma: ${jovem['cod_turma'] ?? ''}\nMódulo: ${jovem['turmas']?['modulos_turmas']?[0]?['modulos']?['nome'] ?? 'Não informado'}"
+                                                      : "",
+                                                  style: const TextStyle(color: Colors.white),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                         Divider(color: Colors.white),
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             IconButton(
-                                                tooltip: "Visualizar",
-                                                focusColor: Colors.transparent,
-                                                hoverColor: Colors.transparent,
-                                                splashColor: Colors.transparent,
-                                                highlightColor: Colors.transparent,
-                                                enableFeedback: false,
-                                                icon: const Icon(Icons.remove_red_eye, color: Colors.white, size: 20,),
-                                                onPressed: () => Navigator.of(context).pushReplacement(
-                                                    MaterialPageRoute(builder: (_) => JovemAprendizDetalhes(jovem: jovem)))),
-                                            Container(
-                                              width: 2, // Espessura da linha
-                                              height: 30, // Altura da linha
-                                              color: Colors.white.withValues(alpha: 0.2), // Cor da linha
+                                              focusColor: Colors.transparent,
+                                              hoverColor: Colors.transparent,
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
+                                              enableFeedback: false,
+                                              tooltip: "Visualizar",
+                                              icon: const Icon(Icons.remove_red_eye, color: Colors.white, size: 20),
+                                              onPressed: () => Navigator.of(context).pushReplacement(
+                                                  MaterialPageRoute(builder: (_) => JovemAprendizDetalhes(jovem: jovem))),
                                             ),
                                             IconButton(
-                                                tooltip: "Ocorrências",
-                                                focusColor: Colors.transparent,
-                                                hoverColor: Colors.transparent,
-                                                splashColor: Colors.transparent,
-                                                highlightColor: Colors.transparent,
-                                                enableFeedback: false,
-                                                icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 20,),
-                                                onPressed: () => Navigator.of(context).pushReplacement(
-                                                    MaterialPageRoute(builder: (_) => OcorrenciasScreen(jovemId: jovem['id'], nomeJovem: jovem['nome'],)))),
-                                            Container(
-                                              width: 2, // Espessura da linha
-                                              height: 30, // Altura da linha
-                                              color: Colors.white.withValues(alpha: 0.2), // Cor da linha
+                                              focusColor: Colors.transparent,
+                                              hoverColor: Colors.transparent,
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
+                                              enableFeedback: false,
+                                              tooltip: "Ocorrências",
+                                              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 20),
+                                              onPressed: () => Navigator.of(context).pushReplacement(
+                                                  MaterialPageRoute(builder: (_) =>
+                                                      OcorrenciasScreen(jovemId: jovem['id'], nomeJovem: jovem['nome']))),
                                             ),
+                                            if (auth.tipoUsuario == "administrador")
                                             IconButton(
+                                              focusColor: Colors.transparent,
+                                              hoverColor: Colors.transparent,
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
+                                              enableFeedback: false,
                                               tooltip: "Editar",
-                                              focusColor: Colors.transparent,
-                                              hoverColor: Colors.transparent,
-                                              splashColor: Colors.transparent,
-                                              highlightColor: Colors.transparent,
-                                              enableFeedback: false,
-                                              icon: const Icon(
-                                                  Icons.edit,
-                                                  color: Colors.white,
-                                                  size: 20
-                                              ),
-                                              onPressed:
-                                                  () => _abrirFormulario(
-                                                jovem: jovem,
-                                              ),
+                                              icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                                              onPressed: () => _abrirFormulario(jovem: jovem),
                                             ),
-                                            Container(
-                                              width: 2, // Espessura da linha
-                                              height: 30, // Altura da linha
-                                              color: Colors.white.withValues(alpha: 0.2), // Cor da linha
-                                            ),
+                                            if (auth.tipoUsuario == "administrador")
                                             IconButton(
-                                              tooltip: isAtivo == true ? "Inativar" : "Ativar",
                                               focusColor: Colors.transparent,
                                               hoverColor: Colors.transparent,
                                               splashColor: Colors.transparent,
                                               highlightColor: Colors.transparent,
                                               enableFeedback: false,
-                                              icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.white, size: 20,),
+                                              tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                              icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.white, size: 20),
                                               onPressed: () => isAtivo == true ? inativarJovem(jovem['id']) : ativarJovem(jovem['id']),
                                             ),
                                           ],
@@ -517,7 +557,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
             ],
           ),
           ),
-          floatingActionButton: FloatingActionButton(
+          floatingActionButton: auth.tipoUsuario == "administrador" ? FloatingActionButton(
             tooltip: "Cadastrar Jovem",
             focusColor: Colors.transparent,
             hoverColor: Colors.transparent,
@@ -526,7 +566,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
             onPressed: () => _abrirFormulario(),
             backgroundColor: Color(0xFF0A63AC),
             child: const Icon(Icons.add, color: Colors.white),
-          ),
+          ) : null
         ),
       ),
     );
@@ -584,6 +624,7 @@ class _FormjovemState extends State<_Formjovem> {
   String? _empresaSelecionada;
   String? _escolaSelecionada;
   String? _turmaSelecionada;
+  String? _sexoSelecionado;
   List<Map<String, dynamic>> _escolas = [];
   List<Map<String, dynamic>> _empresas = [];
   List<Map<String, dynamic>> _turmas = [];
@@ -651,6 +692,7 @@ class _FormjovemState extends State<_Formjovem> {
       _horasSemanaisController.text = widget.jovem!['horas_semanais'] ?? "";
       _remuneracaoController.text = formatarDinheiro(widget.jovem!['remuneracao']);
       _turmaSelecionada= widget.jovem!['turma_id'] ?? "";
+      _sexoSelecionado= widget.jovem!['sexo'] ?? "";
     }
   }
 
@@ -697,6 +739,7 @@ class _FormjovemState extends State<_Formjovem> {
           horasSemanais: _horasSemanaisController.text.trim(),
           remuneracao: _remuneracaoController.text.trim(),
           turma: _turmaSelecionada,
+          sexo: _sexoSelecionado,
         );
       } else {
         error = await _jovemService.cadastrarjovem(
@@ -737,6 +780,7 @@ class _FormjovemState extends State<_Formjovem> {
           horasSemanais: _horasSemanaisController.text.trim(),
           remuneracao: _remuneracaoController.text.trim(),
           turma: _turmaSelecionada,
+          sexo: _sexoSelecionado,
         );
       }
 
@@ -760,35 +804,65 @@ class _FormjovemState extends State<_Formjovem> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTextField(_nomeController, "Nome"),
+              buildTextField(_nomeController, "Nome", onChangedState: () => setState(() {})),
               if (!_editando) ...[
-                _buildTextField(_emailController, "E-mail", isEmail: true),
-                _buildTextField(_senhaController, "Senha", isPassword: true),
+                buildTextField(_emailController, "E-mail", isEmail: true, onChangedState: () => setState(() {})),
+                buildTextField(_senhaController, "Senha", isPassword: true, onChangedState: () => setState(() {})),
               ],
-              _buildTextField(_dataNascimentoController, "Data de Nascimento", isData: true),
-              _buildTextField(_cidadeNatalController, "Cidade Natal"),
-              _buildTextField(_cpfController, "CPF", isCpf: true),
-              _buildTextField(_rgController, "RG", isRg: true),
-              _buildTextField(_codCarteiraTrabalhoController, "Carteira de Trabalho"),
-              _buildTextField(_nomePaiController, "Nome do Pai"),
-              _buildTextField(_estadoCivilPaiController, "Estado Civil do Pai"),
-              _buildTextField(_cpfPaiController, "CPF do Pai", isCpf: true),
-              _buildTextField(_rgPaiController, "RG do Pai", isRg: true),
-              _buildTextField(_nomeMaeController, "Nome da Mãe"),
-              _buildTextField(_estadoCivilMaeController, "Estado Civil da Mãe"),
-              _buildTextField(_cpfMaeController, "CPF da Mãe", isCpf: true),
-              _buildTextField(_rgMaeController, "RG da Mãe", isRg: true),
-              _buildTextField(_enderecoController, "Endereço"),
-              _buildTextField(_numeroController, "Número"),
-              _buildTextField(_bairroController, "Bairro"),
-              _buildTextField(_cidadeController, "Cidade"),
-              _buildTextField(_estadoController, "Estado"),
-              _buildTextField(_paisController, "País"),
-              _buildTextField(_cepController, "CEP", isCep: true),
-              _buildTextField(_telefoneJovemController, "Telefone do Jovem"),
-              _buildTextField(_telefonePaiController, "Telefone do Pai"),
-              _buildTextField(_telefoneMaeController, "Telefone da Mãe"),
-              _buildTextField(_escolaridadeController, "Escolaridade"),
+              buildTextField(_dataNascimentoController, "Data de Nascimento", isData: true, onChangedState: () => setState(() {})),
+              DropdownButtonFormField<String>(
+                value: _sexoSelecionado,
+                decoration: InputDecoration(
+                  labelText: "Sexo",
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                dropdownColor: const Color(0xFF0A63AC),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                style: const TextStyle(color: Colors.white),
+                items: const [
+                  DropdownMenuItem(value: 'Masculino', child: Text('Masculino')),
+                  DropdownMenuItem(value: 'Feminino', child: Text('Feminino')),
+                  DropdownMenuItem(value: 'Outro', child: Text('Outro')),
+                  DropdownMenuItem(value: 'Prefiro não informar', child: Text('Prefiro não informar')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _sexoSelecionado = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              buildTextField(_cidadeNatalController, "Cidade Natal", onChangedState: () => setState(() {})),
+              buildTextField(_cpfController, "CPF", isCpf: true, onChangedState: () => setState(() {})),
+              buildTextField(_rgController, "RG", isRg: true, onChangedState: () => setState(() {})),
+              buildTextField(_codCarteiraTrabalhoController, "Carteira de Trabalho", onChangedState: () => setState(() {})),
+              buildTextField(_nomePaiController, "Nome do Pai", onChangedState: () => setState(() {})),
+              buildTextField(_estadoCivilPaiController, "Estado Civil do Pai", onChangedState: () => setState(() {})),
+              buildTextField(_cpfPaiController, "CPF do Pai", isCpf: true, onChangedState: () => setState(() {})),
+              buildTextField(_rgPaiController, "RG do Pai", isRg: true, onChangedState: () => setState(() {})),
+              buildTextField(_nomeMaeController, "Nome da Mãe", onChangedState: () => setState(() {})),
+              buildTextField(_estadoCivilMaeController, "Estado Civil da Mãe", onChangedState: () => setState(() {})),
+              buildTextField(_cpfMaeController, "CPF da Mãe", isCpf: true, onChangedState: () => setState(() {})),
+              buildTextField(_rgMaeController, "RG da Mãe", isRg: true, onChangedState: () => setState(() {})),
+              buildTextField(_enderecoController, "Endereço", onChangedState: () => setState(() {})),
+              buildTextField(_numeroController, "Número", onChangedState: () => setState(() {})),
+              buildTextField(_bairroController, "Bairro", onChangedState: () => setState(() {})),
+              buildTextField(_cidadeController, "Cidade", onChangedState: () => setState(() {})),
+              buildTextField(_estadoController, "Estado", onChangedState: () => setState(() {})),
+              buildTextField(_paisController, "País", onChangedState: () => setState(() {})),
+              buildTextField(_cepController, "CEP", isCep: true, onChangedState: () => setState(() {})),
+              buildTextField(_telefoneJovemController, "Telefone do Jovem", onChangedState: () => setState(() {})),
+              buildTextField(_telefonePaiController, "Telefone do Pai", onChangedState: () => setState(() {})),
+              buildTextField(_telefoneMaeController, "Telefone da Mãe", onChangedState: () => setState(() {})),
+              buildTextField(_escolaridadeController, "Escolaridade", onChangedState: () => setState(() {})),
               DropdownButtonFormField(
                 value: (_escolaSelecionada != null &&
                     _escolas.any((e) => e['id'].toString() == _escolaSelecionada))
@@ -855,11 +929,11 @@ class _FormjovemState extends State<_Formjovem> {
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 10),
-              _buildTextField(_areaAprendizadoController, "Área de Aprendizado"),
-              _buildTextField(_horasTrabalhoController, "Horas de Trabalho", isHora: true),
-              _buildTextField(_horasCursoController, "Horas de Curso", isHora: true),
-              _buildTextField(_horasSemanaisController, "Horas Semanais", isHora: true),
-              _buildTextField(_remuneracaoController, "Remuneração", isDinheiro: true),
+              buildTextField(_areaAprendizadoController, "Área de Aprendizado", onChangedState: () => setState(() {})),
+              buildTextField(_horasTrabalhoController, "Horas de Trabalho", isHora: true, onChangedState: () => setState(() {})),
+              buildTextField(_horasCursoController, "Horas de Curso", isHora: true, onChangedState: () => setState(() {})),
+              buildTextField(_horasSemanaisController, "Horas Semanais", isHora: true, onChangedState: () => setState(() {})),
+              buildTextField(_remuneracaoController, "Remuneração", isDinheiro: true, onChangedState: () => setState(() {})),
               DropdownButtonFormField(
                 value: (_turmaSelecionada != null &&
                     _turmas.any((e) => e['id'].toString() == _turmaSelecionada))
@@ -943,89 +1017,6 @@ class _FormjovemState extends State<_Formjovem> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        bool isPassword = false,
-        bool isEmail = false,
-        bool isCnpj = false,
-        bool isCpf = false,
-        bool isCep = false,
-        bool isData = false,
-        bool isRg = false,
-        bool isDinheiro = false,
-        bool isHora = false,
-      }) {
-
-    var cpfFormatter = MaskTextInputFormatter(
-      mask: "###.###.###-##",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    var cepFormatter = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
-    var dataFormatter = MaskTextInputFormatter(
-      mask: "##/##/####",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    var rgFormatter = MaskTextInputFormatter(
-      mask: "##.###.###-#",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    var dinheiroFormatter = CurrencyInputFormatter(
-      leadingSymbol: 'R\$', // Adiciona "R$ " antes do valor
-      useSymbolPadding: true, // Mantém espaço após "R$"
-      thousandSeparator: ThousandSeparator.Period, // Usa "." como separador de milhar
-    );
-    var horaFormatter = MaskTextInputFormatter(
-      mask: "##:##:##",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white, width: 2.0),
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        style: const TextStyle(color: Colors.white),
-        obscureText: isPassword,
-        keyboardType: isEmail
-            ? TextInputType.emailAddress
-            : isCnpj || isCep || isData || isCpf
-            ? TextInputType.number
-            : TextInputType.text,
-        inputFormatters: isCpf
-            ? [cpfFormatter]
-            : isCep
-            ? [cepFormatter]
-            : isData ? [dataFormatter] : isRg ? [rgFormatter] : isDinheiro ? [dinheiroFormatter] : isHora ? [horaFormatter] : [],
-        validator: (value) {
-          if (value == null || value.isEmpty) return "Digite um valor válido";
-          if (isEmail && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
-            return "Digite um e-mail válido";
-          }
-          if (isCnpj && value.length != 18) return "Digite um CNPJ válido";
-          if (isCpf && value.length != 14) return "CPF deve ter 11 dígitos";
-          if (isCep && value.length != 9) return "Digite um CEP válido";
-          if (isData && value.length != 10) return "Digite uma data válida";
-          if (isPassword && value.length < 6) return "A senha deve ter no mínimo 6 caracteres";
-          if (isRg && value.length != 12) return "Digite um RG válido";
-          if (isDinheiro && value.length < 8) return "Digite um valor válido";
-          if (isHora && value.length != 8) return "Digite uma hora válida";
-          return null;
-        },
       ),
     );
   }

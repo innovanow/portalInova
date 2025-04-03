@@ -46,13 +46,28 @@ class _ModuloScreenState extends State<ModuloScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: Text(
-            modulo == null ? "Cadastrar Módulo" : "Editar Módulo",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white,
-              fontFamily: 'FuturaBold',
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                modulo == null ? "Cadastrar Módulo" : "Editar Módulo",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontFamily: 'FuturaBold',
+                ),
+              ),
+              IconButton(
+                tooltip: "Fechar",
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                enableFeedback: false,
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
           content: _FormModulo(
             modulo: modulo,
@@ -80,6 +95,9 @@ class _ModuloScreenState extends State<ModuloScreen> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -89,6 +107,9 @@ class _ModuloScreenState extends State<ModuloScreen> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                await  _moduloService
                     .inativarModulo(id);
@@ -123,6 +144,9 @@ class _ModuloScreenState extends State<ModuloScreen> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -132,6 +156,9 @@ class _ModuloScreenState extends State<ModuloScreen> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _moduloService
                     .ativarModulo(id);
@@ -503,7 +530,7 @@ class _FormModuloState extends State<_FormModulo> {
       _horarioInicialController.text = widget.modulo!['horario_inicial'] ?? "";
       _horarioFinalController.text = widget.modulo!['horario_final'] ?? "";
       selectedColor = Color(int.parse(widget.modulo!['cor']));
-      _professorSelecionado = widget.modulo!['professor_id'] ?? "";
+      _professorSelecionado = widget.modulo?['professor_id']?.toString();
     }
   }
 
@@ -534,6 +561,7 @@ class _FormModuloState extends State<_FormModulo> {
           horarioFinal: _horarioFinalController.text.trim(),
           diaSemana: _diaSelecionado,
           cor: '0x${selectedColor.toARGB32().toRadixString(16).toUpperCase()}',
+          professorId: _professorSelecionado!,
         );
       } else {
         error = await _moduloservice.cadastrarModulos(
@@ -549,6 +577,7 @@ class _FormModuloState extends State<_FormModulo> {
               ? formatter.format(DateFormat('dd/MM/yyyy').parse(_dataTerminoController.text))
               : null,
           cor: '0x${selectedColor.toARGB32().toRadixString(16).toUpperCase()}',
+          professorId: _professorSelecionado!,
         );
       }
 
@@ -577,7 +606,7 @@ class _FormModuloState extends State<_FormModulo> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTextField(_nomeController, "Nome"),
+              buildTextField(_nomeController, "Nome"),
             DropdownButtonFormField<String>(
               value: _turnoSelecionado, // Variável que armazena o valor selecionado
               items: ['Matutino', 'Vespertino', 'Noturno']
@@ -609,10 +638,10 @@ class _FormModuloState extends State<_FormModulo> {
               style: const TextStyle(color: Colors.white),
             ),
               const SizedBox(height: 10),
-              _buildTextField(_dataInicioController, "Data de Início", isData: true),
-              _buildTextField(_dataTerminoController, "Data de Término", isData: true),
-              _buildTextField(_horarioInicialController, "Horário de Início", isHora: true),
-              _buildTextField(_horarioFinalController, "Horário de Término", isHora: true),
+              buildTextField(_dataInicioController, "Data de Início", isData: true, onChangedState: () => setState(() {})),
+              buildTextField(_dataTerminoController, "Data de Término", isData: true, onChangedState: () => setState(() {})),
+              buildTextField(_horarioInicialController, "Horário de Início", isHora: true, onChangedState: () => setState(() {})),
+              buildTextField(_horarioFinalController, "Horário de Término", isHora: true, onChangedState: () => setState(() {})),
               DropdownButtonFormField<String>(
                 value: _diaSelecionado, // Variável que armazena o valor selecionado
                 items: ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
@@ -645,7 +674,9 @@ class _FormModuloState extends State<_FormModulo> {
               ),
               SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: _professorSelecionado,
+              value: _professores.any((p) => p['id'].toString() == _professorSelecionado)
+                  ? _professorSelecionado
+                  : null,
               items: _professores.map((professor) {
                 final id = professor['id'].toString(); // id salvo no banco
                 final nome = professor['nome'];        // nome exibido
@@ -737,69 +768,6 @@ class _FormModuloState extends State<_FormModulo> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        bool isPassword = false,
-        bool isEmail = false,
-        bool isCnpj = false,
-        bool isCep = false,
-        bool isData = false,
-        bool isAno = false,
-        bool isHora = false,
-      }) {
-
-    var dataFormatter = MaskTextInputFormatter(
-      mask: "##/##/####",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-
-    var anoFormatter = MaskTextInputFormatter(
-      mask: "####",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-
-    var horaFormatter = MaskTextInputFormatter(
-      mask: "##:##:##",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white, width: 2.0),
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        style: const TextStyle(color: Colors.white),
-        obscureText: isPassword,
-        keyboardType: isEmail
-            ? TextInputType.emailAddress
-            : isCnpj || isCep
-            ? TextInputType.number
-            : TextInputType.text,
-        inputFormatters: isData
-            ? [dataFormatter]
-            : isAno ? [anoFormatter] : isHora ? [horaFormatter] : [],
-        validator: (value) {
-          if (value == null || value.isEmpty) return "Digite um valor válido";
-          if (isData && value.length != 10) return "Digite uma data válida";
-          if (isHora && value.length != 8) return "Digite uma hora válida";
-          return null;
-        },
       ),
     );
   }

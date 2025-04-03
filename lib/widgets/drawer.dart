@@ -42,19 +42,23 @@ class InovaDrawer extends StatelessWidget {
             ),
           ),
           buildDrawerItem(Icons.home, "Home", context),
+          if (auth.tipoUsuario == "jovem_aprendiz")
+            buildDrawerItem(Icons.person, "Meu Perfil", context),
           if (auth.tipoUsuario == "administrador") ...[
             buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
             buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-            buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-            buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-            buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
             buildDrawerItem(Icons.man, "Cadastro de Professor", context),
+            buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
+            buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
+            buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
           ],
           buildDrawerItem(Icons.calendar_month, "Calendário", context),
-          if (auth.tipoUsuario == "professor" || auth.tipoUsuario == "administrador")
+          if (auth.tipoUsuario == "professor")
+            buildDrawerItem(Icons.person, "Jovens", context),
+          if (auth.tipoUsuario == "professor")
           buildDrawerItem(Icons.check_circle_outline, "Presenças", context),
           if (auth.tipoUsuario == "jovem_aprendiz")
-          buildDrawerItem(Icons.event_available, "Histórico de Frequência", context),
+          buildDrawerItem(Icons.event_available, "Histórico de Presenças", context),
           buildDrawerItem(Icons.logout, "Sair", context),
         ],
       ),

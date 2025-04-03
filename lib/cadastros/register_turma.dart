@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
@@ -45,13 +46,28 @@ class _TurmaScreenState extends State<TurmaScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: Text(
-            turma == null ? "Cadastrar Turma" : "Editar Turma",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white,
-              fontFamily: 'FuturaBold',
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                turma == null ? "Cadastrar Turma" : "Editar Turma",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontFamily: 'FuturaBold',
+                ),
+              ),
+              IconButton(
+                tooltip: "Fechar",
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                enableFeedback: false,
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
           content: _FormTurma(
             turma: turma,
@@ -79,6 +95,9 @@ class _TurmaScreenState extends State<TurmaScreen> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -88,6 +107,9 @@ class _TurmaScreenState extends State<TurmaScreen> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _turmaService
                     .inativarTurma(id);
@@ -122,6 +144,9 @@ class _TurmaScreenState extends State<TurmaScreen> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -131,6 +156,9 @@ class _TurmaScreenState extends State<TurmaScreen> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _turmaService
                     .ativarTurma(id);
@@ -395,6 +423,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                                                 enableFeedback: false,
                                                 icon: const Icon(
                                                   Icons.edit,
+                                                  size: 20,
                                                   color: Colors.white,
                                                 ),
                                                 onPressed:
@@ -486,6 +515,7 @@ class _FormTurmaState extends State<_FormTurma> {
   void initState() {
     super.initState();
     _carregarModulos();
+
     if (widget.turma != null) {
       _editando = true;
       _turmaId = widget.turma!['id'].toString();
@@ -493,7 +523,15 @@ class _FormTurmaState extends State<_FormTurma> {
       _anoController.text = widget.turma!['ano'].toString();
       _dataInicioController.text = formatarDataParaExibicao(widget.turma!['data_inicio'] ?? "");
       _dataTerminoController.text = formatarDataParaExibicao(widget.turma!['data_termino'] ?? "");
-      modulosSelecionados = List<String>.from(widget.turma!['modulos_ids']);
+
+      _turmaservice.buscarModulosDaTurma(_turmaId!).then((modulos) {
+        if (kDebugMode) {
+          print("Modulos da turma: $modulos");
+        }
+        setState(() {
+          modulosSelecionados = modulos;
+        });
+      });
     }
   }
 
@@ -561,10 +599,10 @@ class _FormTurmaState extends State<_FormTurma> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTextField(_codigoController, "Código da Turma"),
-              _buildTextField(_anoController, "Ano", isAno: true),
-              _buildTextField(_dataInicioController, "Data de Início", isData: true),
-              _buildTextField(_dataTerminoController, "Data de Término", isData: true),
+              buildTextField(_codigoController, "Código da Turma", onChangedState: () => setState(() {})),
+              buildTextField(_anoController, "Ano", isAno: true, onChangedState: () => setState(() {})),
+              buildTextField(_dataInicioController, "Data de Início", isData: true, onChangedState: () => setState(() {})),
+              buildTextField(_dataTerminoController, "Data de Término", isData: true, onChangedState: () => setState(() {})),
               MultiSelectChips(
                 modulos: _modulos, // Lista de módulos carregada do Supabase
                 onSelecionado: (selecionados) {
@@ -625,62 +663,6 @@ class _FormTurmaState extends State<_FormTurma> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        bool isPassword = false,
-        bool isEmail = false,
-        bool isCnpj = false,
-        bool isCep = false,
-        bool isData = false,
-        bool isAno = false,
-      }) {
-
-    var dataFormatter = MaskTextInputFormatter(
-      mask: "##/##/####",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-
-    var anoFormatter = MaskTextInputFormatter(
-      mask: "####",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white, width: 2.0),
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        style: const TextStyle(color: Colors.white),
-        obscureText: isPassword,
-        keyboardType: isEmail
-            ? TextInputType.emailAddress
-            : isCnpj || isCep
-            ? TextInputType.number
-            : TextInputType.text,
-        inputFormatters: isData
-            ? [dataFormatter]
-            : isAno ? [anoFormatter] : [],
-        validator: (value) {
-          if (value == null || value.isEmpty) return "Digite um valor válido";
-          if (isData && value.length != 10) return "Digite uma data válida";
-          return null;
-        },
       ),
     );
   }

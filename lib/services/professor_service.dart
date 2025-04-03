@@ -5,7 +5,7 @@ class ProfessorService {
 
   // Buscar todas os professores
   Future<List<Map<String, dynamic>>> buscarprofessor(statusProfessor) async {
-    final response = await supabase.from('professores').select().eq('status', '$statusProfessor');
+    final response = await supabase.from('professores').select().eq('status', '$statusProfessor').order('nome', ascending: true);
     return response;
   }
 
@@ -43,6 +43,7 @@ class ProfessorService {
     required String cidadeNatal,
     required String email,
     required String senha,
+    required String? sexo,
   }) async {
     try {
 
@@ -81,6 +82,7 @@ class ProfessorService {
         'pais': pais,
         'cidade_natal': cidadeNatal,
         'status': 'ativo',
+        'sexo': sexo,
       });
 
       return null;
@@ -108,6 +110,7 @@ class ProfessorService {
     required String pais,
     required String cidadeNatal,
     required String id,
+    required String? sexo,
   }) async {
     try {
       await supabase.from('professores').update({
@@ -127,6 +130,7 @@ class ProfessorService {
         'formacao': formacao,
         'pais': pais,
         'cidade_natal': cidadeNatal,
+        'sexo': sexo,
       }).match({'id': id});
       return null;
     } catch (e) {

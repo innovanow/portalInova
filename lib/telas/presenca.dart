@@ -5,6 +5,7 @@ import '../services/presenca_service.dart';
 import 'package:intl/intl.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
+import 'historico_chamada.dart';
 
 class RegistrarPresencaPage extends StatefulWidget {
   final String professorId;
@@ -34,11 +35,18 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
   }
 
   Future<void> _carregarModulos() async {
+    if (kDebugMode) {
+      print("🔍 Buscando módulos para: ${widget.professorId}");
+    }
     final modulos = await _presencaService.listarModulosDoProfessor(widget.professorId);
+    if (kDebugMode) {
+      print("🔢 Módulos encontrados: ${modulos.length}");
+    }
     setState(() {
       _modulos = modulos;
     });
   }
+
 
   Future<void> _carregarAlunosPorTurmaId(String turmaId) async {
     setState(() => _carregando = true);
@@ -68,6 +76,9 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
           ),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.pop(context),
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -77,6 +88,9 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 try {
                   final lista = _alunos.map((aluno) {
@@ -104,8 +118,14 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                     if (e.toString().contains('duplicate key')) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Já existe presença registrada nesta data.')),
+                          const SnackBar(
+                              backgroundColor: Color(0xFF0A63AC),
+                              content: Text('Já existe presença registrada nesta data.',
+                                  style: TextStyle(
+                                color: Colors.white,
+                              ))),
                         );
+                        Navigator.of(context).pop();
                       }
                     } else {
                       debugPrint('Erro ao salvar presenças: $e');
@@ -113,6 +133,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Erro ao salvar presença: $e')),
                         );
+                        Navigator.of(context).pop();
                       }
                     }
                   }
@@ -121,7 +142,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                 }
               },
               child: const Text("Confirmar",
-                  style: TextStyle(color: Colors.orange,
+                  style: TextStyle(color: Colors.green,
                     fontFamily: 'FuturaBold',
                     fontSize: 15,
                   )
@@ -161,14 +182,39 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
             elevation: 0,
             surfaceTintColor: Colors.transparent,
             backgroundColor: const Color(0xFF0A63AC),
-            title: const Text(
-              'Presenças',
-              style: TextStyle(
-                fontFamily: 'FuturaBold',
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.white,
-              ),
+            title: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Presenças",
+                        style: TextStyle(
+                          fontFamily: 'FuturaBold',
+                          fontWeight: FontWeight.bold,
+                          fontSize: constraints.maxWidth > 800 ? 20 : 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                        IconButton(
+                          tooltip: "Histórico",
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          enableFeedback: false,
+                          onPressed: (){
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => HistoricoChamadasPage(professorId: '${auth.idUsuario}',)));
+                          },
+                          icon: Icon(
+                            Icons.history,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                    ],
+                  );
+                }
             ),
             iconTheme: const IconThemeData(color: Colors.white),
             automaticallyImplyLeading: false,
@@ -285,7 +331,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                   ),
 
                   const Divider(),
-                  Text("Desmarque os jovens que não estiveram presentes:",
+                  Text( _moduloSelecionado == null ? "Selecione um módulo para registrar as presenças." : "Desmarque os jovens que não estiveram presentes:",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'FuturaBold',
@@ -322,23 +368,26 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.check,
-            color: Colors.white,
-            size: 20,
-          ),
-          label: const Text("Salvar Presença",
-            style: TextStyle(
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.check,
               color: Colors.white,
-              fontSize: 18,
-            )),
-          onPressed: _moduloSelecionado == null ? null : _salvarPresencas,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            disabledBackgroundColor: Colors.grey,
-            minimumSize: const Size(double.infinity, 50),
+              size: 20,
+            ),
+            label: const Text("Salvar Presença",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+              )),
+            onPressed: _moduloSelecionado == null ? null : _salvarPresencas,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              disabledBackgroundColor: Colors.grey,
+              minimumSize: const Size(double.infinity, 50),
+            ),
           ),
         ),
       ),

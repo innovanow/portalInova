@@ -1,14 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:inova/widgets/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../cadastros/register_jovem.dart';
+import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
-import 'home.dart';
 
 class JovemAprendizDetalhes extends StatefulWidget {
   final Map<String, dynamic> jovem;
@@ -59,38 +57,96 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
     }
   }
 
-  Future<void> _excluirFoto() async {
-    final path = widget.jovem['foto_url']; // nome do arquivo salvo
+  Future<void> _excluirFoto(context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF0A63AC),
+          title: const Text("Tem certeza de que deseja excluir a foto de perfil?",
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.white,
+              fontFamily: 'FuturaBold',
+            ),),
+          actions: [
+            TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
+              onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
+              child: const Text("Cancelar",
+                  style: TextStyle(color: Colors.orange,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )
+              ),
+            ),
+            TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
+              onPressed: () async {
+                final path = widget.jovem['foto_url']; // nome do arquivo salvo
 
-    if (path == null || path.toString().isEmpty) return;
+                if (path == null || path.toString().isEmpty) return;
 
-    try {
-      final storage = Supabase.instance.client.storage.from('fotosjovens');
+                try {
+                  final storage = Supabase.instance.client.storage.from('fotosjovens');
 
-      // 1. Remove do Storage
-      await storage.remove([path]);
+                  // 1. Remove do Storage
+                  await storage.remove([path]);
 
-      // 2. Remove do banco
-      await Supabase.instance.client
-          .from('jovens_aprendizes')
-          .update({'foto_url': null})
-          .eq('id', widget.jovem['id']);
+                  // 2. Remove do banco
+                  await Supabase.instance.client
+                      .from('jovens_aprendizes')
+                      .update({'foto_url': null})
+                      .eq('id', widget.jovem['id']);
 
-      // 3. Atualiza a UI
-      setState(() {
-        fotoUrlAssinada = null;
-        widget.jovem['foto_url'] = null;
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Foto excluída com sucesso.")),
-      );
-    } catch (e) {
-      debugPrint("Erro ao excluir foto: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erro ao excluir foto: $e")),
-      );
-    }
+                  // 3. Atualiza a UI
+                  setState(() {
+                    fotoUrlAssinada = null;
+                    widget.jovem['foto_url'] = null;
+                  });
+                  if (context.mounted){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          backgroundColor: Color(0xFF0A63AC),
+                          content: Text("Foto excluída com sucesso.",
+                              style: TextStyle(
+                                color: Colors.white,
+                              ))
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  debugPrint("Erro ao excluir foto: $e");
+                  if (context.mounted){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          backgroundColor: Color(0xFF0A63AC),
+                          content: Text("Erro ao excluir foto: $e",
+                              style: TextStyle(
+                                color: Colors.white,
+                              ))
+                      ),
+                    );
+                  }
+                }
+                if (context.mounted){
+                  Navigator.of(context).pop(); // Fecha o alerta
+                }
+              },
+              child: const Text("Sim",
+                  style: TextStyle(color: Colors.red,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -118,7 +174,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                             color: Colors.white,
                           ),
                         ),
-                        if (fotoUrlAssinada != null)
+                        if (fotoUrlAssinada != null && auth.tipoUsuario == "joven_aprendiz" || auth.tipoUsuario == "administrador")
                           IconButton(
                             tooltip: "Excluir foto",
                             focusColor: Colors.transparent,
@@ -126,7 +182,9 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                             splashColor: Colors.transparent,
                             highlightColor: Colors.transparent,
                             enableFeedback: false,
-                            onPressed: _excluirFoto,
+                            onPressed: (){
+                              _excluirFoto(context);
+                            },
                             icon: Icon(
                                 Icons.delete,
                                 color: Colors.white,
@@ -140,26 +198,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
               iconTheme: const IconThemeData(color: Colors.white),
               automaticallyImplyLeading: false,
               // Evita que o Flutter gere um botão automático
-              leading: auth.tipoUsuario == 'administrador' ? Builder(
-                builder:
-                    (context) => Tooltip(
-                  message: "Voltar", // Texto do tooltip
-                  child: IconButton(
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    enableFeedback: false,
-                    icon: Icon(Icons.arrow_back_ios,
-                      color: Colors.white,) ,// Ícone do Drawer
-                    onPressed: () {
-                      fotoUrlAssinada = null;
-                      Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const CadastroJovem()));
-                    },
-                  ),
-                ),
-              ) :
+              leading: auth.tipoUsuario == 'jovem_aprendiz' ?
               Builder(
                 builder:
                     (context) => Tooltip(
@@ -179,57 +218,31 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                     },
                   ),
                 ),
+              ) :
+              Builder(
+                builder:
+                    (context) => Tooltip(
+                  message: "Voltar", // Texto do tooltip
+                  child: IconButton(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    enableFeedback: false,
+                    icon: Icon(Icons.arrow_back_ios,
+                      color: Colors.white,) ,// Ícone do Drawer
+                    onPressed: () {
+                      fotoUrlAssinada = null;
+                      Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (_) => const CadastroJovem()));
+                    },
+                  ),
+                ),
               )
           ),
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.white,),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 80,
-                      width: 150,
-                      child: SvgPicture.asset("assets/logoInova.svg"),
-                    ),
-                    Text(
-                      'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
-                      style: const TextStyle(color: Color(0xFF0A63AC)),
-                    ),
-                    Text(
-                      'Email: ${auth.emailUsuario ?? "Carregando..."}',
-                      style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            buildDrawerItem(Icons.home, "Home", context),
-            if (auth.tipoUsuario == "jovem_aprendiz")
-              buildDrawerItem(Icons.account_circle, "Meu Perfil", context),
-            if (auth.tipoUsuario == "administrador")
-              buildDrawerItem(Icons.business, "Cadastro de Empresa", context),
-            if (auth.tipoUsuario == "administrador")
-              buildDrawerItem(Icons.school, "Cadastro de Colégio", context),
-            if (auth.tipoUsuario == "administrador")
-              buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
-            if (auth.tipoUsuario == "administrador")
-              buildDrawerItem(Icons.view_module, "Cadastro de Módulo", context),
-            if (auth.tipoUsuario == "administrador")
-              buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
-            if (auth.tipoUsuario == "administrador")
-              buildDrawerItem(Icons.man, "Cadastro de Professor", context),
-            buildDrawerItem(Icons.calendar_month, "Calendário", context),
-            buildDrawerItem(Icons.logout, "Sair", context),
-          ],
-        ),
-      ),
+      drawer: InovaDrawer(context: context),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -287,9 +300,13 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Tooltip(
-                      message: fotoUrlAssinada == null ? "Adicionar foto" : "Alterar foto",
+                      message: (fotoUrlAssinada == null && (auth.tipoUsuario == 'administrador' || auth.tipoUsuario == 'jovem_aprendiz'))
+                          ? "Adicionar foto"
+                          : (fotoUrlAssinada != null && (auth.tipoUsuario == 'administrador' || auth.tipoUsuario == 'jovem_aprendiz'))
+                          ? "Alterar foto"
+                          : "",
                       child: GestureDetector(
-                        onTap: () async {
+                        onTap: auth.tipoUsuario == 'administrador' || auth.tipoUsuario == 'jovem_aprendiz' ? () async {
                           try {
                             Uint8List? bytes;
                             String ext = 'jpg';
@@ -313,7 +330,13 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                               if (!status.isGranted) {
                                 if(context.mounted){
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Permissão negada para acessar fotos')),
+                                    const SnackBar(
+                                        backgroundColor: Color(0xFF0A63AC),
+                                        content: Text('Permissão negada para acessar fotos',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ))
+                                    ),
                                   );
                                 }
                                 return;
@@ -353,11 +376,17 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Erro ao fazer upload da imagem: $e')),
+                                SnackBar(
+                                    backgroundColor: Color(0xFF0A63AC),
+                                    content: Text('Erro ao fazer upload da imagem: $e',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ))
+                                ),
                               );
                             }
                           }
-                        },
+                        } : null,
                         child: CircleAvatar(
                           radius: 60,
                           backgroundColor: const Color(0xFFFF9800),

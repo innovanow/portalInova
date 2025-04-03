@@ -5,9 +5,52 @@ class JovemService {
 
   // Buscar todas os jovens
   Future<List<Map<String, dynamic>>> buscarjovem(status) async {
-    final response = await supabase.from('jovens_aprendizes').select().eq('status', '$status');
+    final response = await supabase.from('jovens_aprendizes').select().eq('status', '$status').order('nome', ascending: true);
     return response;
   }
+
+  Future<List<String>> buscarTurmasDoProfessor(String professorId) async {
+    // 1. Buscar os módulos do professor
+    final modulos = await supabase
+        .from('modulos')
+        .select('id')
+        .eq('professor_id', professorId);
+
+    final moduloIds = (modulos as List)
+        .map((modulo) => modulo['id'].toString())
+        .toList();
+
+    if (moduloIds.isEmpty) return [];
+
+    // 2. Buscar as turmas associadas a esses módulos via tabela intermediária
+    final modulosTurmas = await supabase
+        .from('modulos_turmas')
+        .select('turma_id')
+        .inFilter('modulo_id', moduloIds);
+
+    // 3. Extrair os IDs das turmas (evita duplicados com toSet())
+    final turmaIds = (modulosTurmas as List)
+        .map((item) => item['turma_id'].toString())
+        .toSet()
+        .toList();
+
+    return turmaIds;
+  }
+
+  Future<List<Map<String, dynamic>>> buscarJovensDoProfessor(String professorId, String status) async {
+    final turmasIds = await buscarTurmasDoProfessor(professorId);
+
+    if (turmasIds.isEmpty) return [];
+
+    final response = await supabase
+        .from('jovens_aprendizes')
+        .select('*, turmas(codigo_turma, modulos_turmas(modulos(nome)))')
+        .inFilter('turma_id', turmasIds)
+        .eq('status', status);
+
+    return response;
+  }
+
 
   Future<void> inativarJovem(String id) async {
     await supabase.from('jovens_aprendizes').update({'status': 'inativo'}).eq('id', id);
@@ -65,6 +108,7 @@ class JovemService {
     required String horasSemanais,
     required String areaAprendizado,
     required String? turma,
+    required String? sexo,
   }) async {
     try {
       // 🔍 Verifica se já existe usuário cadastrado com esse email
@@ -134,6 +178,7 @@ class JovemService {
         'rg_mae': rgMae,
         'turma_id': turma,
         'status': 'ativo',
+        'sexo': sexo
       });
 
       return null;
@@ -179,6 +224,7 @@ class JovemService {
     required String rgPai,
     required String rgMae,
     String? turma,
+    String? sexo,
   }) async {
     try {
       await supabase.from('jovens_aprendizes').update({
@@ -215,6 +261,7 @@ class JovemService {
         'rg_pai': rgPai,
         'rg_mae': rgMae,
         'turma_id': turma,
+        'sexo': sexo
       }).match({'id': id});
       return null;
     } catch (e) {
@@ -229,13 +276,13 @@ class JovemService {
 
   // Buscar empresas para o dropdown
   Future<List<Map<String, dynamic>>> buscarEmpresas() async {
-    final response = await supabase.from('empresas').select().eq('status', 'ativo');
+    final response = await supabase.from('empresas').select().eq('status', 'ativo').order('nome', ascending: true);
     return response;
   }
 
   // Buscar turmas para o dropdown
   Future<List<Map<String, dynamic>>> buscarTurmas() async {
-    final response = await supabase.from('turmas').select().eq('status', 'ativo');
+    final response = await supabase.from('turmas').select().eq('status', 'ativo').order('codigo_turma', ascending: true);
     return response;
   }
 }

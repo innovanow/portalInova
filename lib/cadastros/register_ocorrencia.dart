@@ -3,7 +3,7 @@ import 'package:inova/cadastros/register_jovem.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/ocorrencia_service.dart';
-import '../telas/home.dart';
+import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
 
 class OcorrenciasScreen extends StatefulWidget {
@@ -73,88 +73,143 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
   }
 
   void _abrirCadastroOcorrencia() {
-    String tipoSelecionado = 'escola';
+    String tipoSelecionado = auth.tipoUsuario == 'escola'
+        ? 'escola'
+        : auth.tipoUsuario == 'empresa'
+        ? 'empresa'
+        : 'instituto';
+
     TextEditingController descricaoController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF0A63AC),
-        title: const Text("Nova Ocorrência", style: TextStyle(fontSize: 20, color: Colors.white, fontFamily: 'FuturaBold')),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                value: tipoSelecionado,
-                decoration: InputDecoration(
-                  labelText: "Tipo",
-                  labelStyle: const TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(8),
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF0A63AC),
+              title: const Text(
+                "Nova Ocorrência",
+                style: TextStyle(fontSize: 20, color: Colors.white, fontFamily: 'FuturaBold'),
+              ),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      value: tipoSelecionado,
+                      decoration: InputDecoration(
+                        labelText: "Tipo",
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      dropdownColor: const Color(0xFF0A63AC),
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
+                      items: [
+                        if (auth.tipoUsuario == 'escola')
+                          const DropdownMenuItem(value: 'escola', child: Text('Colégio')),
+                        if (auth.tipoUsuario == 'administrador' || auth.tipoUsuario == 'professor')
+                          const DropdownMenuItem(value: 'instituto', child: Text('Instituto')),
+                        if (auth.tipoUsuario == 'empresa')
+                          const DropdownMenuItem(value: 'empresa', child: Text('Empresa')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          tipoSelecionado = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: descricaoController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        suffixIcon: descricaoController.text.isNotEmpty
+                            ? IconButton(
+                          tooltip: "Limpar",
+                          icon: const Icon(Icons.clear, color: Colors.white),
+                          onPressed: () {
+                            setState(() {
+                              descricaoController.clear();
+                            });
+                          },
+                        )
+                            : null,
+                        labelText: "Descreva",
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  style: ButtonStyle(
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white, width: 2.0),
-                    borderRadius: BorderRadius.circular(8),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "Cancelar",
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontFamily: 'FuturaBold',
+                      fontSize: 15,
+                    ),
                   ),
                 ),
-                dropdownColor: const Color(0xFF0A63AC),
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                style: const TextStyle(color: Colors.white),
-                items: const [
-                  DropdownMenuItem(value: 'escola', child: Text('Colégio')),
-                  DropdownMenuItem(value: 'instituto', child: Text('Instituto')),
-                  DropdownMenuItem(value: 'empresa', child: Text('Empresa')),
-                ],
-                onChanged: (value) => tipoSelecionado = value!,
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: descricaoController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: "Descreva",
-                  labelStyle: const TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(8),
+                TextButton(
+                  style: ButtonStyle(
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white, width: 2.0),
-                    borderRadius: BorderRadius.circular(8),
+                  onPressed: () async {
+                    if (descricaoController.text.isNotEmpty) {
+                      await _ocorrenciaService.cadastrarOcorrencia(
+                        jovemId: widget.jovemId,
+                        tipo: tipoSelecionado,
+                        descricao: descricaoController.text,
+                        idUsuario: auth.idUsuario,
+                      );
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        _carregarOcorrencias();
+                      }
+                    }
+                  },
+                  child: const Text(
+                    "Salvar",
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontFamily: 'FuturaBold',
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar", style: TextStyle(color: Colors.orange)),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (descricaoController.text.isNotEmpty) {
-                await _ocorrenciaService.cadastrarOcorrencia(
-                  jovemId: widget.jovemId,
-                  tipo: tipoSelecionado,
-                  descricao: descricaoController.text,
-                  idUsuario: auth.idUsuario,
-                );
-                if (mounted) {
-                  Navigator.pop(context);
-                  _carregarOcorrencias();
-                }
-              }
-            },
-            child: const Text("Salvar", style: TextStyle(color: Colors.orange)),
-          )
-        ],
-      ),
+                )
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -208,6 +263,11 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               IconButton(
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                enableFeedback: false,
                                 icon: Icon(
                                   oc['resolvido'] == true ? Icons.check_circle : Icons.radio_button_unchecked,
                                   color: oc['resolvido'] == true ? Colors.green : Colors.black,
@@ -241,6 +301,11 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                 color: Colors.black.withValues(alpha: 0.2), // Cor da linha
                               ),
                               IconButton(
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                enableFeedback: false,
                                 icon: Icon(Icons.comment, color: oc['observacoes'] != null && oc['observacoes'].toString().trim().isNotEmpty ? Colors.orange : Colors.black),
                                 tooltip: oc['observacoes'] != null && oc['observacoes'].toString().trim().isNotEmpty ? "Editar observação" : "Adicionar observação",
                                 onPressed: () async {
@@ -248,56 +313,97 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                   obsController.text = oc['observacoes'] ?? '';
                                   await showDialog(
                                     context: context,
-                                    builder: (_) => AlertDialog(
-                                      backgroundColor: const Color(0xFF0A63AC),
-                                      title: const Text("Observação",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontFamily: 'FuturaBold',
-                                        ),),
-                                      content: SizedBox(
-                                        width: MediaQuery.of(context).size.width,
-                                        child: TextField(
-                                          controller: obsController,
-                                          style: const TextStyle(color: Colors.white),
-                                          decoration: InputDecoration(
-                                            labelText: "Observações",
-                                            labelStyle: const TextStyle(color: Colors.white),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(color: Colors.white),
-                                              borderRadius: BorderRadius.circular(8),
+                                    builder: (_) {
+                                      return StatefulBuilder(
+                                        builder: (context, setState) {
+                                          return AlertDialog(
+                                            backgroundColor: const Color(0xFF0A63AC),
+                                            title: const Text(
+                                              "Observação",
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.white,
+                                                fontFamily: 'FuturaBold',
+                                              ),
                                             ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(color: Colors.white, width: 2.0),
-                                              borderRadius: BorderRadius.circular(8),
+                                            content: SizedBox(
+                                              width: MediaQuery.of(context).size.width,
+                                              child: TextField(
+                                                controller: obsController,
+                                                style: const TextStyle(color: Colors.white),
+                                                decoration: InputDecoration(
+                                                  suffixIcon: obsController.text.isNotEmpty
+                                                      ? IconButton(
+                                                    tooltip: "Limpar",
+                                                    icon: const Icon(Icons.clear, color: Colors.white),
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        obsController.clear();
+                                                      });
+                                                    },
+                                                  )
+                                                      : null,
+                                                  labelText: "Observações",
+                                                  labelStyle: const TextStyle(color: Colors.white),
+                                                  enabledBorder: OutlineInputBorder(
+                                                    borderSide: const BorderSide(color: Colors.white),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  focusedBorder: OutlineInputBorder(
+                                                    borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                ),
+                                                onChanged: (value) {
+                                                  setState(() {});
+                                                },
+                                                maxLines: 3,
+                                              ),
                                             ),
-                                          ),
-                                          maxLines: 3,
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text("Cancelar", style: TextStyle(color: Colors.orange)),
-                                        ),
-                                        TextButton(
-                                          onPressed: () async {
-                                            await _ocorrenciaService.adicionarObservacao(oc['id'], obsController.text);
-                                            if (mounted) {
-                                              Navigator.pop(context);
-                                              setState(() {
-                                                final index = _ocorrencias.indexWhere((item) => item['id'] == oc['id']);
-                                                if (index != -1) {
-                                                  _ocorrencias[index]['observacoes'] = obsController.text;
-                                                }
-                                              });
-                                            }
-                                          },
-                                          child: const Text("Salvar", style: TextStyle(color: Colors.orange)),
-                                        ),
-                                      ],
-                                    ),
+                                            actions: [
+                                              TextButton(
+                                                style: ButtonStyle(
+                                                  overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                                ),
+                                                onPressed: () => Navigator.pop(context),
+                                                child: const Text(
+                                                  "Cancelar",
+                                                    style: TextStyle(color: Colors.orange,
+                                                      fontFamily: 'FuturaBold',
+                                                      fontSize: 15,
+                                                    )
+                                                ),
+                                              ),
+                                              TextButton(
+                                                style: ButtonStyle(
+                                                  overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                                ),
+                                                onPressed: () async {
+                                                  await _ocorrenciaService.adicionarObservacao(oc['id'], obsController.text);
+                                                  if (context.mounted) {
+                                                    Navigator.pop(context);
+                                                    setState(() {
+                                                      final index = _ocorrencias.indexWhere((item) => item['id'] == oc['id']);
+                                                      if (index != -1) {
+                                                        _ocorrencias[index]['observacoes'] = obsController.text;
+                                                      }
+                                                    });
+                                                  }
+                                                },
+                                                child: const Text(
+                                                  "Salvar",
+                                                  style: TextStyle(
+                                                    color: Colors.green,
+                                                    fontFamily: 'FuturaBold',
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
                                   );
                                 },
                               ),
@@ -307,6 +413,11 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                 color: Colors.black.withValues(alpha: 0.2), // Cor da linha
                               ),
                               IconButton(
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                enableFeedback: false,
                                 icon: const Icon(Icons.delete, color: Colors.black),
                                 tooltip: "Excluir ocorrência",
                                 onPressed: () async {
@@ -322,6 +433,9 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                         ),),
                                       actions: [
                                         TextButton(
+                                          style: ButtonStyle(
+                                            overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                                          ),
                                           onPressed: () => Navigator.pop(context, false),
                                           child: const Text("Cancelar",
                                               style: TextStyle(color: Colors.orange,
@@ -421,7 +535,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
               iconTheme: const IconThemeData(color: Colors.white),
               automaticallyImplyLeading: false,
               // Evita que o Flutter gere um botão automático
-              leading: auth.tipoUsuario == 'administrador' ? Builder(
+              leading: Builder(
                 builder:
                     (context) => Tooltip(
                   message: "Voltar", // Texto do tooltip
@@ -436,26 +550,6 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                     onPressed: () {
                       Navigator.of(context).pushReplacement(
                           MaterialPageRoute(builder: (_) => const CadastroJovem()));
-                    },
-                  ),
-                ),
-              ) :
-              Builder(
-                builder:
-                    (context) => Tooltip(
-                  message: "Abrir Menu", // Texto do tooltip
-                  child: IconButton(
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    enableFeedback: false,
-                    icon: Icon(Icons.menu,
-                      color: Colors.white,) ,// Ícone do Drawer
-                    onPressed: () {
-                      Scaffold.of(
-                        context,
-                      ).openDrawer(); // Abre o Drawer manualmente
                     },
                   ),
                 ),

@@ -1,19 +1,24 @@
 import 'package:chips_choice/chips_choice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_multi_formatter/formatters/currency_input_formatter.dart';
+import 'package:flutter_multi_formatter/formatters/money_input_enums.dart';
 import 'package:inova/cadastros/register_empresa.dart';
 import 'package:inova/cadastros/register_escola.dart';
 import 'package:inova/cadastros/register_jovem.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../cadastros/register_modulo.dart';
 import '../cadastros/register_professor.dart';
 import '../cadastros/register_turma.dart';
 import '../services/auth_service.dart';
 import '../telas/calendar.dart';
+import '../telas/historico_freq_jovem.dart';
 import '../telas/home.dart';
 import '../telas/jovem.dart';
 import '../telas/login.dart';
 import '../telas/presenca.dart';
+import 'drawer.dart';
 
 /// 📌 Função para criar um item do menu lateral
 Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
@@ -31,7 +36,7 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
             Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const EscolaScreen()));
           }
-          if (title == "Cadastro de Jovem") {
+          if (title == "Cadastro de Jovem" || title == "Jovens") {
             Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const CadastroJovem()));
           }
@@ -63,6 +68,10 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
             Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => RegistrarPresencaPage(professorId: auth.idUsuario.toString(),)));
           }
+          if (title == "Histórico de Presenças") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => HistoricoFrequenciaJovemPage(jovemId: auth.idUsuario.toString(),)));
+          }
           if (title == "Meu Perfil") {
             final response = await Supabase.instance.client
                 .from('jovens_aprendizes')
@@ -80,7 +89,13 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
             } else {
               if (context.mounted){
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Perfil não encontrado para este usuário.")),
+                  const SnackBar(
+                    backgroundColor: Color(0xFF0A63AC),
+                      content: Text("Perfil não encontrado para este usuário.",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ))
+                  ),
                 );
               }
             }
@@ -155,6 +170,129 @@ Widget buildNotificationIcon(IconData icon, int count) {
   );
 }
 
+Widget buildTextField(
+    TextEditingController controller,
+    String label, {
+      bool isPassword = false,
+      bool isEmail = false,
+      bool isCnpj = false,
+      bool isCep = false,
+      bool isData = false,
+      bool isRg = false,
+      bool isDinheiro = false,
+      bool isHora = false,
+      bool isCpf = false,
+      bool isAno = false,
+      VoidCallback? onChangedState,
+    }) {
+  var cnpjFormatter = MaskTextInputFormatter(mask: "##.###.###/####-##", filter: {"#": RegExp(r'[0-9]')});
+  var cepFormatter = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
+  var cpfFormatter = MaskTextInputFormatter(
+    mask: "###.###.###-##",
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  var dataFormatter = MaskTextInputFormatter(
+    mask: "##/##/####",
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  var rgFormatter = MaskTextInputFormatter(
+    mask: "##.###.###-#",
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  var dinheiroFormatter = CurrencyInputFormatter(
+    leadingSymbol: 'R\$', // Adiciona "R$ " antes do valor
+    useSymbolPadding: true, // Mantém espaço após "R$"
+    thousandSeparator: ThousandSeparator.Period, // Usa "." como separador de milhar
+  );
+  var horaFormatter = MaskTextInputFormatter(
+    mask: "##:##:##",
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  var anoFormatter = MaskTextInputFormatter(
+    mask: "####",
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        suffixIcon: controller.text.isNotEmpty
+            ? IconButton(
+          focusColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          enableFeedback: false,
+          tooltip: "Limpar",
+          icon: Icon(Icons.clear,
+            color: Colors.white,),
+          onPressed: () {
+            controller.clear();
+          },) : null,
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.white),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.white, width: 2.0),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onChanged: (value) {
+        if (onChangedState != null) onChangedState();
+      },
+      style: const TextStyle(color: Colors.white),
+      obscureText: isPassword,
+      keyboardType: isEmail
+          ? TextInputType.emailAddress
+          : isCnpj || isCep
+          ? TextInputType.number
+          : TextInputType.text,
+      inputFormatters: isCnpj
+          ? [cnpjFormatter]
+          : isCep
+          ? [cepFormatter]
+          : isData
+          ? [dataFormatter]
+          : isRg
+          ? [rgFormatter]
+          : isHora
+          ? [horaFormatter]
+          : isDinheiro
+          ? [dinheiroFormatter]
+          : isCpf
+          ? [cpfFormatter]
+          : isAno
+          ? [anoFormatter]
+          : [],
+      validator: (value) {
+        if (value == null || value.isEmpty) return "Digite um valor válido";
+        if (isEmail && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
+          return "Digite um e-mail válido";
+        }
+        if (isCnpj && value.length != 18) return "Digite um CNPJ válido";
+        if (isCep && value.length != 9) return "Digite um CEP válido";
+        if (isPassword && value.length < 6) return "A senha deve ter no mínimo 6 caracteres";
+        if (isEmail && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
+          return "Digite um e-mail válido";
+        }
+        if (isData && value.length != 10) return "Digite uma data válida";
+        if (isRg && value.length != 12) return "Digite um RG válido";
+        if (isDinheiro && value.length < 8) return "Digite um valor válido";
+        if (isHora && value.length != 8) return "Digite uma hora válida";
+        if (isCpf && value.length != 14) return "Digite um CPF válido";
+        if (isAno && value.length != 4) return "Digite um ano válido";
+        return null;
+      },
+    ),
+  );
+}
+
 Widget buildAppBarItem(IconData icon, String label) {
   return Row(
     children: [
@@ -178,13 +316,23 @@ class MultiSelectChips extends StatefulWidget {
 }
 
 class _MultiSelectChipsState extends State<MultiSelectChips> {
-  List<String> modulosSelecionados = []; // Lista de módulos selecionados
-  List<String> _selecionados = []; // Lista para armazenar os módulos selecionados
+  List<String> _selecionados = [];
 
   @override
   void initState() {
     super.initState();
-    _selecionados = List<String>.from(widget.modulosSelecionados); // Preenche ao abrir
+    _selecionados = List<String>.from(widget.modulosSelecionados);
+  }
+
+  @override
+  void didUpdateWidget(covariant MultiSelectChips oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.modulosSelecionados != widget.modulosSelecionados) {
+      setState(() {
+        _selecionados = List<String>.from(widget.modulosSelecionados);
+      });
+    }
   }
 
   @override
@@ -197,29 +345,21 @@ class _MultiSelectChipsState extends State<MultiSelectChips> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         const SizedBox(height: 10),
-
-        // Verifica se os módulos já foram carregados
         widget.modulos.isEmpty
             ? const Center(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircularProgressIndicator(color: Colors.white),
               SizedBox(height: 10),
-              Text(
-                "Carregando módulos...",
-                style: TextStyle(color: Colors.white),
-              ),
+              Text("Carregando módulos...", style: TextStyle(color: Colors.white)),
             ],
           ),
         )
             : ChipsChoice<String>.multiple(
           value: _selecionados,
           onChanged: (val) {
-            setState(() {
-              _selecionados = val;
-            });
-            widget.onSelecionado(_selecionados);
+            setState(() => _selecionados = val);
+            widget.onSelecionado(val);
           },
           choiceItems: C2Choice.listFrom<String, Map<String, dynamic>>(
             source: widget.modulos,

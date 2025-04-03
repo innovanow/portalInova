@@ -4,6 +4,7 @@ import 'package:inova/widgets/wave.dart';
 import '../services/escola_service.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../widgets/drawer.dart';
+import '../widgets/widgets.dart';
 
 String statusEscola = "ativo";
 
@@ -51,13 +52,28 @@ class _EscolaScreenState extends State<EscolaScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: Text(
-            escola == null ? "Cadastrar Colégio" : "Editar Colégio",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white,
-              fontFamily: 'FuturaBold',
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                escola == null ? "Cadastrar Colégio" : "Editar Colégio",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontFamily: 'FuturaBold',
+                ),
+              ),
+              IconButton(
+                tooltip: "Fechar",
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                enableFeedback: false,
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
           content: _Formescola(
             escola: escola,
@@ -85,6 +101,9 @@ class _EscolaScreenState extends State<EscolaScreen> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -94,6 +113,9 @@ class _EscolaScreenState extends State<EscolaScreen> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _escolaService
                     .inativarEscola(id);
@@ -128,6 +150,9 @@ class _EscolaScreenState extends State<EscolaScreen> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -137,6 +162,9 @@ class _EscolaScreenState extends State<EscolaScreen> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _escolaService
                     .ativarEscola(id);
@@ -564,18 +592,18 @@ class _FormescolaState extends State<_Formescola> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTextField(_nomeController, "Nome"),
+              buildTextField(_nomeController, "Nome"),
               if (!_editando) ...[
-                _buildTextField(_emailController, "E-mail", isEmail: true),
-                _buildTextField(_senhaController, "Senha", isPassword: true),
+                buildTextField(_emailController, "E-mail", isEmail: true, onChangedState: () => setState(() {})),
+                buildTextField(_senhaController, "Senha", isPassword: true, onChangedState: () => setState(() {})),
               ],
-              _buildTextField(_cnpjController, "CNPJ", isCnpj: true),
-              _buildTextField(_enderecoController, "Endereço"),
-              _buildTextField(_cidadeController, "Cidade"),
-              _buildTextField(_estadoController, "Estado"),
-              _buildTextField(_numeroController, "Número"),
-              _buildTextField(_cepController, "CEP", isCep: true),
-              _buildTextField(_telefoneController, "Telefone"),
+              buildTextField(_cnpjController, "CNPJ", isCnpj: true, onChangedState: () => setState(() {})),
+              buildTextField(_enderecoController, "Endereço", onChangedState: () => setState(() {})),
+              buildTextField(_cidadeController, "Cidade", onChangedState: () => setState(() {})),
+              buildTextField(_estadoController, "Estado", onChangedState: () => setState(() {})),
+              buildTextField(_numeroController, "Número", onChangedState: () => setState(() {})),
+              buildTextField(_cepController, "CEP", isCep: true, onChangedState: () => setState(() {})),
+              buildTextField(_telefoneController, "Telefone", onChangedState: () => setState(() {})),
               const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()
@@ -627,60 +655,6 @@ class _FormescolaState extends State<_Formescola> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        bool isPassword = false,
-        bool isEmail = false,
-        bool isCnpj = false,
-        bool isCep = false,
-      }) {
-
-    var cnpjFormatter = MaskTextInputFormatter(mask: "##.###.###/####-##", filter: {"#": RegExp(r'[0-9]')});
-    var cepFormatter = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white, width: 2.0),
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        style: const TextStyle(color: Colors.white),
-        obscureText: isPassword,
-        keyboardType: isEmail
-            ? TextInputType.emailAddress
-            : isCnpj || isCep
-            ? TextInputType.number
-            : TextInputType.text,
-        inputFormatters: isCnpj
-            ? [cnpjFormatter]
-            : isCep
-            ? [cepFormatter]
-            : [],
-        validator: (value) {
-          if (value == null || value.isEmpty) return "Digite um valor válido";
-          if (isEmail && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
-            return "Digite um e-mail válido";
-          }
-          if (isCnpj && value.length != 18) return "Digite um CNPJ válido";
-          if (isCep && value.length != 9) return "Digite um CEP válido";
-          if (isPassword && value.length < 6) return "A senha deve ter no mínimo 6 caracteres";
-          return null;
-        },
       ),
     );
   }

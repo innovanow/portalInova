@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:inova/widgets/widgets.dart';
-import 'package:inova/services/auth_service.dart';
-
 import '../widgets/drawer.dart';
 
-final auth = AuthService();
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -49,7 +46,7 @@ class _HomeState extends State<Home> {
                           child: Row(
                             children: [
                               const Text(
-                                'Inova',
+                                'Portal Instituto Inova',
                                 style: TextStyle(
                                   fontFamily: 'FuturaBold',
                                   fontWeight: FontWeight.bold,
@@ -57,7 +54,7 @@ class _HomeState extends State<Home> {
                                   color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(width: 20),
+                              /*const SizedBox(width: 20),
                               buildAppBarItem(
                                 Icons.person,
                                 'Lista de Aprendiz',
@@ -66,7 +63,7 @@ class _HomeState extends State<Home> {
                                 Icons.chat_bubble_outline,
                                 'Ocorrências',
                               ),
-                              buildAppBarItem(Icons.history, 'Histórico'),
+                              buildAppBarItem(Icons.history, 'Histórico'),*/
                             ],
                           ),
                         ),
@@ -76,11 +73,11 @@ class _HomeState extends State<Home> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          buildIcon(Icons.message_outlined, context: context, "Mensagens"),
+                          /*buildIcon(Icons.message_outlined, context: context, "Mensagens"),
                           buildNotificationIcon(Icons.mark_chat_unread, 1),
                           buildIcon(Icons.campaign, "Campanhas", context: context),
                           buildIcon(Icons.notifications, "Notificações", context: context),
-                          buildIcon(Icons.search, "Pesquisar", context: context),
+                          buildIcon(Icons.search, "Pesquisar", context: context),*/
                           buildIcon(Icons.logout, "Sair",  context: context),
                         ],
                       ),

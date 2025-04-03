@@ -208,6 +208,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               actions: [
                 TextButton(
+                  style: ButtonStyle(
+                    overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                  ),
                   onPressed: () => Navigator.pop(dialogContext),
                   child: const Text("Cancelar",
                       style: TextStyle(color: Colors.orange,
@@ -225,6 +228,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 20,child: CircularProgressIndicator(color: Colors.orange)),
                   )
                       : TextButton(
+                    style: ButtonStyle(
+                      overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                    ),
                     onPressed: () async {
                       final email = _emailController.text.trim();
                       if (email.isEmpty) return;
@@ -267,6 +273,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: CircularProgressIndicator(color: Colors.orange)),
                   )
                       : TextButton(
+                    style: ButtonStyle(
+                      overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                    ),
                     onPressed: () async {
                       final email = _emailController.text.trim();
                       final token = _tokenController.text.trim();
@@ -555,7 +564,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: const Text("Limpar Dados",
                                   style: TextStyle(color: Color(0xFF0A63AC)),)
                             ),
-                            Text("Versão: 0.23",
+                            Text("Versão: 0.24",
                               style: TextStyle(color: Color(0xFF0A63AC)),)
                           ],
                         );

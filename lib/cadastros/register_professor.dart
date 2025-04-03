@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_multi_formatter/formatters/currency_input_formatter.dart';
-import 'package:flutter_multi_formatter/formatters/money_input_enums.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:intl/intl.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../services/professor_service.dart';
 import '../widgets/drawer.dart';
+import '../widgets/widgets.dart';
 
 String statusProfessor = "ativo";
 
@@ -46,13 +44,28 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Color(0xFF0A63AC),
-          title: Text(
-            jovem == null ? "Cadastrar Professor" : "Editar Professor",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white,
-              fontFamily: 'FuturaBold',
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                jovem == null ? "Cadastrar Professor" : "Editar Professor",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontFamily: 'FuturaBold',
+                ),
+              ),
+              IconButton(
+                tooltip: "Fechar",
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                enableFeedback: false,
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
           content: _Formjovem(
             jovem: jovem,
@@ -80,6 +93,9 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -89,6 +105,9 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _professorService
                     .inativarProfessor(id);
@@ -123,6 +142,9 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
             ),),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
@@ -132,6 +154,9 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
               ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () async {
                 await _professorService
                     .ativarProfessor(id);
@@ -486,6 +511,7 @@ class _FormjovemState extends State<_Formjovem> {
   String? _errorMessage;
   bool _editando = false;
   String? _jovemId;
+  String? _sexoSelecionado;
   // Criando um formatador de data no formato "yyyy-MM-dd"
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
   String formatarDataParaExibicao(String data) {
@@ -521,6 +547,7 @@ class _FormjovemState extends State<_Formjovem> {
       _telefoneController.text = widget.jovem!['telefone'] ?? "";
       _formacaoController.text = widget.jovem!['formacao'] ?? "";
       _estadoCivilController.text = widget.jovem!['estado_civil'] ?? "";
+      _sexoSelecionado= widget.jovem!['sexo'] ?? "";
     }
   }
 
@@ -550,6 +577,7 @@ class _FormjovemState extends State<_Formjovem> {
           telefone: _telefoneController.text.trim(),
           formacao: _formacaoController.text.trim(),
           estadoCivil: _estadoCivilController.text.trim(),
+          sexo: _sexoSelecionado,
         );
       } else {
         error = await _professorService.cadastrarprofessor(
@@ -573,6 +601,7 @@ class _FormjovemState extends State<_Formjovem> {
           telefone: _telefoneController.text.trim(),
           formacao: _formacaoController.text.trim(),
           estadoCivil: _estadoCivilController.text.trim(),
+          sexo: _sexoSelecionado,
         );
       }
 
@@ -596,26 +625,56 @@ class _FormjovemState extends State<_Formjovem> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTextField(_nomeController, "Nome"),
+              buildTextField(_nomeController, "Nome", onChangedState: () => setState(() {})),
               if (!_editando) ...[
-                _buildTextField(_emailController, "E-mail", isEmail: true),
-                _buildTextField(_senhaController, "Senha", isPassword: true),
+                buildTextField(_emailController, "E-mail", isEmail: true, onChangedState: () => setState(() {})),
+                buildTextField(_senhaController, "Senha", isPassword: true, onChangedState: () => setState(() {})),
               ],
-              _buildTextField(_dataNascimentoController, "Data de Nascimento", isData: true),
-              _buildTextField(_cidadeNatalController, "Cidade Natal"),
-              _buildTextField(_estadoCivilController, "Estado Civil"),
-              _buildTextField(_cpfController, "CPF", isCpf: true),
-              _buildTextField(_rgController, "RG", isRg: true),
-              _buildTextField(_codCarteiraTrabalhoController, "Carteira de Trabalho"),
-              _buildTextField(_enderecoController, "Endereço"),
-              _buildTextField(_numeroController, "Número"),
-              _buildTextField(_bairroController, "Bairro"),
-              _buildTextField(_cidadeController, "Cidade"),
-              _buildTextField(_estadoController, "Estado"),
-              _buildTextField(_paisController, "País"),
-              _buildTextField(_cepController, "CEP", isCep: true),
-              _buildTextField(_telefoneController, "Telefone"),
-              _buildTextField(_formacaoController, "Formação"),
+              buildTextField(_dataNascimentoController, "Data de Nascimento", isData: true, onChangedState: () => setState(() {})),
+              DropdownButtonFormField<String>(
+                value: _sexoSelecionado,
+                decoration: InputDecoration(
+                  labelText: "Sexo",
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                dropdownColor: const Color(0xFF0A63AC),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                style: const TextStyle(color: Colors.white),
+                items: const [
+                  DropdownMenuItem(value: 'Masculino', child: Text('Masculino')),
+                  DropdownMenuItem(value: 'Feminino', child: Text('Feminino')),
+                  DropdownMenuItem(value: 'Outro', child: Text('Outro')),
+                  DropdownMenuItem(value: 'Prefiro não informar', child: Text('Prefiro não informar')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _sexoSelecionado = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              buildTextField(_cidadeNatalController, "Cidade Natal", onChangedState: () => setState(() {})),
+              buildTextField(_estadoCivilController, "Estado Civil", onChangedState: () => setState(() {})),
+              buildTextField(_cpfController, "CPF", isCpf: true, onChangedState: () => setState(() {})),
+              buildTextField(_rgController, "RG", isRg: true, onChangedState: () => setState(() {})),
+              buildTextField(_codCarteiraTrabalhoController, "Carteira de Trabalho", onChangedState: () => setState(() {})),
+              buildTextField(_enderecoController, "Endereço", onChangedState: () => setState(() {})),
+              buildTextField(_numeroController, "Número", onChangedState: () => setState(() {})),
+              buildTextField(_bairroController, "Bairro", onChangedState: () => setState(() {})),
+              buildTextField(_cidadeController, "Cidade", onChangedState: () => setState(() {})),
+              buildTextField(_estadoController, "Estado", onChangedState: () => setState(() {})),
+              buildTextField(_paisController, "País", onChangedState: () => setState(() {})),
+              buildTextField(_cepController, "CEP", isCep: true, onChangedState: () => setState(() {})),
+              buildTextField(_telefoneController, "Telefone", onChangedState: () => setState(() {})),
+              buildTextField(_formacaoController, "Formação", onChangedState: () => setState(() {})),
               const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()
@@ -667,89 +726,6 @@ class _FormjovemState extends State<_Formjovem> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        bool isPassword = false,
-        bool isEmail = false,
-        bool isCnpj = false,
-        bool isCpf = false,
-        bool isCep = false,
-        bool isData = false,
-        bool isRg = false,
-        bool isDinheiro = false,
-        bool isHora = false,
-      }) {
-
-    var cpfFormatter = MaskTextInputFormatter(
-      mask: "###.###.###-##",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    var cepFormatter = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
-    var dataFormatter = MaskTextInputFormatter(
-      mask: "##/##/####",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    var rgFormatter = MaskTextInputFormatter(
-      mask: "##.###.###-#",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    var dinheiroFormatter = CurrencyInputFormatter(
-      leadingSymbol: 'R\$', // Adiciona "R$ " antes do valor
-      useSymbolPadding: true, // Mantém espaço após "R$"
-      thousandSeparator: ThousandSeparator.Period, // Usa "." como separador de milhar
-    );
-    var horaFormatter = MaskTextInputFormatter(
-      mask: "##:##:##",
-      filter: {"#": RegExp(r'[0-9]')},
-    );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white, width: 2.0),
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        style: const TextStyle(color: Colors.white),
-        obscureText: isPassword,
-        keyboardType: isEmail
-            ? TextInputType.emailAddress
-            : isCnpj || isCep || isData || isCpf
-            ? TextInputType.number
-            : TextInputType.text,
-        inputFormatters: isCpf
-            ? [cpfFormatter]
-            : isCep
-            ? [cepFormatter]
-            : isData ? [dataFormatter] : isRg ? [rgFormatter] : isDinheiro ? [dinheiroFormatter] : isHora ? [horaFormatter] : [],
-        validator: (value) {
-          if (value == null || value.isEmpty) return "Digite um valor válido";
-          if (isEmail && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
-            return "Digite um e-mail válido";
-          }
-          if (isCnpj && value.length != 18) return "Digite um CNPJ válido";
-          if (isCpf && value.length != 14) return "CPF deve ter 11 dígitos";
-          if (isCep && value.length != 9) return "Digite um CEP válido";
-          if (isData && value.length != 10) return "Digite uma data válida";
-          if (isPassword && value.length < 6) return "A senha deve ter no mínimo 6 caracteres";
-          if (isRg && value.length != 12) return "Digite um RG válido";
-          if (isDinheiro && value.length < 8) return "Digite um valor válido";
-          if (isHora && value.length != 8) return "Digite uma hora válida";
-          return null;
-        },
       ),
     );
   }
