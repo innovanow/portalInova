@@ -172,6 +172,7 @@ Widget buildNotificationIcon(IconData icon, int count) {
 
 Widget buildTextField(
     TextEditingController controller,
+    bool obrigatorio,
     String label, {
       bool isPassword = false,
       bool isEmail = false,
@@ -271,22 +272,19 @@ Widget buildTextField(
           ? [anoFormatter]
           : [],
       validator: (value) {
-        if (value == null || value.isEmpty) return "Digite um valor válido";
-        if (isEmail && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
+        if (value == null && obrigatorio == true || value!.isEmpty && obrigatorio == true) return "Campo obrigatório";
+        if (isEmail && obrigatorio == true && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
           return "Digite um e-mail válido";
         }
-        if (isCnpj && value.length != 18) return "Digite um CNPJ válido";
-        if (isCep && value.length != 9) return "Digite um CEP válido";
-        if (isPassword && value.length < 6) return "A senha deve ter no mínimo 6 caracteres";
-        if (isEmail && !RegExp(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$").hasMatch(value)) {
-          return "Digite um e-mail válido";
-        }
-        if (isData && value.length != 10) return "Digite uma data válida";
-        if (isRg && value.length != 12) return "Digite um RG válido";
-        if (isDinheiro && value.length < 8) return "Digite um valor válido";
-        if (isHora && value.length != 8) return "Digite uma hora válida";
-        if (isCpf && value.length != 14) return "Digite um CPF válido";
-        if (isAno && value.length != 4) return "Digite um ano válido";
+        if (isCnpj && obrigatorio == true && value.length != 18) return "Digite um CNPJ válido";
+        if (isCep && obrigatorio == true && value.length != 9) return "Digite um CEP válido";
+        if (isPassword && obrigatorio == true && value.length < 6) return "A senha deve ter no mínimo 6 caracteres";
+        if (isData && obrigatorio == true && value.length != 10) return "Digite uma data válida";
+        if (isRg && obrigatorio == true && value.length != 12) return "Digite um RG válido";
+        //if (isDinheiro && value.length < 8) return "Digite um valor válido";
+        if (isHora && obrigatorio == true && value.length != 8) return "Digite uma hora válida";
+        if (isCpf && obrigatorio == true && value.length != 14) return "Digite um CPF válido";
+        if (isAno && obrigatorio == true && value.length != 4) return "Digite um ano válido";
         return null;
       },
     ),
@@ -408,6 +406,8 @@ class _ColorWheelPickerState extends State<ColorWheelPicker> {
             ),),
           content: SingleChildScrollView(
             child: ColorPicker(
+              portraitOnly: true,
+              labelTextStyle: const TextStyle(color: Colors.white),
               pickerColor: selectedColor,
               onColorChanged: (color) {
                 setState(() {
@@ -419,13 +419,27 @@ class _ColorWheelPickerState extends State<ColorWheelPicker> {
           ),
           actions: [
             TextButton(
-              child: const Text("Cancelar",
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               onPressed: () => Navigator.pop(context),
+              child: const Text(
+                "Cancelar",
+                  style: TextStyle(color: Colors.orange,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )
+              ),
             ),
             TextButton(
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+              ),
               child: const Text("Selecionar",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: TextStyle(color: Colors.orange,
+                    fontFamily: 'FuturaBold',
+                    fontSize: 15,
+                  )),
               onPressed: () {
                 widget.onColorSelected(selectedColor);
                 Navigator.pop(context);

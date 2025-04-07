@@ -101,6 +101,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: AppBar(
+              surfaceTintColor: Colors.transparent,
               elevation: 0,
               backgroundColor: const Color(0xFF0A63AC),
               title: LayoutBuilder(

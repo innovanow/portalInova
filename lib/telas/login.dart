@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
 import 'home.dart';
@@ -544,10 +545,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: () async {
                                   await _authService.clearCredentials();
 
+                                  SharedPreferences preferences =
+                                  await SharedPreferences.getInstance();
+                                  await preferences.clear();
+
                                   // Opcional: limpar os campos da tela
                                   setState(() {
                                     _emailController.clear();
                                     _passwordController.clear();
+                                    lembrarDados = false;
                                   });
                                   if(context.mounted){
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -564,7 +570,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: const Text("Limpar Dados",
                                   style: TextStyle(color: Color(0xFF0A63AC)),)
                             ),
-                            Text("Versão: 0.24",
+                            Text("Versão: 0.25",
                               style: TextStyle(color: Color(0xFF0A63AC)),)
                           ],
                         );

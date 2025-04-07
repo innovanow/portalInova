@@ -35,7 +35,7 @@ class InovaDrawer extends StatelessWidget {
                   style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
                 ),
                 Text(
-                  'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").toUpperCase() ?? "Carregando..."}',
+                  'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").replaceAll("escola", "Colégio").toUpperCase() ?? "Carregando..."}',
                   style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
                 ),
               ],
@@ -52,13 +52,13 @@ class InovaDrawer extends StatelessWidget {
             buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
             buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
           ],
-          buildDrawerItem(Icons.calendar_month, "Calendário", context),
-          if (auth.tipoUsuario == "professor")
+          if (auth.tipoUsuario == "professor" || auth.tipoUsuario == "escola" || auth.tipoUsuario == "empresa")
             buildDrawerItem(Icons.person, "Jovens", context),
           if (auth.tipoUsuario == "professor")
           buildDrawerItem(Icons.check_circle_outline, "Presenças", context),
           if (auth.tipoUsuario == "jovem_aprendiz")
           buildDrawerItem(Icons.event_available, "Histórico de Presenças", context),
+          buildDrawerItem(Icons.calendar_month, "Calendário", context),
           buildDrawerItem(Icons.logout, "Sair", context),
         ],
       ),

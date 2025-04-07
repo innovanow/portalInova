@@ -29,8 +29,9 @@ class _HomeState extends State<Home> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(60.0),
           child: AppBar(
-            shape: const LinearBorder(),
+            toolbarHeight: kToolbarHeight + 1,
             elevation: 0,
+            surfaceTintColor: Colors.transparent,
             backgroundColor: const Color(0xFF0A63AC),
             title: LayoutBuilder(
               builder: (context, constraints) {
