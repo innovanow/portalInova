@@ -65,7 +65,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
 
 
   Future<void> _carregarOcorrencias() async {
-    final ocorrencias = await _ocorrenciaService.buscarOcorrenciasPorJovem(widget.jovemId);
+    final ocorrencias = await _ocorrenciaService.buscarOcorrenciasPorJovem(widget.jovemId, auth.tipoUsuario.toString());
     setState(() {
       _ocorrencias = ocorrencias;
       _isCarregando = false;

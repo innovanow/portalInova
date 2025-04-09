@@ -139,9 +139,9 @@ class _HistoricoFrequenciaJovemPageState extends State<HistoricoFrequenciaJovemP
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     if (kDebugMode) {
-                      print('Erro: \${snapshot.error}');
+                      print('Erro: \n${snapshot.error}');
                     }
-                    return Center(child: Text('Erro: \${snapshot.error}'));
+                    return Center(child: Text('Erro: \n${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(child: Text('Nenhum registro de frequência encontrado.'));
                   }

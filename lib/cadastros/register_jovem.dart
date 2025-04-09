@@ -1468,8 +1468,8 @@ class _FormjovemState extends State<_Formjovem> {
           endereco: _enderecoController.text.trim(),
           numero: _numeroController.text.trim(),
           bairro: _bairroController.text.trim(),
-          cidadeEstado: _cidadeSelecionada,
-          cidadeEstadoNatal: _cidadeNatalSelecionada,
+          cidadeEstado: _cidadeSelecionada?.trim(),
+          cidadeEstadoNatal: _cidadeNatalSelecionada?.trim(),
           rg: _rgController.text.trim(),
           codCarteiraTrabalho: _codCarteiraTrabalhoController.text.trim(),
           estadoCivilPai: _estadoCivilPaiSelecionado,
@@ -1504,15 +1504,19 @@ class _FormjovemState extends State<_Formjovem> {
           pcd: _pcdSelecionado,
           rendaMensal: _rendaController.text.trim(),
           turnoEscola: _turnoColegioSelecionado,
-          anoIncioEscola: _anoInicioColegioController.text.trim(),
-          anoConclusaoEscola: _anoFimColegioController.text.trim(),
+          anoIncioEscola: _anoInicioColegioController.text.trim().isNotEmpty
+              ? int.parse(_anoInicioColegioController.text.trim())
+              : null,
+            anoConclusaoEscola: _anoFimColegioController.text.trim().isNotEmpty
+                ? int.parse(_anoFimColegioController.text.trim())
+                : null,
           instituicaoEscola: _instituicaoSelecionado,
           informatica: _informaticaSelecionado,
           habilidadeDestaque: _habilidadeSelecionado,
           codPis: _pisController.text.trim(),
           instagram: _instagramController.text.trim(),
           linkedin: _linkedinController.text.trim(),
-          nacionalidade: _nacionalidadeSelecionada,
+          nacionalidade: _nacionalidadeSelecionada?.trim(),
           moraCom: _moraComSelecionado,
           infracao: _atoInfracionalSelecionado,
         );
@@ -1532,8 +1536,8 @@ class _FormjovemState extends State<_Formjovem> {
           endereco: _enderecoController.text.trim(),
           numero: _numeroController.text.trim(),
           bairro: _bairroController.text.trim(),
-          cidadeEstado: _cidadeSelecionada,
-          cidadeEstadoNatal: _cidadeNatalSelecionada,
+          cidadeEstado: _cidadeSelecionada?.trim(),
+          cidadeEstadoNatal: _cidadeNatalSelecionada?.trim(),
           rg: _rgController.text.trim(),
           codCarteiraTrabalho: _codCarteiraTrabalhoController.text.trim(),
           estadoCivilPai: _estadoCivilPaiSelecionado,
@@ -1570,15 +1574,19 @@ class _FormjovemState extends State<_Formjovem> {
           pcd: _pcdSelecionado,
           rendaMensal: _rendaController.text.trim(),
           turnoEscola: _turnoColegioSelecionado,
-          anoIncioEscola: _anoInicioColegioController.text.trim(),
-          anoConclusaoEscola: _anoFimColegioController.text.trim(),
+          anoIncioEscola: _anoInicioColegioController.text.trim().isNotEmpty
+              ? int.parse(_anoInicioColegioController.text.trim())
+              : null,
+          anoConclusaoEscola: _anoFimColegioController.text.trim().isNotEmpty
+              ? int.parse(_anoFimColegioController.text.trim())
+              : null,
           instituicaoEscola: _instituicaoSelecionado,
           informatica: _informaticaSelecionado,
           habilidadeDestaque: _habilidadeSelecionado,
           codPis: _pisController.text.trim(),
           instagram: _instagramController.text.trim(),
           linkedin: _linkedinController.text.trim(),
-          nacionalidade: _nacionalidadeSelecionada,
+          nacionalidade: _nacionalidadeSelecionada?.trim(),
           moraCom: _moraComSelecionado,
           infracao: _atoInfracionalSelecionado,
         );
@@ -1858,10 +1866,10 @@ class _FormjovemState extends State<_Formjovem> {
                 icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                 style: const TextStyle(color: Colors.white),
                 items: const [
-                  DropdownMenuItem(value: 'Branco', child: Text('Branco')),
-                  DropdownMenuItem(value: 'Pardo', child: Text('Pardo')),
-                  DropdownMenuItem(value: 'Negro', child: Text('Negro')),
-                  DropdownMenuItem(value: 'Amarelo', child: Text('Amarelo')),
+                  DropdownMenuItem(value: 'Branca', child: Text('Branca')),
+                  DropdownMenuItem(value: 'Parda', child: Text('Parda')),
+                  DropdownMenuItem(value: 'Preta', child: Text('Preta')),
+                  DropdownMenuItem(value: 'Amarela', child: Text('Amarela')),
                   DropdownMenuItem(
                     value: 'Não declarado',
                     child: Text('Não declarado'),
@@ -1990,9 +1998,9 @@ class _FormjovemState extends State<_Formjovem> {
                 items: (String? filtro, dynamic _) async {
                   final response = await Supabase.instance.client
                       .from('pais')
-                      .select('codigo, pais, nacionalidade')
-                      .ilike('pais', '%${filtro ?? ''}%')
-                      .order('pais', ascending: true);
+                      .select('nacionalidade')
+                      .ilike('nacionalidade', '%${filtro ?? ''}%')
+                      .order('nacionalidade', ascending: true);
 
                   // Concatena cidade + UF
                   return List<String>.from(
@@ -2089,13 +2097,13 @@ class _FormjovemState extends State<_Formjovem> {
                   items: (String? filtro, dynamic _) async {
                     final response = await Supabase.instance.client
                         .from('cidades')
-                        .select('cidade, uf')
-                        .ilike('cidade', '%${filtro ?? ''}%')
-                        .order('cidade', ascending: true);
+                        .select('cidade_estado')
+                        .ilike('cidade_estado', '%${filtro ?? ''}%')
+                        .order('cidade_estado', ascending: true);
 
                     // Concatena cidade + UF
                     return List<String>.from(
-                      response.map((e) => "${e['cidade']} - ${e['uf']}"),
+                      response.map((e) => "${e['cidade_estado']}"),
                     );
                   },
                   // Callback chamado quando uma cidade é selecionada
@@ -2128,6 +2136,7 @@ class _FormjovemState extends State<_Formjovem> {
               buildTextField(
                 _telefoneJovemController, false,
                 "Telefone do Jovem",
+                isTelefone: true,
                 onChangedState: () => setState(() {}),
               ),
               DropdownButtonFormField<String>(
@@ -2247,6 +2256,7 @@ class _FormjovemState extends State<_Formjovem> {
                 buildTextField(
                   _telefonePaiController, false,
                   "Telefone do Pai",
+                  isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),
               if (_moraComSelecionado.toString().contains('Mãe'))
@@ -2324,6 +2334,7 @@ class _FormjovemState extends State<_Formjovem> {
                 buildTextField(
                   _telefoneMaeController, false,
                   "Telefone da Mãe",
+                  isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),
               if (_moraComSelecionado.toString().contains('Outro'))
@@ -2401,6 +2412,7 @@ class _FormjovemState extends State<_Formjovem> {
                 buildTextField(
                   _telefoneResponsavelController, false,
                   "Telefone do Responsável",
+                  isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),
               buildTextField(
@@ -2706,13 +2718,13 @@ class _FormjovemState extends State<_Formjovem> {
                 items: (String? filtro, dynamic _) async {
                   final response = await Supabase.instance.client
                       .from('cidades')
-                      .select('cidade, uf')
-                      .ilike('cidade', '%${filtro ?? ''}%')
-                      .order('cidade', ascending: true);
+                      .select('cidade_estado')
+                      .ilike('cidade_estado', '%${filtro ?? ''}%')
+                      .order('cidade_estado', ascending: true);
 
                   // Concatena cidade + UF
                   return List<String>.from(
-                    response.map((e) => "${e['cidade']} - ${e['uf']}"),
+                    response.map((e) => "${e['cidade_estado']}"),
                   );
                 },
                 // Callback chamado quando uma cidade é selecionada
@@ -2766,7 +2778,9 @@ class _FormjovemState extends State<_Formjovem> {
                   });
                 },
               ),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               const SizedBox(height: 10),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               DropdownButtonFormField<String>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -2882,6 +2896,7 @@ class _FormjovemState extends State<_Formjovem> {
                   dropdownColor: const Color(0xFF0A63AC),
                   style: const TextStyle(color: Colors.white),
                 ),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               const SizedBox(height: 10),
               if (_escolaSelecionada.toString().contains(
                 'ed489387-3684-459e-8ad4-bde80c2cfb66',
@@ -2891,6 +2906,7 @@ class _FormjovemState extends State<_Formjovem> {
                   "Qual Colégio?",
                   onChangedState: () => setState(() {}),
                 ),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               DropdownButtonFormField<String>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -2918,9 +2934,9 @@ class _FormjovemState extends State<_Formjovem> {
                 icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                 style: const TextStyle(color: Colors.white),
                 items: const [
-                  DropdownMenuItem(value: 'Manhã', child: Text('Manhã')),
-                  DropdownMenuItem(value: 'Tarde', child: Text('Tarde')),
-                  DropdownMenuItem(value: 'Noite', child: Text('Noite')),
+                  DropdownMenuItem(value: 'Matutino', child: Text('Matutino')),
+                  DropdownMenuItem(value: 'Vespertino', child: Text('Vespertino')),
+                  DropdownMenuItem(value: 'Noturno', child: Text('Noturno')),
                   DropdownMenuItem(value: 'Integral', child: Text('Integral')),
                   DropdownMenuItem(value: 'EAD', child: Text('EAD')),
                   DropdownMenuItem(value: 'Semi Presencial', child: Text('Semi Presencial')),
@@ -2931,17 +2947,21 @@ class _FormjovemState extends State<_Formjovem> {
                   });
                 },
               ),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               const SizedBox(height: 10),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               buildTextField(
-                _anoInicioColegioController, false,
+                _anoInicioColegioController, false, isAno: true,
                 "Ano de Início",
                 onChangedState: () => setState(() {}),
               ),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               buildTextField(
-                _anoFimColegioController, false,
+                _anoFimColegioController, false, isAno: true,
                 "Ano de Conclusão (Previsto)",
                 onChangedState: () => setState(() {}),
               ),
+              if (_estaEstudandoSelecionado.toString().contains('Sim'))
               DropdownButtonFormField<String>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -3163,12 +3183,14 @@ class _FormjovemState extends State<_Formjovem> {
               buildTextField(
                 _codCarteiraTrabalhoController, false,
                 "Código Carteira de Trabalho",
+                isCtps: true,
                 onChangedState: () => setState(() {}),
               ),
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
               buildTextField(
                 _pisController, false,
                 "Código PIS",
+                isPis: true,
                 onChangedState: () => setState(() {}),
               ),
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))

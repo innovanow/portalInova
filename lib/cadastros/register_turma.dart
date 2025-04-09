@@ -6,7 +6,6 @@ import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/turma_service.dart';
 import '../services/uploud_docs.dart';
@@ -900,11 +899,6 @@ class _FormTurmaState extends State<_FormTurma> {
       }
     }
   }
-
-  var dataFormatter = MaskTextInputFormatter(
-    mask: "##/##/####",
-    filter: {"#": RegExp(r'[0-9]')},
-  );
 
   @override
   Widget build(BuildContext context) {

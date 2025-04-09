@@ -6,7 +6,6 @@ import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/modulo_service.dart';
 import '../services/uploud_docs.dart';
@@ -209,7 +208,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Documentos",
+                "Material Didático",
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
@@ -695,7 +694,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                     child: ListTile(
                                       title: Text(
                                         "Módulo: ${modulo['nome']}",
-                                        style: TextStyle(color: Colors.white),
+                                        style: TextStyle(color: Colors.black),
                                       ),
                                       leading: const Icon(Icons.view_module, color: Colors.black,),
                                       subtitle: Column(
@@ -743,8 +742,8 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                                   splashColor: Colors.transparent,
                                                   highlightColor: Colors.transparent,
                                                   enableFeedback: false,
-                                                  tooltip: "Documentos",
-                                                  icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
+                                                  tooltip: "Adicionar Material Didático",
+                                                  icon: const Icon(Icons.picture_as_pdf, color: Colors.black, size: 20),
                                                   onPressed: () => _abrirDocumentos(context, modulo['id']),
                                                 ),
                                               if (auth.tipoUsuario == "administrador")
@@ -906,11 +905,6 @@ class _FormModuloState extends State<_FormModulo> {
       }
     }
   }
-
-  var dataFormatter = MaskTextInputFormatter(
-    mask: "##/##/####",
-    filter: {"#": RegExp(r'[0-9]')},
-  );
 
   @override
   Widget build(BuildContext context) {

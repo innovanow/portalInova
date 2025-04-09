@@ -25,10 +25,11 @@ class EmpresaService {
     required String cnpj,
     required String endereco,
     required String telefone,
-    required String estado,
+    required String? cidadeEstado,
     required String numero,
     required String cep,
-    required String cidade,
+    required String representante,
+    required String bairro,
   }) async {
     try {
       final response = await supabase.auth.signUp(
@@ -51,12 +52,13 @@ class EmpresaService {
         'nome': nome,
         'cnpj': cnpj,
         'endereco': endereco,
-        'cidade': cidade,
-        'estado': estado,
+        'cidade_estado': cidadeEstado,
         'numero': numero,
         'cep': cep,
         'telefone': telefone,
         'status': 'ativo',
+        'representante': representante,
+        'bairro': bairro,
       });
 
       return null;
@@ -72,21 +74,23 @@ class EmpresaService {
     required String cnpj,
     required String endereco,
     required String telefone,
-    required String cidade,
-    required String estado,
+    required String? cidadeEstado,
     required String numero,
+    required String bairro,
     required String cep,
+    required String representante,
   }) async {
     try {
       await supabase.from('empresas').update({
         'nome': nome,
         'cnpj': cnpj,
         'endereco': endereco,
-        'cidade': cidade,
-        'estado': estado,
+        'cidade_estado': cidadeEstado,
         'numero': numero,
         'cep': cep,
         'telefone': telefone,
+        'representante': representante,
+        'bairro': bairro,
       }).match({'id': id});
       return null;
     } catch (e) {

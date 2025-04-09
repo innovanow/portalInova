@@ -1,3 +1,4 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/professor_service.dart';
 import '../services/uploud_docs.dart';
@@ -811,19 +813,18 @@ class _FormjovemState extends State<_Formjovem> {
   final _enderecoController = TextEditingController();
   final _numeroController = TextEditingController();
   final _bairroController = TextEditingController();
-  final _cidadeController = TextEditingController();
-  final _estadoController = TextEditingController();
   final _formacaoController = TextEditingController();
   final _codCarteiraTrabalhoController = TextEditingController();
-  final _estadoCivilController = TextEditingController();
   final _rgController = TextEditingController();
-  final _cidadeNatalController = TextEditingController();
-  final _paisController = TextEditingController();
   final _cepController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _cpfController = TextEditingController();
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
+  String? _cidadeSelecionada;
+  String? _cidadeNatalSelecionada;
+  String? _nacionalidadeSelecionada;
+  String? _estadoCivilSelecionado;
   bool _isLoading = false;
   String? _errorMessage;
   bool _editando = false;
@@ -853,17 +854,16 @@ class _FormjovemState extends State<_Formjovem> {
       _enderecoController.text = widget.jovem!['endereco'] ?? "";
       _numeroController.text = widget.jovem!['numero'] ?? "";
       _bairroController.text = widget.jovem!['bairro'] ?? "";
-      _cidadeController.text = widget.jovem!['cidade'] ?? "";
-      _estadoController.text = widget.jovem!['estado'] ?? "";
+      _cidadeSelecionada = widget.jovem!['cidade_estado'] ?? "";
+      _cidadeNatalSelecionada = widget.jovem!['cidade_natal'] ?? "";
+      _nacionalidadeSelecionada = widget.jovem!['nacionalidade'] ?? "";
       _codCarteiraTrabalhoController.text = widget.jovem!['cod_carteira_trabalho'] ?? "";
       _rgController.text = widget.jovem!['rg'] ?? "";
-      _paisController.text = widget.jovem!['pais'] ?? "";
-      _cidadeNatalController.text = widget.jovem!['cidade_natal'] ?? "";
       _cepController.text = widget.jovem!['cep'] ?? "";
       _cpfController.text = widget.jovem!['cpf'] ?? "";
       _telefoneController.text = widget.jovem!['telefone'] ?? "";
       _formacaoController.text = widget.jovem!['formacao'] ?? "";
-      _estadoCivilController.text = widget.jovem!['estado_civil'] ?? "";
+      _estadoCivilSelecionado = widget.jovem!['estado_civil'] ?? "";
       _sexoSelecionado= widget.jovem!['sexo'] ?? "";
     }
   }
@@ -883,17 +883,16 @@ class _FormjovemState extends State<_Formjovem> {
           endereco: _enderecoController.text.trim(),
           numero: _numeroController.text.trim(),
           bairro: _bairroController.text.trim(),
-          cidade: _cidadeController.text.trim(),
-          estado: _estadoController.text.trim(),
-          pais: _paisController.text.trim(),
-          cidadeNatal: _cidadeNatalController.text.trim(),
+          cidadeEstado: _cidadeSelecionada?.trim(),
+          nacionalidade: _nacionalidadeSelecionada?.trim(),
+          cidadeEstadoNatal: _cidadeNatalSelecionada?.trim(),
           rg: _rgController.text.trim(),
           codCarteiraTrabalho: _codCarteiraTrabalhoController.text.trim(),
           cep: _cepController.text.trim(),
           cpf: _cpfController.text.trim(),
           telefone: _telefoneController.text.trim(),
           formacao: _formacaoController.text.trim(),
-          estadoCivil: _estadoCivilController.text.trim(),
+          estadoCivil: _estadoCivilSelecionado,
           sexo: _sexoSelecionado,
         );
       } else {
@@ -905,10 +904,9 @@ class _FormjovemState extends State<_Formjovem> {
           endereco: _enderecoController.text.trim(),
           numero: _numeroController.text.trim(),
           bairro: _bairroController.text.trim(),
-          cidade: _cidadeController.text.trim(),
-          estado: _estadoController.text.trim(),
-          pais: _paisController.text.trim(),
-          cidadeNatal: _cidadeNatalController.text.trim(),
+          cidadeEstado: _cidadeSelecionada?.trim(),
+          nacionalidade: _nacionalidadeSelecionada?.trim(),
+          cidadeEstadoNatal: _cidadeNatalSelecionada?.trim(),
           rg: _rgController.text.trim(),
           codCarteiraTrabalho: _codCarteiraTrabalhoController.text.trim(),
           cep: _cepController.text.trim(),
@@ -917,7 +915,7 @@ class _FormjovemState extends State<_Formjovem> {
           cpf: _cpfController.text.trim(),
           telefone: _telefoneController.text.trim(),
           formacao: _formacaoController.text.trim(),
-          estadoCivil: _estadoCivilController.text.trim(),
+          estadoCivil: _estadoCivilSelecionado,
           sexo: _sexoSelecionado,
         );
       }
@@ -978,17 +976,363 @@ class _FormjovemState extends State<_Formjovem> {
                 },
               ),
               const SizedBox(height: 10),
-              buildTextField(_cidadeNatalController, true, "Cidade Natal", onChangedState: () => setState(() {})),
-              buildTextField(_estadoCivilController, true, "Estado Civil", onChangedState: () => setState(() {})),
+              DropdownSearch<String>(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, selecione uma opção';
+                  }
+                  return null;
+                },
+                clickProps: ClickProps(
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  enableFeedback: false,
+                ),
+                suffixProps: DropdownSuffixProps(
+                  dropdownButtonProps: DropdownButtonProps(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    enableFeedback: false,
+                    color: Colors.white,
+                    iconClosed: Icon(Icons.arrow_drop_down, color: Colors.white),
+                  ),
+                ),
+                // Configuração da aparência do campo de entrada
+                decoratorProps: DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    labelText: "Nacionalidade",
+                    labelStyle: const TextStyle(color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                // Configuração do menu suspenso
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      item,
+                      style: const TextStyle(fontSize: 15, color: Colors.white),),
+                  ),
+                  menuProps: MenuProps(
+                    color: Colors.white,
+                    backgroundColor: Color(0xFF0A63AC),
+                  ),
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      labelText: "Procurar Nacionalidade",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.white),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.white,
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  fit: FlexFit.loose,
+                  constraints: BoxConstraints(maxHeight: 250),
+                ),
+                // Função para buscar cidades do Supabase
+                items: (String? filtro, dynamic _) async {
+                  final response = await Supabase.instance.client
+                      .from('pais')
+                      .select('nacionalidade')
+                      .ilike('nacionalidade', '%${filtro ?? ''}%')
+                      .order('nacionalidade', ascending: true);
+
+                  // Concatena cidade + UF
+                  return List<String>.from(
+                    response.map((e) => "${e['nacionalidade']}"),
+                  );
+                },
+                // Callback chamado quando uma cidade é selecionada
+                onChanged: (value) {
+                  setState(() {
+                    _nacionalidadeSelecionada = value;
+                  });
+                },
+                selectedItem: _nacionalidadeSelecionada,
+                dropdownBuilder: (context, selectedItem) {
+                  return Text(
+                    selectedItem ?? '',
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
+                  );
+                },
+              ),
+              if(_nacionalidadeSelecionada == "Brasileira")
+                const SizedBox(height: 10),
+              if(_nacionalidadeSelecionada == "Brasileira")
+                DropdownSearch<String>(
+                  clickProps: ClickProps(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    enableFeedback: false,
+                  ),
+                  suffixProps: DropdownSuffixProps(
+                    dropdownButtonProps: DropdownButtonProps(
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      enableFeedback: false,
+                      color: Colors.white,
+                      iconClosed: Icon(Icons.arrow_drop_down, color: Colors.white),
+                    ),
+                  ),
+                  // Configuração da aparência do campo de entrada
+                  decoratorProps: DropDownDecoratorProps(
+                    decoration: InputDecoration(
+                      labelText: "Cidade Natal",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.white),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.white,
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  // Configuração do menu suspenso
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        item,
+                        style: const TextStyle(fontSize: 15, color: Colors.white),),
+                    ),
+                    menuProps: MenuProps(
+                      color: Colors.white,
+                      backgroundColor: Color(0xFF0A63AC),
+                    ),
+                    searchFieldProps: TextFieldProps(
+                      decoration: InputDecoration(
+                        labelText: "Procurar Cidade Natal",
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors.white,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    fit: FlexFit.loose,
+                    constraints: BoxConstraints(maxHeight: 250),
+                  ),
+                  // Função para buscar cidades do Supabase
+                  items: (String? filtro, dynamic _) async {
+                    final response = await Supabase.instance.client
+                        .from('cidades')
+                        .select('cidade_estado')
+                        .ilike('cidade_estado', '%${filtro ?? ''}%')
+                        .order('cidade_estado', ascending: true);
+
+                    // Concatena cidade + UF
+                    return List<String>.from(
+                      response.map((e) => "${e['cidade_estado']}"),
+                    );
+                  },
+                  // Callback chamado quando uma cidade é selecionada
+                  onChanged: (value) {
+                    setState(() {
+                      _cidadeNatalSelecionada = value;
+                    });
+                  },
+                  selectedItem: _cidadeNatalSelecionada,
+                  dropdownBuilder: (context, selectedItem) {
+                    return Text(
+                      selectedItem ?? '',
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
+                    );
+                  },
+                ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, selecione uma opção';
+                  }
+                  return null;
+                },
+                value: _estadoCivilSelecionado,
+                decoration: InputDecoration(
+                  labelText: "Estado Civil",
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                      color: Colors.white,
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                dropdownColor: const Color(0xFF0A63AC),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                style: const TextStyle(color: Colors.white),
+                items: const [
+                  DropdownMenuItem(value: 'Solteiro', child: Text('Solteiro')),
+                  DropdownMenuItem(value: 'Casado', child: Text('Casado')),
+                  DropdownMenuItem(
+                    value: 'Divorciado',
+                    child: Text('Divorciado'),
+                  ),
+                  DropdownMenuItem(value: 'Viúvo', child: Text('Viúvo')),
+                  DropdownMenuItem(
+                    value: 'Prefiro não responder',
+                    child: Text('Prefiro não responder'),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _estadoCivilSelecionado = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
               buildTextField(_cpfController, true, "CPF", isCpf: true, onChangedState: () => setState(() {})),
               buildTextField(_rgController, true, "RG", isRg: true, onChangedState: () => setState(() {})),
               buildTextField(_codCarteiraTrabalhoController, true, "Carteira de Trabalho", onChangedState: () => setState(() {})),
               buildTextField(_enderecoController, true, "Endereço", onChangedState: () => setState(() {})),
               buildTextField(_numeroController, true, "Número", onChangedState: () => setState(() {})),
               buildTextField(_bairroController, true, "Bairro", onChangedState: () => setState(() {})),
-              buildTextField(_cidadeController, true, "Cidade", onChangedState: () => setState(() {})),
-              buildTextField(_estadoController, true, "Estado", onChangedState: () => setState(() {})),
-              buildTextField(_paisController, true, "País", onChangedState: () => setState(() {})),
+              DropdownSearch<String>(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, selecione uma opção';
+                  }
+                  return null;
+                },
+                clickProps: ClickProps(
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  enableFeedback: false,
+                ),
+                suffixProps: DropdownSuffixProps(
+                  dropdownButtonProps: DropdownButtonProps(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    enableFeedback: false,
+                    color: Colors.white,
+                    iconClosed: Icon(Icons.arrow_drop_down, color: Colors.white),
+                  ),
+                ),
+                // Configuração da aparência do campo de entrada
+                decoratorProps: DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    labelText: "Cidade",
+                    labelStyle: const TextStyle(color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                // Configuração do menu suspenso
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      item,
+                      style: const TextStyle(fontSize: 15, color: Colors.white),),
+                  ),
+                  menuProps: MenuProps(
+                    color: Colors.white,
+                    backgroundColor: Color(0xFF0A63AC),
+                  ),
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      labelText: "Procurar Cidade",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.white),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.white,
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  fit: FlexFit.loose,
+                  constraints: BoxConstraints(maxHeight: 250),
+                ),
+                // Função para buscar cidades do Supabase
+                items: (String? filtro, dynamic _) async {
+                  final response = await Supabase.instance.client
+                      .from('cidades')
+                      .select('cidade_estado')
+                      .ilike('cidade_estado', '%${filtro ?? ''}%')
+                      .order('cidade_estado', ascending: true);
+
+                  // Concatena cidade + UF
+                  return List<String>.from(
+                    response.map((e) => "${e['cidade_estado']}"),
+                  );
+                },
+                // Callback chamado quando uma cidade é selecionada
+                onChanged: (value) {
+                  setState(() {
+                    _cidadeSelecionada = value;
+                  });
+                },
+                selectedItem: _cidadeSelecionada,
+                dropdownBuilder: (context, selectedItem) {
+                  return Text(
+                    selectedItem ?? '',
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
               buildTextField(_cepController, true, "CEP", isCep: true, onChangedState: () => setState(() {})),
               buildTextField(_telefoneController, true, "Telefone", onChangedState: () => setState(() {})),
               buildTextField(_formacaoController, true, "Formação", onChangedState: () => setState(() {})),

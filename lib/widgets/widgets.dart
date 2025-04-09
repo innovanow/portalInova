@@ -1,123 +1,30 @@
 import 'package:chips_choice/chips_choice.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_multi_formatter/formatters/currency_input_formatter.dart';
+import 'package:flutter_multi_formatter/formatters/masked_input_formatter.dart';
 import 'package:flutter_multi_formatter/formatters/money_input_enums.dart';
-import 'package:inova/cadastros/register_empresa.dart';
-import 'package:inova/cadastros/register_escola.dart';
-import 'package:inova/cadastros/register_jovem.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../cadastros/register_modulo.dart';
-import '../cadastros/register_professor.dart';
-import '../cadastros/register_turma.dart';
 import '../services/auth_service.dart';
-import '../telas/calendar.dart';
-import '../telas/historico_freq_jovem.dart';
-import '../telas/home.dart';
-import '../telas/jovem.dart';
 import '../telas/login.dart';
-import '../telas/presenca.dart';
-import 'drawer.dart';
 
-/// 📌 Função para criar um item do menu lateral
-Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
-  return Tooltip(
-    message: title == "Sair" ? "Sair da conta" : 'Abrir $title',
-    child: MouseRegion(
-      cursor: SystemMouseCursors.click, // 👈 Mãozinha na web
-      child: ListTile(
-        onTap: () async {
-          if (title == "Cadastro de Empresa") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const EmpresaScreen()));
-          }
-          if (title == "Cadastro de Colégio") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const EscolaScreen()));
-          }
-          if (title == "Cadastro de Jovem" || title == "Jovens") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const CadastroJovem()));
-          }
-          if (title == "Cadastro de Turma") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const TurmaScreen()));
-          }
-          if (title == "Cadastro de Professor") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const CadastroProfessor()));
-          }
-          if (title == "Cadastro de Módulo") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const ModuloScreen()));
-          }
-          if (title == "Calendário") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const ModulosCalendarScreen()));
-          }
-          if (title == "Home") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const Home()));
-          }
-          if (title == "Sair") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const LoginScreen()));
-          }
-          if (title == "Presenças") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => RegistrarPresencaPage(professorId: auth.idUsuario.toString(),)));
-          }
-          if (title == "Histórico de Presenças") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => HistoricoFrequenciaJovemPage(jovemId: auth.idUsuario.toString(),)));
-          }
-          if (title == "Meu Perfil") {
-            final response = await Supabase.instance.client
-                .from('jovens_aprendizes')
-                .select()
-                .eq('id', auth.idUsuario.toString())
-                .maybeSingle();
 
-            if (response != null && context.mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => JovemAprendizDetalhes(jovem: response),
-                ),
-              );
-            } else {
-              if (context.mounted){
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: Color(0xFF0A63AC),
-                      content: Text("Perfil não encontrado para este usuário.",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ))
-                  ),
-                );
-              }
-            }
-          }
-        },
-        leading: Icon(
-          icon,
-          size: 30,
-          color: const Color(0xFF0A63AC),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontFamily: 'FuturaBold',
-            color: Color(0xFF0A63AC),
-          ),
-        ),
-        shape: const Border(bottom: BorderSide()), // 👈 Borda visual separadora
-      ),
-    ),
-  );
-}
+final cnpjFormatter = MaskedInputFormatter('00.000.000/0000-00');
+final cepFormatter = MaskedInputFormatter('00000-000');
+final cpfFormatter = MaskedInputFormatter('000.000.000-00');
+final dataFormatter = MaskedInputFormatter('00/00/0000');
+final rgFormatter = MaskedInputFormatter('00.000.000-0');
+final telefoneFormatter = MaskedInputFormatter('(00) 00000-0000');
+final ctpsFormatter = MaskedInputFormatter('0000000/00-0');
+final pisFormatter = MaskedInputFormatter('000.00000.00-0');
+var dinheiroFormatter = CurrencyInputFormatter(
+  leadingSymbol: 'R\$',
+  useSymbolPadding: true,
+  thousandSeparator: ThousandSeparator.Period,
+  mantissaLength: 2, // casas decimais
+);
+final horaFormatter = MaskedInputFormatter('00:00:00');
+final anoFormatter = MaskedInputFormatter('0000');
 
 Widget buildIcon(IconData icon, String? title, {BuildContext? context}) {
   return Padding(
@@ -184,36 +91,11 @@ Widget buildTextField(
       bool isHora = false,
       bool isCpf = false,
       bool isAno = false,
+      bool isTelefone = false,
+      bool isCtps = false,
+      bool isPis = false,
       VoidCallback? onChangedState,
     }) {
-  var cnpjFormatter = MaskTextInputFormatter(mask: "##.###.###/####-##", filter: {"#": RegExp(r'[0-9]')});
-  var cepFormatter = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
-  var cpfFormatter = MaskTextInputFormatter(
-    mask: "###.###.###-##",
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-  var dataFormatter = MaskTextInputFormatter(
-    mask: "##/##/####",
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-  var rgFormatter = MaskTextInputFormatter(
-    mask: "##.###.###-#",
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-  var dinheiroFormatter = CurrencyInputFormatter(
-    leadingSymbol: 'R\$', // Adiciona "R$ " antes do valor
-    useSymbolPadding: true, // Mantém espaço após "R$"
-    thousandSeparator: ThousandSeparator.Period, // Usa "." como separador de milhar
-  );
-  var horaFormatter = MaskTextInputFormatter(
-    mask: "##:##:##",
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-
-  var anoFormatter = MaskTextInputFormatter(
-    mask: "####",
-    filter: {"#": RegExp(r'[0-9]')},
-  );
 
   return Padding(
     padding: const EdgeInsets.only(bottom: 10),
@@ -245,6 +127,9 @@ Widget buildTextField(
         ),
       ),
       onChanged: (value) {
+        if (kDebugMode) {
+          print("Digitado: $value");
+        }
         if (onChangedState != null) onChangedState();
       },
       style: const TextStyle(color: Colors.white),
@@ -253,7 +138,7 @@ Widget buildTextField(
           ? TextInputType.emailAddress
           : isCnpj || isCep
           ? TextInputType.number
-          : TextInputType.text,
+          : isData || isHora || isAno || isDinheiro || isRg || isCpf ? TextInputType.number : TextInputType.text,
       inputFormatters: isCnpj
           ? [cnpjFormatter]
           : isCep
@@ -270,6 +155,12 @@ Widget buildTextField(
           ? [cpfFormatter]
           : isAno
           ? [anoFormatter]
+          : isTelefone
+          ? [telefoneFormatter]
+          : isCtps
+          ? [ctpsFormatter]
+          : isPis
+          ? [pisFormatter]
           : [],
       validator: (value) {
         if (value == null && obrigatorio == true || value!.isEmpty && obrigatorio == true) return "Campo obrigatório";

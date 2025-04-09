@@ -1,12 +1,14 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/cnpj_service.dart';
 import '../services/empresa_service.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../services/uploud_docs.dart';
 import '../widgets/drawer.dart';
 import '../widgets/widgets.dart';
@@ -30,14 +32,6 @@ class _EmpresaScreenState extends State<EmpresaScreen> {
   final DocService _docsService = DocService();
   String? _uploadStatus;
   DropzoneViewController? _controller;
-  var cnpjFormatter = MaskTextInputFormatter(
-      mask: "##.###.###/####-##",
-      filter: {"#": RegExp(r'[0-9]')}
-  );
-  var cepFormatter = MaskTextInputFormatter(
-      mask: "#####-###",
-      filter: {"#": RegExp(r'[0-9]')}
-  );
 
   @override
   void initState() {
@@ -53,6 +47,7 @@ class _EmpresaScreenState extends State<EmpresaScreen> {
       _isFetching = false;
     });
   }
+
 
   void _abrirFormulario({Map<String, dynamic>? empresa}) {
     showDialog(
@@ -710,7 +705,7 @@ class _EmpresaScreenState extends State<EmpresaScreen> {
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    "CNPJ: ${cnpjFormatter.maskText(empresa['cnpj'] ?? '')}",
+                                                    "CNPJ: ${cnpjFormatter.applyMask(empresa['cnpj'] ?? '')}",
                                                     style: const TextStyle(color: Colors.black),
                                                   ),
                                                   Divider(color: Colors.black),
@@ -820,23 +815,16 @@ class _FormEmpresaState extends State<_FormEmpresa> {
   final _senhaController = TextEditingController();
   final _cnpjController = TextEditingController();
   final _enderecoController = TextEditingController();
-  final _cidadeController = TextEditingController();
-  final _estadoController = TextEditingController();
+  final _bairroController = TextEditingController();
   final _numeroController = TextEditingController();
   final _cepController = TextEditingController();
   final _telefoneController = TextEditingController();
+  final _representanteController = TextEditingController();
+  String? _cidadeSelecionada;
   bool _isLoading = false;
   String? _errorMessage;
   bool _editando = false;
   String? _empresaId;
-  var cnpjFormatter = MaskTextInputFormatter(
-      mask: "##.###.###/####-##",
-      filter: {"#": RegExp(r'[0-9]')}
-  );
-  var cepFormatter = MaskTextInputFormatter(
-      mask: "#####-###",
-      filter: {"#": RegExp(r'[0-9]')}
-  );
 
   final EmpresaService _empresaService = EmpresaService();
 
@@ -847,13 +835,14 @@ class _FormEmpresaState extends State<_FormEmpresa> {
       _editando = true;
       _empresaId = widget.empresa!['id'].toString();
       _nomeController.text = widget.empresa!['nome'].toString();
-      _cnpjController.text = cnpjFormatter.maskText(widget.empresa!['cnpj'].toString());
+      _cnpjController.text = cnpjFormatter.applyMask(widget.empresa!['cnpj'].toString()).text;
       _enderecoController.text = widget.empresa!['endereco'].toString();
-      _cidadeController.text = widget.empresa!['cidade'].toString();
-      _estadoController.text = widget.empresa!['estado'].toString();
+      _cidadeSelecionada = widget.empresa!['cidade_estado'].toString();
       _numeroController.text = widget.empresa!['numero'].toString();
-      _cepController.text = cepFormatter.maskText(widget.empresa!['cep'].toString());
-      _telefoneController.text = widget.empresa!['telefone'].toString();
+      _bairroController.text = widget.empresa!['bairro'].toString();
+      _cepController.text = cepFormatter.applyMask(widget.empresa!['cep'].toString()).text;
+      _telefoneController.text = telefoneFormatter.applyMask(widget.empresa!['telefone'].toString()).text;
+      _representanteController.text = widget.empresa!['representante'].toString();
     }
   }
 
@@ -868,11 +857,12 @@ class _FormEmpresaState extends State<_FormEmpresa> {
           nome: _nomeController.text.trim(),
           cnpj: _cnpjController.text.trim(),
           endereco: _enderecoController.text.trim(),
-          cidade: _cidadeController.text.trim(),
-          estado: _estadoController.text.trim(),
+          cidadeEstado: _cidadeSelecionada?.trim(),
           numero: _numeroController.text.trim(),
           cep: _cepController.text.trim(),
           telefone: _telefoneController.text.trim(),
+          representante: _representanteController.text.trim(),
+          bairro: _bairroController.text.trim(),
         );
       } else {
         error = await _empresaService.cadastrarEmpresa(
@@ -881,11 +871,12 @@ class _FormEmpresaState extends State<_FormEmpresa> {
           senha: _senhaController.text.trim(),
           cnpj: _cnpjController.text.trim(),
           endereco: _enderecoController.text.trim(),
-          cidade: _cidadeController.text.trim(),
-          estado: _estadoController.text.trim(),
+          cidadeEstado: _cidadeSelecionada?.trim(),
           numero: _numeroController.text.trim(),
           cep: _cepController.text.trim(),
           telefone: _telefoneController.text.trim(),
+          representante: _representanteController.text.trim(),
+          bairro: _bairroController.text.trim(),
         );
       }
 
@@ -914,13 +905,144 @@ class _FormEmpresaState extends State<_FormEmpresa> {
                 buildTextField(_emailController, true, "E-mail", isEmail: true, onChangedState: () => setState(() {})),
                 buildTextField(_senhaController, true, "Senha", isPassword: true, onChangedState: () => setState(() {})),
               ],
-              buildTextField(_cnpjController, true, "CNPJ", isCnpj: true, onChangedState: () => setState(() {})),
+              buildTextField(
+                _cnpjController,
+                true,
+                "CNPJ",
+                isCnpj: true,
+                onChangedState: () async {
+                  final cnpj = _cnpjController.text;
+                  if (kDebugMode) {
+                    print("CNPJ digitado: $cnpj ${cnpj.length}");
+                  }
+                  if (cnpj.length == 18) { // máscara completa
+                    final endereco = await buscarEnderecoPorCnpj(cnpj);
+                    if (endereco != null) {
+                      setState(() {
+                        _cepController.text = cepFormatter.applyMask(endereco['cep'] ?? '').text;
+                        _enderecoController.text = capitalizarCadaPalavra(endereco['endereco'] ?? '');
+                        _numeroController.text = endereco['numero'] ?? '';
+                        _bairroController.text = capitalizarCadaPalavra(endereco['bairro'] ?? '');
+                        _cidadeSelecionada = "${endereco['cidade']}-${endereco['uf']}";
+                      });
+                    }
+                  }
+                },
+              ),
               buildTextField(_enderecoController, true, "Endereço", onChangedState: () => setState(() {})),
-              buildTextField(_cidadeController, true, "Cidade", onChangedState: () => setState(() {})),
-              buildTextField(_estadoController, true, "Estado", onChangedState: () => setState(() {})),
+              DropdownSearch<String>(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, selecione uma opção';
+                  }
+                  return null;
+                },
+                clickProps: ClickProps(
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  enableFeedback: false,
+                ),
+                suffixProps: DropdownSuffixProps(
+                  dropdownButtonProps: DropdownButtonProps(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    enableFeedback: false,
+                    color: Colors.white,
+                    iconClosed: Icon(Icons.arrow_drop_down, color: Colors.white),
+                  ),
+                ),
+                // Configuração da aparência do campo de entrada
+                decoratorProps: DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    labelText: "Cidade",
+                    labelStyle: const TextStyle(color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                // Configuração do menu suspenso
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      item,
+                      style: const TextStyle(fontSize: 15, color: Colors.white),),
+                  ),
+                  menuProps: MenuProps(
+                    color: Colors.white,
+                    backgroundColor: Color(0xFF0A63AC),
+                  ),
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      labelText: "Procurar Cidade",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.white),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.white,
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  fit: FlexFit.loose,
+                  constraints: BoxConstraints(maxHeight: 250),
+                ),
+                // Função para buscar cidades do Supabase
+                items: (String? filtro, dynamic _) async {
+                  final response = await Supabase.instance.client
+                      .from('cidades')
+                      .select('cidade_estado')
+                      .ilike('cidade_estado', '%${filtro ?? ''}%')
+                      .order('cidade_estado', ascending: true);
+
+                  // Concatena cidade + UF
+                  return List<String>.from(
+                    response.map((e) => "${e['cidade_estado']}"),
+                  );
+                },
+                // Callback chamado quando uma cidade é selecionada
+                onChanged: (value) {
+                  setState(() {
+                    _cidadeSelecionada = value;
+                  });
+                },
+                selectedItem: _cidadeSelecionada,
+                dropdownBuilder: (context, selectedItem) {
+                  return Text(
+                    selectedItem ?? '',
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
               buildTextField(_numeroController, true, "Número", onChangedState: () => setState(() {})),
-              buildTextField(_cepController, true,"CEP", isCep: true, onChangedState: () => setState(() {})),
+              buildTextField(
+                _bairroController, true,
+                "Bairro",
+                onChangedState: () => setState(() {}),
+              ),
+              buildTextField(_cepController, true,"CEP", isCep: true,
+                  onChangedState: () => setState(() {})),
               buildTextField(_telefoneController, true, "Telefone", onChangedState: () => setState(() {})),
+              buildTextField(_representanteController, true, "Representante", onChangedState: () => setState(() {})),
               const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()

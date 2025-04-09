@@ -1,9 +1,126 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:inova/widgets/widgets.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../cadastros/register_empresa.dart';
+import '../cadastros/register_escola.dart';
+import '../cadastros/register_jovem.dart';
+import '../cadastros/register_modulo.dart';
+import '../cadastros/register_professor.dart';
+import '../cadastros/register_turma.dart';
 import '../services/auth_service.dart';
+import '../telas/calendar.dart';
+import '../telas/historico_freq_jovem.dart';
+import '../telas/home.dart';
+import '../telas/jovem.dart';
+import '../telas/login.dart';
+import '../telas/modulos_jovens.dart';
+import '../telas/presenca.dart';
 
 final auth = AuthService();
+
+
+/// 📌 Função para criar um item do menu lateral
+Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
+  return Tooltip(
+    message: title == "Sair" ? "Sair da conta" : 'Abrir $title',
+    child: MouseRegion(
+      cursor: SystemMouseCursors.click, // 👈 Mãozinha na web
+      child: ListTile(
+        onTap: () async {
+          if (title == "Cadastro de Empresa") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const EmpresaScreen()));
+          }
+          if (title == "Cadastro de Colégio") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const EscolaScreen()));
+          }
+          if (title == "Cadastro de Jovem" || title == "Jovens") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const CadastroJovem()));
+          }
+          if (title == "Cadastro de Turma") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const TurmaScreen()));
+          }
+          if (title == "Cadastro de Professor") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const CadastroProfessor()));
+          }
+          if (title == "Cadastro de Módulo") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const ModuloScreen()));
+          }
+          if (title == "Calendário") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const ModulosCalendarScreen()));
+          }
+          if (title == "Home") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const Home()));
+          }
+          if (title == "Sair") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()));
+          }
+          if (title == "Presenças") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => RegistrarPresencaPage(professorId: auth.idUsuario.toString(),)));
+          }
+          if (title == "Histórico de Presenças") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => HistoricoFrequenciaJovemPage(jovemId: auth.idUsuario.toString(),)));
+          }
+          if (title == "Meus Módulos") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => TelaModulosDoJovem(jovemId: auth.idUsuario.toString(),)));
+          }
+          if (title == "Meu Perfil") {
+            final response = await Supabase.instance.client
+                .from('jovens_aprendizes')
+                .select()
+                .eq('id', auth.idUsuario.toString())
+                .maybeSingle();
+
+            if (response != null && context.mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => JovemAprendizDetalhes(jovem: response),
+                ),
+              );
+            } else {
+              if (context.mounted){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      backgroundColor: Color(0xFF0A63AC),
+                      content: Text("Perfil não encontrado para este usuário.",
+                          style: TextStyle(
+                            color: Colors.white,
+                          ))
+                  ),
+                );
+              }
+            }
+          }
+        },
+        leading: Icon(
+          icon,
+          size: 30,
+          color: const Color(0xFF0A63AC),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'FuturaBold',
+            color: Color(0xFF0A63AC),
+          ),
+        ),
+        shape: const Border(bottom: BorderSide()), // 👈 Borda visual separadora
+      ),
+    ),
+  );
+}
 
 class InovaDrawer extends StatelessWidget {
   final BuildContext context;
@@ -59,6 +176,8 @@ class InovaDrawer extends StatelessWidget {
           if (auth.tipoUsuario == "jovem_aprendiz")
           buildDrawerItem(Icons.event_available, "Histórico de Presenças", context),
           buildDrawerItem(Icons.calendar_month, "Calendário", context),
+          if (auth.tipoUsuario == "jovem_aprendiz" || auth.tipoUsuario == "professor")
+          buildDrawerItem(Icons.book, "Meus Módulos", context),
           buildDrawerItem(Icons.logout, "Sair", context),
         ],
       ),
