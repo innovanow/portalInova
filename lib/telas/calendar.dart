@@ -25,11 +25,105 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
   }
 
   Future<void> _carregarModulos() async {
-    final response = await supabase.from('modulos').select('nome, data_inicio, data_termino, dia_semana, cor').eq('status', 'ativo');
+    final userId = supabase.auth.currentUser?.id;
+    final userType = (await supabase
+        .from('users')
+        .select('tipo')
+        .eq('id', userId.toString())
+        .maybeSingle())?['tipo'];
+
+    List<Map<String, dynamic>> modulos = [];
+
+    if (userType == 'professor') {
+      modulos = await supabase
+          .from('modulos')
+          .select('nome, data_inicio, data_termino, dia_semana, cor')
+          .eq('status', 'ativo')
+          .eq('professor_id',  userId.toString());
+    } else if (userType == 'jovem_aprendiz') {
+      final jovem = await supabase
+          .from('jovens_aprendizes')
+          .select('turma_id')
+          .eq('id', userId.toString())
+          .maybeSingle();
+
+      final turmaId = jovem?['turma_id'];
+
+      if (turmaId != null) {
+        final modulosTurmas = await supabase
+            .from('modulos_turmas')
+            .select('modulo_id')
+            .eq('turma_id', turmaId);
+
+        final moduloIds = modulosTurmas.map((e) => e['modulo_id']).toList();
+
+        if (moduloIds.isNotEmpty) {
+          modulos = await supabase
+              .from('modulos')
+              .select('nome, data_inicio, data_termino, dia_semana, cor')
+              .inFilter('id', moduloIds)
+              .eq('status', 'ativo');
+        }
+      }
+    } else if (userType == 'empresa') {
+      final jovens = await supabase
+          .from('jovens_aprendizes')
+          .select('turma_id')
+          .eq('empresa_id', userId.toString());
+
+      final turmaIds = jovens.map((e) => e['turma_id']).where((id) => id != null).toSet().toList();
+
+      if (turmaIds.isNotEmpty) {
+        final modulosTurmas = await supabase
+            .from('modulos_turmas')
+            .select('modulo_id')
+            .inFilter('turma_id', turmaIds);
+
+        final moduloIds = modulosTurmas.map((e) => e['modulo_id']).toSet().toList();
+
+        if (moduloIds.isNotEmpty) {
+          modulos = await supabase
+              .from('modulos')
+              .select('nome, data_inicio, data_termino, dia_semana, cor')
+              .inFilter('id', moduloIds)
+              .eq('status', 'ativo');
+        }
+      }
+    } else if (userType == 'escola') {
+      final jovens = await supabase
+          .from('jovens_aprendizes')
+          .select('turma_id')
+          .eq('escola_id', userId.toString());
+
+      final turmaIds = jovens.map((e) => e['turma_id']).where((id) => id != null).toSet().toList();
+
+      if (turmaIds.isNotEmpty) {
+        final modulosTurmas = await supabase
+            .from('modulos_turmas')
+            .select('modulo_id')
+            .inFilter('turma_id', turmaIds);
+
+        final moduloIds = modulosTurmas.map((e) => e['modulo_id']).toSet().toList();
+
+        if (moduloIds.isNotEmpty) {
+          modulos = await supabase
+              .from('modulos')
+              .select('nome, data_inicio, data_termino, dia_semana, cor')
+              .inFilter('id', moduloIds)
+              .eq('status', 'ativo');
+        }
+      }
+    } else {
+      // Administrador ou Instituto
+      modulos = await supabase
+          .from('modulos')
+          .select('nome, data_inicio, data_termino, dia_semana, cor')
+          .eq('status', 'ativo');
+    }
 
     Map<DateTime, String> novosDiasModulos = {};
 
-    for (var modulo in response) {
+    for (var modulo in modulos) {
       DateTime inicio = DateTime.parse(modulo['data_inicio']);
       DateTime termino = DateTime.parse(modulo['data_termino']);
       String? diaSemana = modulo['dia_semana'];

@@ -127,9 +127,6 @@ Widget buildTextField(
         ),
       ),
       onChanged: (value) {
-        if (kDebugMode) {
-          print("Digitado: $value");
-        }
         if (onChangedState != null) onChangedState();
       },
       style: const TextStyle(color: Colors.white),
@@ -138,7 +135,7 @@ Widget buildTextField(
           ? TextInputType.emailAddress
           : isCnpj || isCep
           ? TextInputType.number
-          : isData || isHora || isAno || isDinheiro || isRg || isCpf ? TextInputType.number : TextInputType.text,
+          : isData || isHora || isAno || isDinheiro || isRg || isCpf || isTelefone || isCtps || isPis ? TextInputType.number : TextInputType.text,
       inputFormatters: isCnpj
           ? [cnpjFormatter]
           : isCep
@@ -179,17 +176,6 @@ Widget buildTextField(
         return null;
       },
     ),
-  );
-}
-
-Widget buildAppBarItem(IconData icon, String label) {
-  return Row(
-    children: [
-      Icon(icon, size: 18, color: Colors.white),
-      const SizedBox(width: 5),
-      Text(label, style: TextStyle(color: Colors.white, fontSize: 14)),
-      const SizedBox(width: 20),
-    ],
   );
 }
 
@@ -363,4 +349,57 @@ class _ColorWheelPickerState extends State<ColorWheelPicker> {
       ),
     );
   }
+}
+
+Widget buildStatusCard(statusJovem) {
+  if (statusJovem == null) return const SizedBox.shrink();
+
+  IconData icon;
+  Color color;
+  String label;
+
+  switch (statusJovem) {
+    case 'ativo':
+      icon = Icons.check_circle;
+      color = Colors.green;
+      label = 'ATIVO';
+      break;
+    case 'inativo':
+      icon = Icons.block;
+      color = Colors.red;
+      label = 'INATIVO';
+      break;
+    case 'candidato':
+      icon = Icons.hourglass_top;
+      color = Colors.orange;
+      label = 'EM FILA DE ESPERA';
+      break;
+    default:
+      icon = Icons.help_outline;
+      color = Colors.grey;
+      label = 'DESCONHECIDO';
+  }
+
+  return Card(
+    margin: const EdgeInsets.all(16),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 30),
+          const SizedBox(width: 12),
+          Text(
+            'Status: $label',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

@@ -735,12 +735,6 @@ class _TurmaScreenState extends State<TurmaScreen> {
                                                 color: Colors.black.withValues(alpha: 0.2), // Cor da linha
                                               ),
                                               if (auth.tipoUsuario == "administrador")
-                                                Container(
-                                                  width: 2, // Espessura da linha
-                                                  height: 30, // Altura da linha
-                                                  color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                ),
-                                              if (auth.tipoUsuario == "administrador")
                                                 IconButton(
                                                   focusColor: Colors.transparent,
                                                   hoverColor: Colors.transparent,
@@ -750,6 +744,12 @@ class _TurmaScreenState extends State<TurmaScreen> {
                                                   tooltip: "Documentos",
                                                   icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
                                                   onPressed: () => _abrirDocumentos(context, turma['id']),
+                                                ),
+                                              if (auth.tipoUsuario == "administrador")
+                                                Container(
+                                                  width: 2, // Espessura da linha
+                                                  height: 30, // Altura da linha
+                                                  color: Colors.black.withValues(alpha: 0.2), // Cor da linha
                                                 ),
                                               if (auth.tipoUsuario == "administrador")
                                               IconButton(

@@ -305,6 +305,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (kIsWeb)
                         Expanded(
                           flex: 1,
                           child: Stack(
@@ -703,8 +704,8 @@ class _CadastroJovemState extends State<CadastroJovem> {
                             );
                           },
                         )
-                        : const Text(
-                          'Jovens',
+                        : Text(
+                          'Jovens ${statusJovem.toLowerCase()}',
                           style: TextStyle(
                             fontFamily: 'FuturaBold',
                             fontWeight: FontWeight.bold,
@@ -713,6 +714,19 @@ class _CadastroJovemState extends State<CadastroJovem> {
                           ),
                         ),
                 actions: [
+                  if (auth.tipoUsuario == "administrador")
+                  TextButton.icon(
+                    style: ButtonStyle(
+                      overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                    ),
+                    icon: Icon(Icons.hourglass_top, color: Colors.white),
+                      onPressed: (){
+                      statusJovem = "candidato";
+                        _carregarjovens(statusJovem);
+                      }, label: Text("Lista de Espera",
+                      style: TextStyle(color: Colors.white,
+                        fontSize: 15,
+                      )),),
                   modoPesquisa
                       ? IconButton(
                         focusColor: Colors.transparent,
@@ -1276,7 +1290,6 @@ class _FormjovemState extends State<_Formjovem> {
   final _cpfMaeController = TextEditingController();
   final _rgPaiController = TextEditingController();
   final _rgMaeController = TextEditingController();
-  final _areaAprendizadoController = TextEditingController();
   final _codCarteiraTrabalhoController = TextEditingController();
   final _rgController = TextEditingController();
   final _cepController = TextEditingController();
@@ -1336,6 +1349,7 @@ class _FormjovemState extends State<_Formjovem> {
   String? _cidadeSelecionada;
   String? _cidadeNatalSelecionada;
   String? _nacionalidadeSelecionada;
+  String? _areaAprendizadoSelecionada;
 
   // Criando um formatador de data no formato "yyyy-MM-dd"
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
@@ -1377,10 +1391,10 @@ class _FormjovemState extends State<_Formjovem> {
         widget.jovem!['data_nascimento'] ?? "",
       );
       _nomePaiController.text = widget.jovem!['nome_pai'] ?? "";
-      _estadoCivilPaiSelecionado = widget.jovem!['estado_civil_pai'] ?? "";
-      _estadoCivilMaeSelecionado = widget.jovem!['estado_civil_mae'] ?? "";
-      _estadoCivilResponsavelSelecionado = widget.jovem!['estado_civil_responsavel'] ?? "";
-      _estadoCivilSelecionado = widget.jovem!['estado_civil'] ?? "";
+      _estadoCivilPaiSelecionado = widget.jovem!['estado_civil_pai'];
+      _estadoCivilMaeSelecionado = widget.jovem!['estado_civil_mae'];
+      _estadoCivilResponsavelSelecionado = widget.jovem!['estado_civil_responsavel'];
+      _estadoCivilSelecionado = widget.jovem!['estado_civil'];
       _cpfPaiController.text = widget.jovem!['cpf_pai'] ?? "";
       _cpfMaeController.text = widget.jovem!['cpf_mae'] ?? "";
       _rgPaiController.text = widget.jovem!['rg_pai'] ?? "";
@@ -1399,45 +1413,45 @@ class _FormjovemState extends State<_Formjovem> {
       _telefoneJovemController.text = widget.jovem!['telefone_jovem'] ?? "";
       _telefonePaiController.text = widget.jovem!['telefone_pai'] ?? "";
       _telefoneMaeController.text = widget.jovem!['telefone_mae'] ?? "";
-      _escolaSelecionada = widget.jovem!['escola_id'] ?? "";
-      _empresaSelecionada = widget.jovem!['empresa_id'] ?? "";
-      _areaAprendizadoController.text = widget.jovem!['area_aprendizado'] ?? "";
+      _escolaSelecionada = widget.jovem!['escola_id'];
+      _empresaSelecionada = widget.jovem!['empresa_id'];
+      _areaAprendizadoSelecionada = widget.jovem!['area_aprendizado'];
       _cpfController.text = widget.jovem!['cpf'] ?? "";
-      _horasTrabalhoController.text = widget.jovem!['horas_trabalho'] ?? "";
+      _horasTrabalhoController.text = widget.jovem!['horas_trabalho'] ?? "00:00:00";
       _remuneracaoController.text = formatarDinheiro(
         widget.jovem!['remuneracao'] ?? 0.0,
       );
       _outraEscolaController.text = widget.jovem!['outra_escola'] ?? "";
-      _turmaSelecionada = widget.jovem!['turma_id'] ?? "";
-      _sexoSelecionado = widget.jovem!['sexo_biologico'] ?? "";
-      _orientacaoSelecionado = widget.jovem!['orientacao_sexual'] ?? "";
-      _identidadeSelecionado = widget.jovem!['identidade_genero'] ?? "";
-      _cidadeSelecionada = widget.jovem!['cidade_estado'] ?? "";
-      _escolaridadeSelecionado = widget.jovem!['escolaridade'] ?? "";
-      _cidadeNatalSelecionada = widget.jovem!['cidade_estado_natal'] ?? "";
-      _corSelecionado = widget.jovem!['cor'] ?? "";
-      _pcdSelecionado = widget.jovem!['pcd'] ?? "";
-      _nacionalidadeSelecionada =  widget.jovem!['nacionalidade'] ?? "";
-      _moraComSelecionado = widget.jovem!['mora_com'] ?? "";
-      _filhosSelecionado = widget.jovem!['filhos'] ?? "";
-      _membrosSelecionado = widget.jovem!['membros'] ?? "";
-      _estaEstudandoSelecionado = widget.jovem!['estudando'] ?? "";
+      _turmaSelecionada = widget.jovem!['turma_id'];
+      _sexoSelecionado = widget.jovem!['sexo_biologico'];
+      _orientacaoSelecionado = widget.jovem!['orientacao_sexual'];
+      _identidadeSelecionado = widget.jovem!['identidade_genero'];
+      _cidadeSelecionada = widget.jovem!['cidade_estado'];
+      _escolaridadeSelecionado = widget.jovem!['escolaridade'];
+      _cidadeNatalSelecionada = widget.jovem!['cidade_estado_natal'];
+      _corSelecionado = widget.jovem!['cor'];
+      _pcdSelecionado = widget.jovem!['pcd'];
+      _nacionalidadeSelecionada =  widget.jovem!['nacionalidade'];
+      _moraComSelecionado = widget.jovem!['mora_com'];
+      _filhosSelecionado = widget.jovem!['filhos'];
+      _membrosSelecionado = widget.jovem!['membros'];
+      _estaEstudandoSelecionado = widget.jovem!['estudando'];
       _nomeResponsavelController.text = widget.jovem!['nome_responsavel'] ?? "";
-      _filhosSelecionado = widget.jovem!['possui_filhos'] ?? "";
-      _membrosSelecionado = widget.jovem!['qtd_membros_familia'] ?? "";
-      _beneficioSelecionado = widget.jovem!['beneficio_assistencial'] ?? "";
-      _cadastroCrasSelecionado = widget.jovem!['cadastro_cras'] ?? "";
-      _atoInfracionalSelecionado = widget.jovem!['infracao'] ?? "";
+      _filhosSelecionado = widget.jovem!['possui_filhos'];
+      _membrosSelecionado = widget.jovem!['qtd_membros_familia'];
+      _beneficioSelecionado = widget.jovem!['beneficio_assistencial'];
+      _cadastroCrasSelecionado = widget.jovem!['cadastro_cras'];
+      _atoInfracionalSelecionado = widget.jovem!['infracao'];
       _rendaController.text = formatarDinheiro(
         widget.jovem!['renda_mensal'] ?? 0.0,
       );
-      _turnoColegioSelecionado = widget.jovem!['turno_escola'] ?? "";
+      _turnoColegioSelecionado = widget.jovem!['turno_escola'];
       _anoInicioColegioController.text = widget.jovem!['ano_inicio_escola'] ?? "";
       _anoFimColegioController.text = widget.jovem!['ano_conclusao_escola'] ?? "";
-      _instituicaoSelecionado = widget.jovem!['instituicao_escola'] ?? "";
-      _informaticaSelecionado = widget.jovem!['informatica'] ?? "";
-      _habilidadeSelecionado = widget.jovem!['habilidade_destaque'] ?? "";
-      _estaTrabalhandoSelecionado = widget.jovem!['trabalhando'] ?? "";
+      _instituicaoSelecionado = widget.jovem!['instituicao_escola'];
+      _informaticaSelecionado = widget.jovem!['informatica'];
+      _habilidadeSelecionado = widget.jovem!['habilidade_destaque'];
+      _estaTrabalhandoSelecionado = widget.jovem!['trabalhando'];
       _outraEscolaController.text = widget.jovem!['escola_alternativa'] ?? "";
       _outraEmpresaController.text = widget.jovem!['empresa_alternativa'] ?? "";
       _pisController.text = widget.jovem!['cod_pis'] ?? "";
@@ -1486,9 +1500,12 @@ class _FormjovemState extends State<_Formjovem> {
           telefoneMae: _telefoneMaeController.text.trim(),
           escola: _escolaSelecionada,
           empresa: _empresaSelecionada,
-          areaAprendizado: _areaAprendizadoController.text.trim(),
+          areaAprendizado: _areaAprendizadoSelecionada,
           cpf: _cpfController.text.trim(),
-          horasTrabalho: _horasTrabalhoController.text.trim(),
+          horasTrabalho: _horasTrabalhoController.text.trim().isEmpty ||
+              _horasTrabalhoController.text.trim() == "00:00:00"
+              ? null
+              : _horasTrabalhoController.text.trim(),
           remuneracao: _remuneracaoController.text.trim(),
           turma: _turmaSelecionada,
           sexoBiologico: _sexoSelecionado,
@@ -1516,7 +1533,7 @@ class _FormjovemState extends State<_Formjovem> {
           codPis: _pisController.text.trim(),
           instagram: _instagramController.text.trim(),
           linkedin: _linkedinController.text.trim(),
-          nacionalidade: _nacionalidadeSelecionada?.trim(),
+          nacionalidade: _nacionalidadeSelecionada,
           moraCom: _moraComSelecionado,
           infracao: _atoInfracionalSelecionado,
         );
@@ -1554,12 +1571,15 @@ class _FormjovemState extends State<_Formjovem> {
           telefoneMae: _telefoneMaeController.text.trim(),
           escola: _escolaSelecionada,
           empresa: _empresaSelecionada,
-          areaAprendizado: _areaAprendizadoController.text.trim(),
+          areaAprendizado: _areaAprendizadoSelecionada,
           escolaridade: _escolaridadeSelecionado,
           email: _emailController.text.trim(),
           senha: _senhaController.text.trim(),
           cpf: _cpfController.text.trim(),
-          horasTrabalho: _horasTrabalhoController.text.trim(),
+          horasTrabalho: _horasTrabalhoController.text.trim().isEmpty ||
+              _horasTrabalhoController.text.trim() == "00:00:00"
+              ? null
+              : _horasTrabalhoController.text.trim(),
           remuneracao: _remuneracaoController.text.trim(),
           turma: _turmaSelecionada,
           sexoBiologico: _sexoSelecionado,
@@ -1586,7 +1606,7 @@ class _FormjovemState extends State<_Formjovem> {
           codPis: _pisController.text.trim(),
           instagram: _instagramController.text.trim(),
           linkedin: _linkedinController.text.trim(),
-          nacionalidade: _nacionalidadeSelecionada?.trim(),
+          nacionalidade: _nacionalidadeSelecionada,
           moraCom: _moraComSelecionado,
           infracao: _atoInfracionalSelecionado,
         );
@@ -2172,6 +2192,7 @@ class _FormjovemState extends State<_Formjovem> {
                     value: 'Mãe e Pai',
                     child: Text('Mãe e Pai'),
                   ),
+                  DropdownMenuItem(value: 'Sozinho', child: Text('Sozinho')),
                   DropdownMenuItem(value: 'Outro', child: Text('Outro')),
                 ],
                 onChanged: (value) {
@@ -2415,6 +2436,7 @@ class _FormjovemState extends State<_Formjovem> {
                   isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),
+              if (!_moraComSelecionado.toString().contains('Sozinho'))
               buildTextField(
                 _emailResponsavelController, false,
                 "E-mail do Responsável",
@@ -3194,11 +3216,48 @@ class _FormjovemState extends State<_Formjovem> {
                 onChangedState: () => setState(() {}),
               ),
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
-                buildTextField(
-                  _areaAprendizadoController, false,
-                  "Área de Aprendizado",
-                  onChangedState: () => setState(() {}),
+                DropdownButtonFormField<String>(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, selecione uma opção';
+                    }
+                    return null;
+                  },
+                  value: _areaAprendizadoSelecionada,
+                  decoration: InputDecoration(
+                    labelText: "Área de Aprendizado",
+                    labelStyle: const TextStyle(color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  dropdownColor: const Color(0xFF0A63AC),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
+                  items: const [
+                    DropdownMenuItem(value: 'Administração', child: Text('Administração')),
+                    DropdownMenuItem(value: 'Educação', child: Text('Educação')),
+                    DropdownMenuItem(value: 'Engenharia', child: Text('Engenharia')),
+                    DropdownMenuItem(value: 'Saúde', child: Text('Saúde')),
+                    DropdownMenuItem(value: 'Tecnologia', child: Text('Tecnologia')),
+                    DropdownMenuItem(value: 'Outros', child: Text('Outros')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _areaAprendizadoSelecionada = value!;
+                    });
+                  },
                 ),
+              if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
+              const SizedBox(height: 10),
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
                 buildTextField(
                   _horasTrabalhoController, false,

@@ -235,6 +235,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (kIsWeb)
                 Expanded(
                   flex: 1,
                   child: Stack(

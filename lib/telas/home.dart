@@ -56,6 +56,7 @@ class _HomeState extends State<Home> {
   late Future<Map<String, int>> _dadosOcorrenciasEscola = Future.value({});
   late Future<Map<String, int>> _dadosHabilidadesInstituo = Future.value({});
   late Future<Map<String, int>> _dadosHabilidadesEmpresa = Future.value({});
+  String? statusJovem;
 
   @override
   void initState() {
@@ -88,6 +89,7 @@ class _HomeState extends State<Home> {
       _dadosHabilidadesInstituo = _jovemService.buscarResumoHabilidadesDestaque();
     }
     if (auth.tipoUsuario == "jovem_aprendiz"){
+      _carregarStatus();
       _dadosHistoricoPresencaJovem = _presencaService.buscarHistoricoPresencaPessoal();
       _dadosHistoricoOcorrenciaJovem = _ocorrenciaService.buscarResumoOcorrenciasPessoais();
       _dadosModulosParticipados = _moduloService.buscarModulosParticipadosPorNome();
@@ -109,6 +111,13 @@ class _HomeState extends State<Home> {
       _dadosPresencaMediaEscola = _presencaService.buscarPresencaMediaPorEscola();
       _dadosOcorrenciasEscola = _ocorrenciaService.buscarOcorrenciasPorStatusEscola();
     }
+  }
+
+  void _carregarStatus() async {
+    final status = await _jovemService.buscarStatusDoJovemLogado();
+    setState(() {
+      statusJovem = status;
+    });
   }
 
   @override
@@ -1170,6 +1179,9 @@ class _HomeState extends State<Home> {
                               ],
                             ),
                           ),
+                        if (auth.tipoUsuario == "jovem_aprendiz")
+                          if (statusJovem != null)
+                            buildStatusCard(statusJovem),
                         if (auth.tipoUsuario == "jovem_aprendiz")
                           FutureBuilder<List<Map<String, dynamic>>>(
                             future: _dadosHistoricoPresencaJovem,

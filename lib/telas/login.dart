@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 import '../services/cep_service.dart';
 import '../services/jovem_service.dart';
@@ -61,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Inscrição",
+                "Formulário de Inscrição:",
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
@@ -416,11 +417,9 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                InkWell(
-                  child: SizedBox(
-                      height: 80,
-                      child: SvgPicture.asset("assets/logoInova.svg")
-                  ),
+                SizedBox(
+                    height: 80,
+                    child: SvgPicture.asset("assets/logoInova.svg")
                 ),
                 Text(
                   "Login",
@@ -587,7 +586,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           onPressed: _abrirFormulario,
                                           child: const Text(
-                                            "Inscrições",
+                                            "Inscreva-se aqui 🖐️",
                                             style: TextStyle(
                                                 color: Colors.orange,
                                                 fontFamily: 'FuturaBold',
@@ -634,8 +633,36 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: const Text("Limpar Dados",
                                   style: TextStyle(color: Color(0xFF0A63AC)),)
                             ),
-                            Text("Versão: 0.27",
-                              style: TextStyle(color: Color(0xFF0A63AC)),)
+                            Text("Versão: 0.28",
+                              style: TextStyle(color: Color(0xFF0A63AC)),),
+                            SizedBox(height: 10),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("Desenvolvido by:",
+                                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),),
+                                const SizedBox(height: 5),
+                                InkWell(
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  enableFeedback: false,
+                                  onTap: () async {
+                                    final Uri url = Uri.parse("https://innovanow.com.br");
+                                    if (!await launchUrl(url)) {
+                                      throw Exception('Could not launch $url');
+                                    }
+                                  },
+                                  child: SizedBox(
+                                    height: 20,
+                                    width: 80,
+                                    child:  SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         );
                       }
@@ -673,7 +700,6 @@ class _FormjovemState extends State<_Formjovem> {
   final _cpfMaeController = TextEditingController();
   final _rgPaiController = TextEditingController();
   final _rgMaeController = TextEditingController();
-  final _areaAprendizadoController = TextEditingController();
   final _codCarteiraTrabalhoController = TextEditingController();
   final _rgController = TextEditingController();
   final _cepController = TextEditingController();
@@ -729,6 +755,7 @@ class _FormjovemState extends State<_Formjovem> {
   String? _cidadeSelecionada;
   String? _cidadeNatalSelecionada;
   String? _nacionalidadeSelecionada;
+  String? _areaAprendizado;
 
   // Criando um formatador de data no formato "yyyy-MM-dd"
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
@@ -768,7 +795,7 @@ class _FormjovemState extends State<_Formjovem> {
 
       String? error;
 
-      error = await _jovemService.cadastrarjovem(
+      error = await _jovemService.precadastrarjovem(
         nome: _nomeController.text.trim(),
         dataNascimento:
         _dataNascimentoController.text.isNotEmpty
@@ -790,7 +817,7 @@ class _FormjovemState extends State<_Formjovem> {
         estadoCivilPai: _estadoCivilPaiSelecionado,
         estadoCivilMae: _estadoCivilMaeSelecionado,
         estadoCivil: _estadoCivilSelecionado,
-        estadoCivilResponsavel: _estadoCivilResponsavelSelecionado,
+        estadoCivilResponsavel:  _estadoCivilResponsavelSelecionado,
         cpfPai: _cpfPaiController.text.trim(),
         cpfMae: _cpfMaeController.text.trim(),
         rgPai: _rgPaiController.text.trim(),
@@ -799,16 +826,19 @@ class _FormjovemState extends State<_Formjovem> {
         telefoneJovem: _telefoneJovemController.text.trim(),
         telefonePai: _telefonePaiController.text.trim(),
         telefoneMae: _telefoneMaeController.text.trim(),
-        escola: _escolaSelecionada,
-        empresa: _empresaSelecionada,
-        areaAprendizado: _areaAprendizadoController.text.trim(),
+        escola:  _escolaSelecionada,
+        empresa:  _empresaSelecionada,
+        areaAprendizado: null,
         escolaridade: _escolaridadeSelecionado,
         email: _emailController.text.trim(),
         senha: _senhaController.text.trim(),
         cpf: _cpfController.text.trim(),
-        horasTrabalho: _horasTrabalhoController.text.trim(),
+        horasTrabalho: _horasTrabalhoController.text.trim().isEmpty ||
+            _horasTrabalhoController.text.trim() == "00:00:00"
+            ? null
+            : _horasTrabalhoController.text.trim(),
         remuneracao: _remuneracaoController.text.trim(),
-        turma: "af53d51d-16dd-4e49-b0e3-a8531d24d45c",
+        turma: null,
         sexoBiologico: _sexoSelecionado,
         estudando: _estaEstudandoSelecionado,
         trabalhando: _estaTrabalhandoSelecionado,
@@ -827,13 +857,13 @@ class _FormjovemState extends State<_Formjovem> {
         anoConclusaoEscola: _anoFimColegioController.text.trim().isNotEmpty
             ? int.parse(_anoFimColegioController.text.trim())
             : null,
-        instituicaoEscola: _instituicaoSelecionado,
+        instituicaoEscola:  _instituicaoSelecionado,
         informatica: _informaticaSelecionado,
         habilidadeDestaque: _habilidadeSelecionado,
         codPis: _pisController.text.trim(),
         instagram: _instagramController.text.trim(),
         linkedin: _linkedinController.text.trim(),
-        nacionalidade: _nacionalidadeSelecionada?.trim(),
+        nacionalidade: _nacionalidadeSelecionada,
         moraCom: _moraComSelecionado,
         infracao: _atoInfracionalSelecionado,
       );
@@ -1426,6 +1456,7 @@ class _FormjovemState extends State<_Formjovem> {
                     value: 'Mãe e Pai',
                     child: Text('Mãe e Pai'),
                   ),
+                  DropdownMenuItem(value: 'Sozinho', child: Text('Sozinho')),
                   DropdownMenuItem(value: 'Outro', child: Text('Outro')),
                 ],
                 onChanged: (value) {
@@ -1517,7 +1548,6 @@ class _FormjovemState extends State<_Formjovem> {
                 buildTextField(
                   _nomeMaeController, false,
                   "Nome da Mãe",
-                  isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),
               if (_moraComSelecionado.toString().contains('Mãe'))
@@ -1670,6 +1700,7 @@ class _FormjovemState extends State<_Formjovem> {
                   isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),
+              if (!_moraComSelecionado.toString().contains('Sozinho'))
               buildTextField(
                 _emailResponsavelController, false,
                 "E-mail do Responsável",
@@ -2461,11 +2492,48 @@ class _FormjovemState extends State<_Formjovem> {
                   onChangedState: () => setState(() {}),
                 ),
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
-                buildTextField(
-                  _areaAprendizadoController, false,
-                  "Área de Aprendizado",
-                  onChangedState: () => setState(() {}),
+                DropdownButtonFormField<String>(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, selecione uma opção';
+                    }
+                    return null;
+                  },
+                  value: _areaAprendizado,
+                  decoration: InputDecoration(
+                    labelText: "Área de Aprendizado",
+                    labelStyle: const TextStyle(color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  dropdownColor: const Color(0xFF0A63AC),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
+                  items: const [
+                    DropdownMenuItem(value: 'Administração', child: Text('Administração')),
+                    DropdownMenuItem(value: 'Educação', child: Text('Educação')),
+                    DropdownMenuItem(value: 'Engenharia', child: Text('Engenharia')),
+                    DropdownMenuItem(value: 'Saúde', child: Text('Saúde')),
+                    DropdownMenuItem(value: 'Tecnologia', child: Text('Tecnologia')),
+                    DropdownMenuItem(value: 'Outros', child: Text('Outros')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _areaAprendizado = value!;
+                    });
+                  },
                 ),
+              if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
+                const SizedBox(height: 10),
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
                 buildTextField(
                   _horasTrabalhoController, false,

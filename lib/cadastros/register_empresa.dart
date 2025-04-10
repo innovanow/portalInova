@@ -236,6 +236,7 @@ class _EmpresaScreenState extends State<EmpresaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (kIsWeb)
                 Expanded(
                   flex: 1,
                   child: Stack(

@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../cadastros/register_jovem.dart';
@@ -147,6 +148,13 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
         );
       },
     );
+  }
+
+  String formatarDataParaExibicao(String data) {
+    DateTime dataConvertida = DateTime.parse(
+      data,
+    ); // Converte string para DateTime
+    return DateFormat('dd/MM/yyyy').format(dataConvertida); // Retorna formatado
   }
 
   @override
@@ -417,7 +425,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                     ),
                     const SizedBox(height: 20),
                     _buildSection("📋 Dados Pessoais", [
-                      _info("Data de Nascimento", widget.jovem['data_nascimento']),
+                      _info("Data de Nascimento", formatarDataParaExibicao(widget.jovem['data_nascimento'])),
                       _info("CPF", widget.jovem['cpf']),
                       _info("RG", widget.jovem['rg']),
                       _info("Código PIS", widget.jovem['cod_pis']),
@@ -497,7 +505,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                       _info("Cadastro no CRAS", widget.jovem['cadastro_cras']),
                       _info("Cometeu Infração?", widget.jovem['infracao']),
                       _info("Renda Mensal", widget.jovem['renda_mensal'] != null
-                          ? "R\$ ${formatarParaDuasCasas(widget.jovem['renda_mensal'])}"
+                          ? "R\$ ${formatarParaDuasCasas(double.parse(widget.jovem['renda_mensal'].toString()))}"
                           : "-"),
                     ]),
                     _buildSection("🏢 Empresa", [

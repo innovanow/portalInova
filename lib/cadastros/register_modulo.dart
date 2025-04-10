@@ -233,6 +233,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (kIsWeb)
                 Expanded(
                   flex: 1,
                   child: Stack(

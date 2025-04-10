@@ -125,7 +125,7 @@ class JovemService {
     required String? estadoCivil,
     required String? estadoCivilResponsavel,
     required String remuneracao,
-    required String horasTrabalho,
+    required String? horasTrabalho,
     required String? turma,
     required String? sexoBiologico,
     required String? orientacaoSexual,
@@ -152,116 +152,123 @@ class JovemService {
     required String? areaAprendizado,
   }) async {
     try {
-      // 1. Validação de e-mail duplicado
-      final existingUser = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', email)
-          .maybeSingle();
+      final supabase = Supabase.instance.client;
 
-      if (existingUser != null) {
-        return "E-mail já cadastrado.";
-      }
-
-      // 2. Validação de CPF duplicado
-      final existingCpf = await supabase
+      // 1. Verifica se o CPF já existe
+      final existeCpf = await supabase
           .from('jovens_aprendizes')
           .select('id')
           .eq('cpf', cpf)
           .maybeSingle();
 
-      if (existingCpf != null) {
-        return "CPF já cadastrado.";
+      if (existeCpf != null) return "CPF já cadastrado.";
+
+      // 2. Verifica se o usuário já está na tabela 'users'
+      final userDB = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
+
+      String userId;
+
+      if (userDB != null) {
+        // Usuário já existe na tabela 'users'
+        userId = userDB['id'];
+      } else {
+        // 3. Tenta autenticar para ver se já está no Auth
+        try {
+          final login = await supabase.auth.signInWithPassword(
+            email: email,
+            password: senha,
+          );
+          userId = login.user?.id ?? '';
+        } catch (_) {
+          // 4. Se não está no Auth, cria novo usuário
+          final signUpResp = await supabase.auth.signUp(
+            email: email,
+            password: senha,
+          );
+          userId = signUpResp.user?.id ?? '';
+          if (userId.isEmpty) return "Erro ao criar usuário no Supabase Auth.";
+        }
+
+        // 5. Insere na tabela users se ainda não estava
+        try {
+          await supabase.from('users').insert({
+            'id': userId,
+            'nome': nome,
+            'email': email,
+            'tipo': 'jovem_aprendiz',
+          });
+        } catch (e) {
+          // Ignora erro se já existe (duplicado)
+          if (!e.toString().contains("duplicate key")) {
+            return "Erro ao salvar dados do usuário: $e";
+          }
+        }
       }
 
-      // 3. Criar usuário no Supabase Auth
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: senha,
-      );
+      // 6. Insere em jovens_aprendizes
+      await supabase.from('jovens_aprendizes').insert({
+        'id': userId,
+        'nome': nome,
+        'data_nascimento': dataNascimento,
+        'nome_pai': nomePai,
+        'nome_mae': nomeMae,
+        'endereco': endereco,
+        'numero': numero,
+        'bairro': bairro,
+        'cidade_estado': cidadeEstado,
+        'cep': cep,
+        'telefone_jovem': telefoneJovem,
+        'telefone_pai': telefonePai,
+        'telefone_mae': telefoneMae,
+        'escola_id': escola,
+        'empresa_id': empresa,
+        'escolaridade': escolaridade,
+        'cpf': cpf,
+        'remuneracao': converterParaNumero(remuneracao),
+        'horas_trabalho': horasTrabalho,
+        'rg': rg,
+        'cidade_estado_natal': cidadeEstadoNatal,
+        'cod_carteira_trabalho': codCarteiraTrabalho,
+        'estado_civil_pai': estadoCivilPai,
+        'estado_civil_mae': estadoCivilMae,
+        'cpf_pai': cpfPai,
+        'cpf_mae': cpfMae,
+        'rg_pai': rgPai,
+        'rg_mae': rgMae,
+        'turma_id': turma,
+        'status': 'ativo',
+        'sexo_biologico': sexoBiologico,
+        'orientacao_sexual': orientacaoSexual,
+        'identidade_genero': identidadeGenero,
+        'cor': cor,
+        'pcd': pcd,
+        'estudando': estudando,
+        'trabalhando': trabalhando,
+        'escola_alternativa': escolaAlternativa,
+        'empresa_alternativa': empresaAlternativa,
+        'nacionalidade': nacionalidade,
+        'mora_com': moraCom,
+        'infracao': infracao,
+        'renda_mensal': converterParaNumero(rendaMensal),
+        'turno_escola': turnoEscola,
+        'ano_inicio_escola': anoIncioEscola,
+        'ano_conclusao_escola': anoConclusaoEscola,
+        'instituicao_escola': instituicaoEscola,
+        'informatica': informatica,
+        'habilidade_destaque': habilidadeDestaque,
+        'cod_pis': codPis,
+        'instagram': instagram,
+        'linkedin': linkedin,
+        'area_aprendizado': areaAprendizado,
+      });
 
-      final userId = response.user?.id;
-      if (userId == null || userId.isEmpty) {
-        return "Erro ao criar usuário no Supabase Auth.";
-      }
-
-      try {
-        // 4. Criar na tabela users
-        await supabase.from('users').insert({
-          'id': userId,
-          'nome': nome,
-          'email': email,
-          'tipo': 'jovem_aprendiz',
-        });
-
-        // 5. Criar na tabela jovens_aprendizes
-        await supabase.from('jovens_aprendizes').insert({
-          'id': userId,
-          'nome': nome,
-          'data_nascimento': dataNascimento,
-          'nome_pai': nomePai,
-          'nome_mae': nomeMae,
-          'endereco': endereco,
-          'numero': numero,
-          'bairro': bairro,
-          'cidade_estado': cidadeEstado,
-          'cep': cep,
-          'telefone_jovem': telefoneJovem,
-          'telefone_pai': telefonePai,
-          'telefone_mae': telefoneMae,
-          'escola_id': escola,
-          'empresa_id': empresa,
-          'escolaridade': escolaridade,
-          'cpf': cpf,
-          'remuneracao': converterParaNumero(remuneracao),
-          'horas_trabalho': horasTrabalho,
-          'rg': rg,
-          'cidade_estado_natal': cidadeEstadoNatal,
-          'cod_carteira_trabalho': codCarteiraTrabalho,
-          'estado_civil_pai': estadoCivilPai,
-          'estado_civil_mae': estadoCivilMae,
-          'cpf_pai': cpfPai,
-          'cpf_mae': cpfMae,
-          'rg_pai': rgPai,
-          'rg_mae': rgMae,
-          'turma_id': turma,
-          'status': 'precadastrado',
-          'sexo_biologico': sexoBiologico,
-          'orientacao_sexual': orientacaoSexual,
-          'identidade_genero': identidadeGenero,
-          'cor': cor,
-          'pcd': pcd,
-          'estudando': estudando,
-          'trabalhando': trabalhando,
-          'escola_alternativa': escolaAlternativa,
-          'empresa_alternativa': empresaAlternativa,
-          'nacionalidade': nacionalidade,
-          'mora_com': moraCom,
-          'infracao': infracao,
-          'renda_mensal': converterParaNumero(rendaMensal),
-          'turno_escola': turnoEscola,
-          'ano_inicio_escola': anoIncioEscola,
-          'ano_conclusao_escola': anoConclusaoEscola,
-          'instituicao_escola': instituicaoEscola,
-          'informatica': informatica,
-          'habilidade_destaque': habilidadeDestaque,
-          'cod_pis': codPis,
-          'instagram': instagram,
-          'linkedin': linkedin,
-          'area_aprendizado': areaAprendizado,
-          // ... outros campos
-        });
-
-        return null; // Sucesso
-
-      } catch (e) {
-        // ⚠ Se falhar na tabela users ou jovens_aprendizes, remove do Auth
-        await supabase.auth.admin.deleteUser(userId);
-        return "Erro ao salvar dados do jovem: ${e.toString()}";
-      }
-
+      return null;
     } catch (e) {
-      return "Erro inesperado: ${e.toString()}";
+      return "Erro inesperado ao cadastrar: ${e.toString()}";
     }
   }
 
@@ -298,7 +305,7 @@ class JovemService {
     required String? estadoCivil,
     required String? estadoCivilResponsavel,
     required String remuneracao,
-    required String horasTrabalho,
+    required String? horasTrabalho,
     required String? turma,
     required String? sexoBiologico,
     required String? orientacaoSexual,
@@ -325,120 +332,127 @@ class JovemService {
     required String? areaAprendizado,
   }) async {
     try {
-      // 1. Validação de e-mail duplicado
-      final existingUser = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', email)
-          .maybeSingle();
+      final supabase = Supabase.instance.client;
 
-      if (existingUser != null) {
-        return "E-mail já cadastrado.";
-      }
-
-      // 2. Validação de CPF duplicado
-      final existingCpf = await supabase
+      // 1. Verifica se o CPF já existe
+      final existeCpf = await supabase
           .from('jovens_aprendizes')
           .select('id')
           .eq('cpf', cpf)
           .maybeSingle();
 
-      if (existingCpf != null) {
-        return "CPF já cadastrado.";
+      if (existeCpf != null) return "CPF já cadastrado.";
+
+      // 2. Verifica se o usuário já está na tabela 'users'
+      final userDB = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
+
+      String userId;
+
+      if (userDB != null) {
+        // Usuário já existe na tabela 'users'
+        userId = userDB['id'];
+      } else {
+        // 3. Tenta autenticar para ver se já está no Auth
+        try {
+          final login = await supabase.auth.signInWithPassword(
+            email: email,
+            password: senha,
+          );
+          userId = login.user?.id ?? '';
+        } catch (_) {
+          // 4. Se não está no Auth, cria novo usuário
+          final signUpResp = await supabase.auth.signUp(
+            email: email,
+            password: senha,
+          );
+          userId = signUpResp.user?.id ?? '';
+          if (userId.isEmpty) return "Erro ao criar usuário no Supabase Auth.";
+        }
+
+        // 5. Insere na tabela users se ainda não estava
+        try {
+          await supabase.from('users').insert({
+            'id': userId,
+            'nome': nome,
+            'email': email,
+            'tipo': 'jovem_aprendiz',
+          });
+        } catch (e) {
+          // Ignora erro se já existe (duplicado)
+          if (!e.toString().contains("duplicate key")) {
+            return "Erro ao salvar dados do usuário: $e";
+          }
+        }
       }
 
-      // 3. Criar usuário no Supabase Auth
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: senha,
-      );
+      // 6. Insere em jovens_aprendizes
+      await supabase.from('jovens_aprendizes').insert({
+        'id': userId,
+        'nome': nome,
+        'data_nascimento': dataNascimento,
+        'nome_pai': nomePai,
+        'nome_mae': nomeMae,
+        'endereco': endereco,
+        'numero': numero,
+        'bairro': bairro,
+        'cidade_estado': cidadeEstado,
+        'cep': cep,
+        'telefone_jovem': telefoneJovem,
+        'telefone_pai': telefonePai,
+        'telefone_mae': telefoneMae,
+        'escola_id': escola,
+        'empresa_id': empresa,
+        'escolaridade': escolaridade,
+        'cpf': cpf,
+        'remuneracao': converterParaNumero(remuneracao),
+        'horas_trabalho': horasTrabalho,
+        'rg': rg,
+        'cidade_estado_natal': cidadeEstadoNatal,
+        'cod_carteira_trabalho': codCarteiraTrabalho,
+        'estado_civil_pai': estadoCivilPai,
+        'estado_civil_mae': estadoCivilMae,
+        'cpf_pai': cpfPai,
+        'cpf_mae': cpfMae,
+        'rg_pai': rgPai,
+        'rg_mae': rgMae,
+        'turma_id': turma,
+        'status': 'candidato',
+        'sexo_biologico': sexoBiologico,
+        'orientacao_sexual': orientacaoSexual,
+        'identidade_genero': identidadeGenero,
+        'cor': cor,
+        'pcd': pcd,
+        'estudando': estudando,
+        'trabalhando': trabalhando,
+        'escola_alternativa': escolaAlternativa,
+        'empresa_alternativa': empresaAlternativa,
+        'nacionalidade': nacionalidade,
+        'mora_com': moraCom,
+        'infracao': infracao,
+        'renda_mensal': converterParaNumero(rendaMensal),
+        'turno_escola': turnoEscola,
+        'ano_inicio_escola': anoIncioEscola,
+        'ano_conclusao_escola': anoConclusaoEscola,
+        'instituicao_escola': instituicaoEscola,
+        'informatica': informatica,
+        'habilidade_destaque': habilidadeDestaque,
+        'cod_pis': codPis,
+        'instagram': instagram,
+        'linkedin': linkedin,
+        'area_aprendizado': areaAprendizado,
+      });
 
-      final userId = response.user?.id;
-      if (userId == null || userId.isEmpty) {
-        return "Erro ao criar usuário no Supabase Auth.";
-      }
-
-      try {
-        // 4. Criar na tabela users
-        await supabase.from('users').insert({
-          'id': userId,
-          'nome': nome,
-          'email': email,
-          'tipo': 'jovem_aprendiz',
-        });
-
-        // 5. Criar na tabela jovens_aprendizes
-        await supabase.from('jovens_aprendizes').insert({
-          'id': userId,
-          'nome': nome,
-          'data_nascimento': dataNascimento,
-          'nome_pai': nomePai,
-          'nome_mae': nomeMae,
-          'endereco': endereco,
-          'numero': numero,
-          'bairro': bairro,
-          'cidade_estado': cidadeEstado,
-          'cep': cep,
-          'telefone_jovem': telefoneJovem,
-          'telefone_pai': telefonePai,
-          'telefone_mae': telefoneMae,
-          'escola_id': escola,
-          'empresa_id': empresa,
-          'escolaridade': escolaridade,
-          'cpf': cpf,
-          'remuneracao': converterParaNumero(remuneracao),
-          'horas_trabalho': horasTrabalho,
-          'rg': rg,
-          'cidade_estado_natal': cidadeEstadoNatal,
-          'cod_carteira_trabalho': codCarteiraTrabalho,
-          'estado_civil_pai': estadoCivilPai,
-          'estado_civil_mae': estadoCivilMae,
-          'cpf_pai': cpfPai,
-          'cpf_mae': cpfMae,
-          'rg_pai': rgPai,
-          'rg_mae': rgMae,
-          'turma_id': turma,
-          'status': 'precadastrado',
-          'sexo_biologico': sexoBiologico,
-          'orientacao_sexual': orientacaoSexual,
-          'identidade_genero': identidadeGenero,
-          'cor': cor,
-          'pcd': pcd,
-          'estudando': estudando,
-          'trabalhando': trabalhando,
-          'escola_alternativa': escolaAlternativa,
-          'empresa_alternativa': empresaAlternativa,
-          'nacionalidade': nacionalidade,
-          'mora_com': moraCom,
-          'infracao': infracao,
-          'renda_mensal': converterParaNumero(rendaMensal),
-          'turno_escola': turnoEscola,
-          'ano_inicio_escola': anoIncioEscola,
-          'ano_conclusao_escola': anoConclusaoEscola,
-          'instituicao_escola': instituicaoEscola,
-          'informatica': informatica,
-          'habilidade_destaque': habilidadeDestaque,
-          'cod_pis': codPis,
-          'instagram': instagram,
-          'linkedin': linkedin,
-          'area_aprendizado': areaAprendizado,
-          // ... outros campos
-        });
-
-        return null; // Sucesso
-
-      } catch (e) {
-        // ⚠ Se falhar na tabela users ou jovens_aprendizes, remove do Auth
-        await supabase.auth.admin.deleteUser(userId);
-        return "Erro ao salvar dados do jovem: ${e.toString()}";
-      }
-
+      return null;
     } catch (e) {
-      return "Erro inesperado: ${e.toString()}";
+      return "Erro inesperado ao cadastrar: ${e.toString()}";
     }
   }
 
-  // Atualizar escola
+    // Atualizar escola
   Future<String?> atualizarjovem({
     required String id,
     required String nome,
@@ -470,7 +484,7 @@ class JovemService {
     required String? estadoCivil,
     required String? estadoCivilResponsavel,
     required String remuneracao,
-    required String horasTrabalho,
+    required String? horasTrabalho,
     required String? turma,
     required String? sexoBiologico,
     required String? orientacaoSexual,
@@ -555,6 +569,21 @@ class JovemService {
       return e.toString();
     }
   }
+
+  Future<String?> buscarStatusDoJovemLogado() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    final response = await supabase
+        .from('jovens_aprendizes')
+        .select('status')
+        .eq('id', userId)
+        .maybeSingle();
+
+    return response?['status'];
+  }
+
+
   // Buscar escolas para o dropdown
   Future<List<Map<String, dynamic>>> buscarEscolas() async {
     final response = await supabase.from('escolas').select().or('status.eq.ativo,status.eq.outro').order('nome', ascending: true);
@@ -1046,7 +1075,7 @@ class JovemService {
         .select('habilidade_destaque')
         .eq('empresa_id', empresaId);
 
-    if (response == null || response.isEmpty) return {};
+    if (response.isEmpty) return {};
 
     final Map<String, int> habilidades = {
       'Adaptabilidade': 0,
