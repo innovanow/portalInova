@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -97,12 +98,12 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFF0A63AC),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
+    return PopScope(
+      canPop: kIsWeb ? false : true, // impede voltar
+      child: Scaffold(
+        backgroundColor: Color(0xFF0A63AC),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(60.0),
           child: AppBar(
               elevation: 0,
               surfaceTintColor: Colors.transparent,
@@ -148,93 +149,94 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
             ),
           ),
         ),
-      ),
-      drawer: InovaDrawer(context: context),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          image: DecorationImage(
-            opacity: 0.2,
-            image: AssetImage("assets/fundo.png"),
-            fit: BoxFit.cover,
+        drawer: InovaDrawer(context: context),
+        body: Container(
+          transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            image: DecorationImage(
+              opacity: 0.2,
+              image: AssetImage("assets/fundo.png"),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            // Ondas decorativas
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(),
-                child: Container(height: 45, color: Colors.orange),
+          child: Stack(
+            children: [
+              // Ondas decorativas
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(),
+                  child: Container(height: 45, color: Colors.orange),
+                ),
               ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(heightFactor: 0.6),
-                child: Container(height: 60, color: const Color(0xFF0A63AC)),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(heightFactor: 0.6),
+                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(flip: true),
-                child: Container(height: 60, color: Colors.orange),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(flip: true),
+                  child: Container(height: 60, color: Colors.orange),
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                child: Container(height: 50, color: const Color(0xFF0A63AC)),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(flip: true, heightFactor: 0.6),
+                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
-              child: carregando
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-              itemCount: modulos.length,
-              itemBuilder: (context, index) {
-                final m = modulos[index];
-                return Card(
-                  child: ListTile(
-                    title: Text(m['nomeModulo']),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Professor: ${m['professor']}"),
-                        const SizedBox(height: 5),
-                        Text("Materiais do Módulo:"),
-                        ...m['materiais'].map<Widget>((doc) {
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(doc['nome'], style: const TextStyle(fontSize: 14)),
-                            leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                            onTap: () => launchUrl(
-                              Uri.parse(doc['url']),
-                              mode: LaunchMode.externalApplication,
-                            ),
-                          );
-                        }).toList(),
-                      ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
+                child: carregando
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                itemCount: modulos.length,
+                itemBuilder: (context, index) {
+                  final m = modulos[index];
+                  return Card(
+                    child: ListTile(
+                      title: Text(m['nomeModulo']),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Professor: ${m['professor']}"),
+                          const SizedBox(height: 5),
+                          Text("Materiais do Módulo:"),
+                          ...m['materiais'].map<Widget>((doc) {
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(doc['nome'], style: const TextStyle(fontSize: 14)),
+                              leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                              onTap: () => launchUrl(
+                                Uri.parse(doc['url']),
+                                mode: LaunchMode.externalApplication,
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-                        ),
-            ),]
+                  );
+                },
+                          ),
+              ),]
+          ),
         ),
       ),
     );

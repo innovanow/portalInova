@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -187,74 +188,71 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
     double alturaCardBase = (alturaTela * 0.20).clamp(180, 320);
 
     return PopScope(
-      canPop: false,
+      canPop: kIsWeb ? false : true, // impede voltar
       child: Scaffold(
         backgroundColor: Color(0xFF0A63AC),
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(60.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: AppBar(
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              backgroundColor: const Color(0xFF0A63AC),
-              title: LayoutBuilder(
-                  builder: (context, constraints) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(constraints.maxWidth > 800 ?  'Calendário Inova $anoAtual' : '$anoAtual',
-                        style: TextStyle(
-                          fontFamily: 'FuturaBold',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Colors.white,
-                        ),
+          child: AppBar(
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            backgroundColor: const Color(0xFF0A63AC),
+            title: LayoutBuilder(
+                builder: (context, constraints) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(constraints.maxWidth > 800 ?  'Calendário Inova $anoAtual' : '$anoAtual',
+                      style: TextStyle(
+                        fontFamily: 'FuturaBold',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.white,
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              enableFeedback: false,
-                              onPressed: () => _mudarAno(-1), icon: Icon(Icons.arrow_back)),
-                          IconButton(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              enableFeedback: false,
-                              onPressed: () => _mudarAno(1), icon: Icon(Icons.arrow_forward)),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-              ),
-              iconTheme: const IconThemeData(color: Colors.white),
-              automaticallyImplyLeading: false,
-              // Evita que o Flutter gere um botão automático
-              leading: Builder(
-                builder:
-                    (context) => Tooltip(
-                  message: "Abrir Menu", // Texto do tooltip
-                  child: IconButton(
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    enableFeedback: false,
-                    icon: Icon(Icons.menu,
-                      color: Colors.white,) ,// Ícone do Drawer
-                    onPressed: () {
-                      Scaffold.of(
-                        context,
-                      ).openDrawer(); // Abre o Drawer manualmente
-                    },
-                  ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                            focusColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            enableFeedback: false,
+                            onPressed: () => _mudarAno(-1), icon: Icon(Icons.arrow_back)),
+                        IconButton(
+                            focusColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            enableFeedback: false,
+                            onPressed: () => _mudarAno(1), icon: Icon(Icons.arrow_forward)),
+                      ],
+                    ),
+                  ],
+                );
+              }
+            ),
+            iconTheme: const IconThemeData(color: Colors.white),
+            automaticallyImplyLeading: false,
+            // Evita que o Flutter gere um botão automático
+            leading: Builder(
+              builder:
+                  (context) => Tooltip(
+                message: "Abrir Menu", // Texto do tooltip
+                child: IconButton(
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  enableFeedback: false,
+                  icon: Icon(Icons.menu,
+                    color: Colors.white,) ,// Ícone do Drawer
+                  onPressed: () {
+                    Scaffold.of(
+                      context,
+                    ).openDrawer(); // Abre o Drawer manualmente
+                  },
                 ),
               ),
             ),
@@ -262,6 +260,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
         ),
         drawer: InovaDrawer(context: context),
         body: Container(
+          transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
           width: double.infinity,
           height: double.infinity,
           decoration: const BoxDecoration(
@@ -308,7 +307,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                 right: 0,
                 child: ClipPath(
                   clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                  child: Container(height: 50, color: const Color(0xFF0A63AC)),
+                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
                 ),
               ),
 

@@ -486,100 +486,97 @@ class _ModuloScreenState extends State<ModuloScreen> {
         }
       },
       child: PopScope(
-        canPop: false,
+        canPop: kIsWeb ? false : true, // impede voltar
         child: Scaffold(
           backgroundColor: Color(0xFF0A63AC),
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(60.0),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: AppBar(
-                elevation: 0,
-                surfaceTintColor: Colors.transparent,
-                backgroundColor: const Color(0xFF0A63AC),
-                title: modoPesquisa
-                    ? TextField(
-                  controller: _pesquisaController,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: "Pesquisar módulo...",
-                    border: InputBorder.none,
-                    hintStyle: TextStyle(color: Colors.white70),
-                  ),
-                  style: const TextStyle(color: Colors.white),
-                  onChanged: (value) {
-                    filtrarLista(
-                      query: value,
-                      listaOriginal: _modulos,
-                      atualizarListaFiltrada: (novaLista) {
-                        setState(() => _modulosFiltradas = novaLista);
-                      },
-                    );
-                  },
-                )
-                    : const Text(
-                  'Módulos',
-                  style: TextStyle(
-                    fontFamily: 'FuturaBold',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
+            child: AppBar(
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              backgroundColor: const Color(0xFF0A63AC),
+              title: modoPesquisa
+                  ? TextField(
+                controller: _pesquisaController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: "Pesquisar módulo...",
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white70),
                 ),
-                actions: [
-                  modoPesquisa
-                      ? IconButton(
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    enableFeedback: false,
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => fecharPesquisa(
-                      setState,
-                      _pesquisaController,
-                      _modulos,
-                          (novaLista) => setState(() {
-                        _modulosFiltradas = novaLista;
-                        modoPesquisa = false; // 🔹 Agora o modo pesquisa é atualizado corretamente
-                      }),
-                    ),
-
-                  )
-                      : IconButton(
-                    tooltip: "Pesquisar",
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    enableFeedback: false,
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    onPressed: () => setState(() {
-                      modoPesquisa = true; //
+                style: const TextStyle(color: Colors.white),
+                onChanged: (value) {
+                  filtrarLista(
+                    query: value,
+                    listaOriginal: _modulos,
+                    atualizarListaFiltrada: (novaLista) {
+                      setState(() => _modulosFiltradas = novaLista);
+                    },
+                  );
+                },
+              )
+                  : const Text(
+                'Módulos',
+                style: TextStyle(
+                  fontFamily: 'FuturaBold',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
+              ),
+              actions: [
+                modoPesquisa
+                    ? IconButton(
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  enableFeedback: false,
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => fecharPesquisa(
+                    setState,
+                    _pesquisaController,
+                    _modulos,
+                        (novaLista) => setState(() {
+                      _modulosFiltradas = novaLista;
+                      modoPesquisa = false; // 🔹 Agora o modo pesquisa é atualizado corretamente
                     }),
                   ),
-                ],
-                iconTheme: const IconThemeData(color: Colors.white),
-                automaticallyImplyLeading: false,
-                // Evita que o Flutter gere um botão automático
-                leading: Builder(
-                  builder:
-                      (context) => Tooltip(
-                    message: "Abrir Menu", // Texto do tooltip
-                    child: IconButton(
-                      focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      enableFeedback: false,
-                      icon: Icon(Icons.menu,
-                        color: Colors.white,) ,// Ícone do Drawer
-                      onPressed: () {
-                        Scaffold.of(
-                          context,
-                        ).openDrawer(); // Abre o Drawer manualmente
-                      },
-                    ),
+
+                )
+                    : IconButton(
+                  tooltip: "Pesquisar",
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  enableFeedback: false,
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: () => setState(() {
+                    modoPesquisa = true; //
+                  }),
+                ),
+              ],
+              iconTheme: const IconThemeData(color: Colors.white),
+              automaticallyImplyLeading: false,
+              // Evita que o Flutter gere um botão automático
+              leading: Builder(
+                builder:
+                    (context) => Tooltip(
+                  message: "Abrir Menu", // Texto do tooltip
+                  child: IconButton(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    enableFeedback: false,
+                    icon: Icon(Icons.menu,
+                      color: Colors.white,) ,// Ícone do Drawer
+                    onPressed: () {
+                      Scaffold.of(
+                        context,
+                      ).openDrawer(); // Abre o Drawer manualmente
+                    },
                   ),
                 ),
               ),
@@ -587,6 +584,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
           ),
           drawer: InovaDrawer(context: context),
           body: Container(
+            transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
             width: double.infinity,
             height: double.infinity,
             decoration: const BoxDecoration(
@@ -633,7 +631,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                   right: 0,
                   child: ClipPath(
                     clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                    child: Container(height: 50, color: const Color(0xFF0A63AC)),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
                   ),
                 ),
 
@@ -642,139 +640,141 @@ class _ModuloScreenState extends State<ModuloScreen> {
                   padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Align(
-                              alignment: Alignment.topRight,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    "Módulos: ${isAtivo ? "Ativos" : "Inativos"}",
-                                    textAlign: TextAlign.end,
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  Tooltip(
-                                    message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
-                                    child: Switch(
-                                      value: isAtivo,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          statusModulo = value ? "ativo" : "inativo";
-                                        });
-                                        _carregarModulos(statusModulo);
-                                      },
-                                      activeColor: Color(0xFF0A63AC),
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "Módulos: ${isAtivo ? "Ativos" : "Inativos"}",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
-                                  ),
-                                ],
+                                    Tooltip(
+                                      message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                      child: Switch(
+                                        value: isAtivo,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            statusModulo = value ? "ativo" : "inativo";
+                                          });
+                                          _carregarModulos(statusModulo);
+                                        },
+                                        activeColor: Color(0xFF0A63AC),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: 500,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child:
-                              _isFetching
-                                  ? const Center(
-                                child: CircularProgressIndicator(),
-                              )
-                                  : ListView.builder(
-                                itemCount: _modulosFiltradas.length,
-                                itemBuilder: (context, index) {
-                                  final modulo = _modulosFiltradas[index];
-                                  return Card(
-                                    elevation: 3,
-                                    child: ListTile(
-                                      title: Text(
-                                        "Módulo: ${modulo['nome']}",
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                      leading: const Icon(Icons.view_module, color: Colors.black,),
-                                      subtitle: Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Professor: ${modulo['professores']?['nome'] ?? 'Desconhecido'}\n"
-                                                "Turno: ${modulo['turno']}\n"
-                                                "Período: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(modulo['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(modulo['data_termino']))}\n"
-                                                "Horário: ${modulo['horario_inicial']} até ${modulo['horario_final']}",
-                                            style: const TextStyle(color: Colors.black),
-                                          ),
-                                          Divider(color: Colors.black),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              if (auth.tipoUsuario == "administrador")
-                                              IconButton(
-                                                tooltip: "Editar",
-                                                focusColor: Colors.transparent,
-                                                hoverColor: Colors.transparent,
-                                                splashColor: Colors.transparent,
-                                                highlightColor: Colors.transparent,
-                                                enableFeedback: false,
-                                                icon: const Icon(
-                                                  Icons.edit,
-                                                  color: Colors.black,
-                                                ),
-                                                onPressed:
-                                                    () => _abrirFormulario(
-                                                  modulo: modulo,
-                                                ),
-                                              ),
-                                              if (auth.tipoUsuario == "administrador")
-                                                Container(
-                                                  width: 2, // Espessura da linha
-                                                  height: 30, // Altura da linha
-                                                  color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                ),
-                                              if (auth.tipoUsuario == "administrador")
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: 500,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child:
+                                _isFetching
+                                    ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                    : ListView.builder(
+                                  itemCount: _modulosFiltradas.length,
+                                  itemBuilder: (context, index) {
+                                    final modulo = _modulosFiltradas[index];
+                                    return Card(
+                                      elevation: 3,
+                                      child: ListTile(
+                                        title: Text(
+                                          "Módulo: ${modulo['nome']}",
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        leading: const Icon(Icons.view_module, color: Colors.black,),
+                                        subtitle: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Professor: ${modulo['professores']?['nome'] ?? 'Desconhecido'}\n"
+                                                  "Turno: ${modulo['turno']}\n"
+                                                  "Período: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(modulo['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(modulo['data_termino']))}\n"
+                                                  "Horário: ${modulo['horario_inicial']} até ${modulo['horario_final']}",
+                                              style: const TextStyle(color: Colors.black),
+                                            ),
+                                            Divider(color: Colors.black),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                if (auth.tipoUsuario == "administrador")
                                                 IconButton(
+                                                  tooltip: "Editar",
                                                   focusColor: Colors.transparent,
                                                   hoverColor: Colors.transparent,
                                                   splashColor: Colors.transparent,
                                                   highlightColor: Colors.transparent,
                                                   enableFeedback: false,
-                                                  tooltip: "Adicionar Material Didático",
-                                                  icon: const Icon(Icons.picture_as_pdf, color: Colors.black, size: 20),
-                                                  onPressed: () => _abrirDocumentos(context, modulo['id']),
+                                                  icon: const Icon(
+                                                    Icons.edit,
+                                                    color: Colors.black,
+                                                  ),
+                                                  onPressed:
+                                                      () => _abrirFormulario(
+                                                    modulo: modulo,
+                                                  ),
                                                 ),
-                                              if (auth.tipoUsuario == "administrador")
-                                              Container(
-                                                width: 2, // Espessura da linha
-                                                height: 30, // Altura da linha
-                                                color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                              ),
-                                              if (auth.tipoUsuario == "administrador")
-                                              IconButton(
-                                                tooltip: isAtivo == true ? "Inativar" : "Ativar",
-                                                focusColor: Colors.transparent,
-                                                hoverColor: Colors.transparent,
-                                                splashColor: Colors.transparent,
-                                                highlightColor: Colors.transparent,
-                                                enableFeedback: false,
-                                                icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
-                                                onPressed: () => isAtivo == true ? inativarModulo(modulo['id']) : ativarJovem(modulo['id']),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                                if (auth.tipoUsuario == "administrador")
+                                                  Container(
+                                                    width: 2, // Espessura da linha
+                                                    height: 30, // Altura da linha
+                                                    color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                  ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                  IconButton(
+                                                    focusColor: Colors.transparent,
+                                                    hoverColor: Colors.transparent,
+                                                    splashColor: Colors.transparent,
+                                                    highlightColor: Colors.transparent,
+                                                    enableFeedback: false,
+                                                    tooltip: "Adicionar Material Didático",
+                                                    icon: const Icon(Icons.picture_as_pdf, color: Colors.black, size: 20),
+                                                    onPressed: () => _abrirDocumentos(context, modulo['id']),
+                                                  ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                Container(
+                                                  width: 2, // Espessura da linha
+                                                  height: 30, // Altura da linha
+                                                  color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                IconButton(
+                                                  tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                                  focusColor: Colors.transparent,
+                                                  hoverColor: Colors.transparent,
+                                                  splashColor: Colors.transparent,
+                                                  highlightColor: Colors.transparent,
+                                                  enableFeedback: false,
+                                                  icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
+                                                  onPressed: () => isAtivo == true ? inativarModulo(modulo['id']) : ativarJovem(modulo['id']),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),

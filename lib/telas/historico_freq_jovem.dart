@@ -25,12 +25,12 @@ class _HistoricoFrequenciaJovemPageState extends State<HistoricoFrequenciaJovemP
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFF0A63AC),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
+    return PopScope(
+      canPop: kIsWeb ? false : true, // impede voltar
+      child: Scaffold(
+        backgroundColor: Color(0xFF0A63AC),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(60.0),
           child: AppBar(
             elevation: 0,
             surfaceTintColor: Colors.transparent,
@@ -78,110 +78,117 @@ class _HistoricoFrequenciaJovemPageState extends State<HistoricoFrequenciaJovemP
             ),
           ),
         ),
-      ),
-      drawer: InovaDrawer(context: context),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          image: DecorationImage(
-            opacity: 0.2,
-            image: AssetImage("assets/fundo.png"),
-            fit: BoxFit.cover,
+        drawer: InovaDrawer(context: context),
+        body: Container(
+          transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            image: DecorationImage(
+              opacity: 0.2,
+              image: AssetImage("assets/fundo.png"),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            // Ondas decorativas
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(),
-                child: Container(height: 45, color: Colors.orange),
+          child: Stack(
+            children: [
+              // Ondas decorativas
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(),
+                  child: Container(height: 45, color: Colors.orange),
+                ),
               ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(heightFactor: 0.6),
-                child: Container(height: 60, color: const Color(0xFF0A63AC)),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(heightFactor: 0.6),
+                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(flip: true),
-                child: Container(height: 60, color: Colors.orange),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(flip: true),
+                  child: Container(height: 60, color: Colors.orange),
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                child: Container(height: 50, color: const Color(0xFF0A63AC)),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(flip: true, heightFactor: 0.6),
+                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 40, 10, 60),
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _frequenciasFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    if (kDebugMode) {
-                      print('Erro: \n${snapshot.error}');
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 40, 10, 60),
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _frequenciasFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      if (kDebugMode) {
+                        print('Erro: \n${snapshot.error}');
+                      }
+                      return Center(child: Text('Erro: \n${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('Nenhum registro de frequência encontrado.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'FuturaBold',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,)));
                     }
-                    return Center(child: Text('Erro: \n${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Nenhum registro de frequência encontrado.'));
-                  }
 
-                  final registros = snapshot.data!;
+                    final registros = snapshot.data!;
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: registros.length,
-                    itemBuilder: (context, index) {
-                      final item = registros[index];
-                      final data = DateTime.parse(item['data']);
-                      final presente = item['presente'] == true;
-                      final modulo = item['modulo_nome'] ?? 'Módulo';
-                      final professor = item['professor_nome'] ?? 'Professor';
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: registros.length,
+                      itemBuilder: (context, index) {
+                        final item = registros[index];
+                        final data = DateTime.parse(item['data']);
+                        final presente = item['presente'] == true;
+                        final modulo = item['modulo_nome'] ?? 'Módulo';
+                        final professor = item['professor_nome'] ?? 'Professor';
 
-                      return Card(
-                        color: presente ? Colors.green[300] : Colors.red[300],
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: ListTile(
-                          title: Text(DateFormat('dd/MM/yyyy').format(data),
-                            style: const TextStyle(
-                              fontFamily: 'FuturaBold',
-                            )),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Módulo: $modulo"),
-                              Text('Professor: $professor'),
-                              Text(presente ? '✅ Presente' : '⛔ Falta'),
-                            ],
+                        return Card(
+                          color: presente ? Colors.green[300] : Colors.red[300],
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            title: Text(DateFormat('dd/MM/yyyy').format(data),
+                              style: const TextStyle(
+                                fontFamily: 'FuturaBold',
+                              )),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Módulo: $modulo"),
+                                Text('Professor: $professor'),
+                                Text(presente ? '✅ Presente' : '⛔ Falta'),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

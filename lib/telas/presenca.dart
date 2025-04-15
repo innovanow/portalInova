@@ -172,12 +172,12 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFF0A63AC),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
+    return PopScope(
+      canPop: kIsWeb ? false : true, // impede voltar
+      child: Scaffold(
+        backgroundColor: Color(0xFF0A63AC),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(60.0),
           child: AppBar(
             elevation: 0,
             surfaceTintColor: Colors.transparent,
@@ -241,152 +241,152 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
             ),
           ),
         ),
-      ),
-      drawer: InovaDrawer(context: context),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          image: DecorationImage(
-            opacity: 0.2,
-            image: AssetImage("assets/fundo.png"),
-            fit: BoxFit.cover,
+        drawer: InovaDrawer(context: context),
+        body: Container(
+          transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            image: DecorationImage(
+              opacity: 0.2,
+              image: AssetImage("assets/fundo.png"),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(),
-                child: Container(
-                    height: 45,
-                    color: Colors.orange
-                ),
-              ),
-            ),
-            // Onda Superior Azul sobreposta
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                clipper: WaveClipper(heightFactor: 0.6),
-                child: Container(
-                  height: 60,
-                  color: const Color(0xFF0A63AC),
-                ),
-              ),
-            ),
-            // Conteúdo Centralizado
-            // Dropdown de Módulos
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 60, 10, 60),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                spacing: 10,
-                children: [
-                  DropdownButtonFormField<Map<String, dynamic>>(
-                    value: _moduloSelecionado,
-                    decoration: const InputDecoration(
-                      labelText: 'Selecione o Módulo',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _modulos.map((modulo) {
-                      final label = 'Turma: ${modulo['codigo_turma']} - ${modulo['nome']}';
-                      return DropdownMenuItem(
-                        value: modulo,
-                        child: Text(label),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        _carregarAlunosPorTurmaId(value['turma_id']);
-                        setState(() {
-                          _moduloSelecionado = value;
-                        });
-                      }
-                    },
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(),
+                  child: Container(
+                      height: 45,
+                      color: Colors.orange
                   ),
-                  // Seletor de Data
-                  InkWell(
-                    onTap: _selecionarData,
-                    child: InputDecorator(
+                ),
+              ),
+              // Onda Superior Azul sobreposta
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: WaveClipper(heightFactor: 0.6),
+                  child: Container(
+                    height: 60,
+                    color: const Color(0xFF0A63AC),
+                  ),
+                ),
+              ),
+              // Conteúdo Centralizado
+              // Dropdown de Módulos
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 60, 10, 60),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  spacing: 10,
+                  children: [
+                    DropdownButtonFormField<Map<String, dynamic>>(
+                      value: _moduloSelecionado,
                       decoration: const InputDecoration(
-                        labelText: 'Data',
+                        labelText: 'Selecione o Módulo',
                         border: OutlineInputBorder(),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(DateFormat('dd/MM/yyyy').format(_dataSelecionada)),
-                          const Icon(Icons.calendar_today),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const Divider(),
-                  Text( _moduloSelecionado == null ? "Selecione um módulo para registrar as presenças." : "Desmarque os jovens que não estiveram presentes:",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'FuturaBold',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Colors.black,)),
-                  _carregando
-                      ? const Expanded(child: Center(child: CircularProgressIndicator()))
-                      : Expanded(
-                    child: ListView.builder(
-                      itemCount: _alunos.length,
-                      itemBuilder: (context, index) {
-                        final aluno = _alunos[index];
-                        return Column(
-                          children: [
-                            CheckboxListTile(
-                              title: Text(aluno['nome']),
-                              value: _presencas[aluno['id']] ?? false,
-                              onChanged: (value) {
-                                setState(() {
-                                  _presencas[aluno['id']] = value ?? false;
-                                });
-                              },
-                            ),
-                            const Divider(height: 1), // <- divide os itens
-                          ],
+                      items: _modulos.map((modulo) {
+                        final label = 'Turma: ${modulo['codigo_turma']} - ${modulo['nome']}';
+                        return DropdownMenuItem(
+                          value: modulo,
+                          child: Text(label),
                         );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          _carregarAlunosPorTurmaId(value['turma_id']);
+                          setState(() {
+                            _moduloSelecionado = value;
+                          });
+                        }
                       },
                     ),
-                  ),
-                ],
+                    // Seletor de Data
+                    InkWell(
+                      onTap: _selecionarData,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Data',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(DateFormat('dd/MM/yyyy').format(_dataSelecionada)),
+                            const Icon(Icons.calendar_today),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Divider(),
+                    Text( _moduloSelecionado == null ? "Selecione um módulo para registrar as presenças." : "Desmarque os jovens que não estiveram presentes:",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'FuturaBold',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.black,)),
+                    _carregando
+                        ? const Expanded(child: Center(child: CircularProgressIndicator()))
+                        : Expanded(
+                      child: ListView.builder(
+                        itemCount: _alunos.length,
+                        itemBuilder: (context, index) {
+                          final aluno = _alunos[index];
+                          return Column(
+                            children: [
+                              CheckboxListTile(
+                                title: Text(aluno['nome']),
+                                value: _presencas[aluno['id']] ?? false,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _presencas[aluno['id']] = value ?? false;
+                                  });
+                                },
+                              ),
+                              const Divider(height: 1), // <- divide os itens
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.check,
-              color: Colors.white,
-              size: 20,
-            ),
-            label: const Text("Salvar Presença",
-              style: TextStyle(
+        bottomNavigationBar: Container(
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.check,
                 color: Colors.white,
-                fontSize: 18,
-              )),
-            onPressed: _moduloSelecionado == null ? null : _salvarPresencas,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              disabledBackgroundColor: Colors.grey,
-              minimumSize: const Size(double.infinity, 50),
+                size: 20,
+              ),
+              label: const Text("Salvar Presença",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                )),
+              onPressed: _moduloSelecionado == null ? null : _salvarPresencas,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                disabledBackgroundColor: Colors.grey,
+                minimumSize: const Size(double.infinity, 50),
+              ),
             ),
           ),
         ),

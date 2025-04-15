@@ -672,123 +672,121 @@ class _CadastroJovemState extends State<CadastroJovem> {
         }
       },
       child: PopScope(
-        canPop: false,
+        canPop: kIsWeb ? false : true, // impede voltar
         child: Scaffold(
           backgroundColor: Color(0xFF0A63AC),
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(60.0),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: AppBar(
-                elevation: 0,
-                surfaceTintColor: Colors.transparent,
-                backgroundColor: const Color(0xFF0A63AC),
-                title:
-                    modoPesquisa
-                        ? TextField(
-                          controller: _pesquisaController,
-                          autofocus: true,
-                          decoration: const InputDecoration(
-                            hintText: "Pesquisar jovem...",
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(color: Colors.white70),
-                          ),
-                          style: const TextStyle(color: Colors.white),
-                          onChanged: (value) {
-                            filtrarLista(
-                              query: value,
-                              listaOriginal: _jovens,
-                              atualizarListaFiltrada: (novaLista) {
-                                setState(() => _jovensFiltrados = novaLista);
-                              },
-                            );
-                          },
-                        )
-                        : Text(
-                          'Jovens ${statusJovem.toLowerCase()}',
-                          style: TextStyle(
-                            fontFamily: 'FuturaBold',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                actions: [
-                  if (auth.tipoUsuario == "administrador")
-                  TextButton.icon(
-                    style: ButtonStyle(
-                      overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
-                    ),
-                    icon: Icon(Icons.hourglass_top, color: Colors.white),
-                      onPressed: (){
-                      statusJovem = "candidato";
-                        _carregarjovens(statusJovem);
-                      }, label: Text("Lista de Espera",
-                      style: TextStyle(color: Colors.white,
-                        fontSize: 15,
-                      )),),
+            child: AppBar(
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              backgroundColor: const Color(0xFF0A63AC),
+              title:
                   modoPesquisa
-                      ? IconButton(
-                        focusColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        enableFeedback: false,
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed:
-                            () => fecharPesquisa(
-                              setState,
-                              _pesquisaController,
-                              _jovens,
-                              (novaLista) => setState(() {
-                                _jovensFiltrados = novaLista;
-                                modoPesquisa =
-                                    false; // 🔹 Agora o modo pesquisa é atualizado corretamente
-                              }),
-                            ),
+                      ? TextField(
+                        controller: _pesquisaController,
+                        autofocus: true,
+                        decoration: const InputDecoration(
+                          hintText: "Pesquisar jovem...",
+                          border: InputBorder.none,
+                          hintStyle: TextStyle(color: Colors.white70),
+                        ),
+                        style: const TextStyle(color: Colors.white),
+                        onChanged: (value) {
+                          filtrarLista(
+                            query: value,
+                            listaOriginal: _jovens,
+                            atualizarListaFiltrada: (novaLista) {
+                              setState(() => _jovensFiltrados = novaLista);
+                            },
+                          );
+                        },
                       )
-                      : IconButton(
-                        tooltip: "Pesquisar",
-                        focusColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        enableFeedback: false,
-                        icon: const Icon(Icons.search, color: Colors.white),
-                        onPressed:
-                            () => setState(() {
-                              modoPesquisa = true;
-                            }),
-                      ),
-                ],
-                iconTheme: const IconThemeData(color: Colors.white),
-                automaticallyImplyLeading: false,
-                // Evita que o Flutter gere um botão automático
-                leading: Builder(
-                  builder:
-                      (context) => Tooltip(
-                        message: "Abrir Menu", // Texto do tooltip
-                        child: IconButton(
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          enableFeedback: false,
-                          icon: Icon(Icons.menu, color: Colors.white),
-                          // Ícone do Drawer
-                          onPressed: () {
-                            Scaffold.of(
-                              context,
-                            ).openDrawer(); // Abre o Drawer manualmente
-                          },
+                      : Text(
+                        'Jovens ${statusJovem.toLowerCase()}',
+                        style: TextStyle(
+                          fontFamily: 'FuturaBold',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.white,
                         ),
                       ),
-                ),
+              actions: [
+                if (auth.tipoUsuario == "administrador")
+                TextButton.icon(
+                  style: ButtonStyle(
+                    overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                  ),
+                  icon: Icon(Icons.hourglass_top, color: Colors.white),
+                    onPressed: (){
+                    statusJovem = "candidato";
+                      _carregarjovens(statusJovem);
+                    }, label: Text(kIsWeb ? "Lista de Espera" : "",
+                    style: TextStyle(color: Colors.white,
+                      fontSize: 15,
+                    )),),
+                modoPesquisa
+                    ? IconButton(
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      enableFeedback: false,
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed:
+                          () => fecharPesquisa(
+                            setState,
+                            _pesquisaController,
+                            _jovens,
+                            (novaLista) => setState(() {
+                              _jovensFiltrados = novaLista;
+                              modoPesquisa =
+                                  false; // 🔹 Agora o modo pesquisa é atualizado corretamente
+                            }),
+                          ),
+                    )
+                    : IconButton(
+                      tooltip: "Pesquisar",
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      enableFeedback: false,
+                      icon: const Icon(Icons.search, color: Colors.white),
+                      onPressed:
+                          () => setState(() {
+                            modoPesquisa = true;
+                          }),
+                    ),
+              ],
+              iconTheme: const IconThemeData(color: Colors.white),
+              automaticallyImplyLeading: false,
+              // Evita que o Flutter gere um botão automático
+              leading: Builder(
+                builder:
+                    (context) => Tooltip(
+                      message: "Abrir Menu", // Texto do tooltip
+                      child: IconButton(
+                        focusColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        enableFeedback: false,
+                        icon: Icon(Icons.menu, color: Colors.white),
+                        // Ícone do Drawer
+                        onPressed: () {
+                          Scaffold.of(
+                            context,
+                          ).openDrawer(); // Abre o Drawer manualmente
+                        },
+                      ),
+                    ),
               ),
             ),
           ),
           drawer: InovaDrawer(context: context),
           body: Container(
+            transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
             width: double.infinity,
             height: double.infinity,
             decoration: const BoxDecoration(
@@ -839,407 +837,409 @@ class _CadastroJovemState extends State<CadastroJovem> {
                   child: ClipPath(
                     clipper: WaveClipper(flip: true, heightFactor: 0.6),
                     child: Container(
-                      height: 50,
+                      height: 60,
                       color: const Color(0xFF0A63AC),
                     ),
                   ),
                 ),
                 // Formulário centralizado
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(2, 40, 2, 30),
+                  padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          if (auth.tipoUsuario == "administrador")
-                            Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Align(
-                                alignment: Alignment.topRight,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      "Jovens: ${isAtivo ? "Ativos" : "Inativos"}",
-                                      textAlign: TextAlign.end,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            if (auth.tipoUsuario == "administrador")
+                              Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        "Jovens: ${isAtivo ? "Ativos" : "Inativos"}",
+                                        textAlign: TextAlign.end,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    Tooltip(
-                                      message:
-                                          isAtivo
-                                              ? "Exibir Inativos"
-                                              : "Exibir Ativos",
-                                      child: Switch(
-                                        value: isAtivo,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            statusJovem =
-                                                value ? "ativo" : "inativo";
-                                          });
-                                          _carregarjovens(statusJovem);
-                                        },
-                                        activeColor: Color(0xFF0A63AC),
+                                      Tooltip(
+                                        message:
+                                            isAtivo
+                                                ? "Exibir Inativos"
+                                                : "Exibir Ativos",
+                                        child: Switch(
+                                          value: isAtivo,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              statusJovem =
+                                                  value ? "ativo" : "inativo";
+                                            });
+                                            _carregarjovens(statusJovem);
+                                          },
+                                          activeColor: Color(0xFF0A63AC),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: 500,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child:
-                                  _isFetching
-                                      ? const Center(
-                                        child: CircularProgressIndicator(),
-                                      )
-                                      : ListView.builder(
-                                        itemCount: _jovensFiltrados.length,
-                                        itemBuilder: (context, index) {
-                                          final jovem = _jovensFiltrados[index];
-                                          return Card(
-                                            elevation: 3,
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(
-                                                12.0,
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
-                                                    spacing: 10,
-                                                    children: [
-                                                      FutureBuilder<String?>(
-                                                        future: _getSignedUrl(
-                                                          jovem['foto_url'],
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: 500,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child:
+                                    _isFetching
+                                        ? const Center(
+                                          child: CircularProgressIndicator(),
+                                        )
+                                        : ListView.builder(
+                                          itemCount: _jovensFiltrados.length,
+                                          itemBuilder: (context, index) {
+                                            final jovem = _jovensFiltrados[index];
+                                            return Card(
+                                              elevation: 3,
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(
+                                                  12.0,
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      spacing: 10,
+                                                      children: [
+                                                        FutureBuilder<String?>(
+                                                          future: _getSignedUrl(
+                                                            jovem['foto_url'],
+                                                          ),
+                                                          builder: (
+                                                            context,
+                                                            snapshot,
+                                                          ) {
+                                                            final temFoto =
+                                                                snapshot
+                                                                    .hasData &&
+                                                                snapshot
+                                                                    .data!
+                                                                    .isNotEmpty;
+                        
+                                                            return CircleAvatar(
+                                                              radius: 30,
+                                                              backgroundColor:
+                                                                  const Color(
+                                                                    0xFFFF9800,
+                                                                  ),
+                                                              backgroundImage:
+                                                                  temFoto
+                                                                      ? NetworkImage(
+                                                                        snapshot
+                                                                            .data!,
+                                                                      )
+                                                                      : null,
+                                                              child:
+                                                                  !temFoto
+                                                                      ? Text(
+                                                                        _getIniciais(
+                                                                          jovem['nome'],
+                                                                        ),
+                                                                        style: const TextStyle(
+                                                                          fontSize:
+                                                                              20,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                        ),
+                                                                      )
+                                                                      : null,
+                                                            );
+                                                          },
                                                         ),
-                                                        builder: (
-                                                          context,
-                                                          snapshot,
-                                                        ) {
-                                                          final temFoto =
-                                                              snapshot
-                                                                  .hasData &&
-                                                              snapshot
-                                                                  .data!
-                                                                  .isNotEmpty;
-
-                                                          return CircleAvatar(
-                                                            radius: 30,
-                                                            backgroundColor:
-                                                                const Color(
-                                                                  0xFFFF9800,
-                                                                ),
-                                                            backgroundImage:
-                                                                temFoto
-                                                                    ? NetworkImage(
-                                                                      snapshot
-                                                                          .data!,
-                                                                    )
-                                                                    : null,
-                                                            child:
-                                                                !temFoto
-                                                                    ? Text(
-                                                                      _getIniciais(
-                                                                        jovem['nome'],
-                                                                      ),
-                                                                      style: const TextStyle(
-                                                                        fontSize:
-                                                                            20,
-                                                                        color:
-                                                                            Colors.white,
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                      ),
-                                                                    )
-                                                                    : null,
-                                                          );
-                                                        },
-                                                      ),
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Text(
-                                                            jovem['nome'] ?? '',
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.black,
-                                                              fontSize: 15,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Text(
+                                                              jovem['nome'] ?? '',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.black,
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
                                                             ),
-                                                          ),
-                                                          Text(
-                                                            "Colégio: ${jovem['escola'] ?? ''}\nEmpresa: ${jovem['empresa'] ?? ''}",
-                                                            style:
-                                                                const TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .black,
-                                                                ),
-                                                          ),
-                                                          if (auth.tipoUsuario ==
-                                                              "professor")
-                                                            SizedBox(height: 5),
-                                                          Text(
-                                                            auth.tipoUsuario ==
-                                                                    "professor"
-                                                                ? "Turma: ${jovem['cod_turma'] ?? ''}\nMódulo: ${jovem['turmas']?['modulos_turmas']?[0]?['modulos']?['nome'] ?? 'Não informado'}"
-                                                                : "",
-                                                            style:
-                                                                const TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .black,
-                                                                ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Divider(color: Colors.black),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      IconButton(
-                                                        focusColor:
-                                                            Colors.transparent,
-                                                        hoverColor:
-                                                            Colors.transparent,
-                                                        splashColor:
-                                                            Colors.transparent,
-                                                        highlightColor:
-                                                            Colors.transparent,
-                                                        enableFeedback: false,
-                                                        tooltip: "Visualizar",
-                                                        icon: const Icon(
-                                                          Icons.remove_red_eye,
-                                                          color: Colors.black,
-                                                          size: 20,
+                                                            Text(
+                                                              "Colégio: ${jovem['escola'] ?? ''}\nEmpresa: ${jovem['empresa'] ?? ''}",
+                                                              style:
+                                                                  const TextStyle(
+                                                                    color:
+                                                                        Colors
+                                                                            .black,
+                                                                  ),
+                                                            ),
+                                                            if (auth.tipoUsuario ==
+                                                                "professor")
+                                                              SizedBox(height: 5),
+                                                            Text(
+                                                              auth.tipoUsuario ==
+                                                                      "professor"
+                                                                  ? "Turma: ${jovem['cod_turma'] ?? ''}\nMódulo: ${jovem['turmas']?['modulos_turmas']?[0]?['modulos']?['nome'] ?? 'Não informado'}"
+                                                                  : "",
+                                                              style:
+                                                                  const TextStyle(
+                                                                    color:
+                                                                        Colors
+                                                                            .black,
+                                                                  ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                        onPressed:
-                                                            () => Navigator.of(
-                                                              context,
-                                                            ).pushReplacement(
-                                                              MaterialPageRoute(
-                                                                builder:
-                                                                    (
-                                                                      _,
-                                                                    ) => JovemAprendizDetalhes(
+                                                      ],
+                                                    ),
+                                                    Divider(color: Colors.black),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        IconButton(
+                                                          focusColor:
+                                                              Colors.transparent,
+                                                          hoverColor:
+                                                              Colors.transparent,
+                                                          splashColor:
+                                                              Colors.transparent,
+                                                          highlightColor:
+                                                              Colors.transparent,
+                                                          enableFeedback: false,
+                                                          tooltip: "Visualizar",
+                                                          icon: const Icon(
+                                                            Icons.remove_red_eye,
+                                                            color: Colors.black,
+                                                            size: 20,
+                                                          ),
+                                                          onPressed:
+                                                              () => Navigator.of(
+                                                                context,
+                                                              ).pushReplacement(
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (
+                                                                        _,
+                                                                      ) => JovemAprendizDetalhes(
+                                                                        jovem:
+                                                                            jovem,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                        ),
+                                                        Container(
+                                                          width: 2,
+                                                          // Espessura da linha
+                                                          height: 30,
+                                                          // Altura da linha
+                                                          color: Colors.black
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ), // Cor da linha
+                                                        ),
+                                                        IconButton(
+                                                          focusColor:
+                                                              Colors.transparent,
+                                                          hoverColor:
+                                                              Colors.transparent,
+                                                          splashColor:
+                                                              Colors.transparent,
+                                                          highlightColor:
+                                                              Colors.transparent,
+                                                          enableFeedback: false,
+                                                          tooltip: "Ocorrências",
+                                                          icon: const Icon(
+                                                            Icons
+                                                                .chat_bubble_outline,
+                                                            color: Colors.black,
+                                                            size: 20,
+                                                          ),
+                                                          onPressed:
+                                                              () => Navigator.of(
+                                                                context,
+                                                              ).pushReplacement(
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (
+                                                                        _,
+                                                                      ) => OcorrenciasScreen(
+                                                                        jovemId:
+                                                                            jovem['id'],
+                                                                        nomeJovem:
+                                                                            jovem['nome'],
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                        ),
+                                                        if (auth.tipoUsuario ==
+                                                            "administrador")
+                                                          Container(
+                                                            width: 2,
+                                                            // Espessura da linha
+                                                            height: 30,
+                                                            // Altura da linha
+                                                            color: Colors.black
+                                                                .withValues(
+                                                                  alpha: 0.2,
+                                                                ), // Cor da linha
+                                                          ),
+                                                        if (auth.tipoUsuario ==
+                                                            "administrador")
+                                                          IconButton(
+                                                            focusColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            hoverColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            splashColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            highlightColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            enableFeedback: false,
+                                                            tooltip: "Editar",
+                                                            icon: const Icon(
+                                                              Icons.edit,
+                                                              color: Colors.black,
+                                                              size: 20,
+                                                            ),
+                                                            onPressed:
+                                                                () =>
+                                                                    _abrirFormulario(
                                                                       jovem:
                                                                           jovem,
                                                                     ),
-                                                              ),
+                                                          ),
+                                                        if (auth.tipoUsuario ==
+                                                            "administrador")
+                                                          Container(
+                                                            width: 2,
+                                                            // Espessura da linha
+                                                            height: 30,
+                                                            // Altura da linha
+                                                            color: Colors.black
+                                                                .withValues(
+                                                                  alpha: 0.2,
+                                                                ), // Cor da linha
+                                                          ),
+                                                        if (auth.tipoUsuario ==
+                                                            "administrador")
+                                                          IconButton(
+                                                            focusColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            hoverColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            splashColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            highlightColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            enableFeedback: false,
+                                                            tooltip: "Documentos",
+                                                            icon: const Icon(
+                                                              Icons.attach_file,
+                                                              color: Colors.black,
+                                                              size: 20,
                                                             ),
-                                                      ),
-                                                      Container(
-                                                        width: 2,
-                                                        // Espessura da linha
-                                                        height: 30,
-                                                        // Altura da linha
-                                                        color: Colors.black
-                                                            .withValues(
-                                                              alpha: 0.2,
-                                                            ), // Cor da linha
-                                                      ),
-                                                      IconButton(
-                                                        focusColor:
-                                                            Colors.transparent,
-                                                        hoverColor:
-                                                            Colors.transparent,
-                                                        splashColor:
-                                                            Colors.transparent,
-                                                        highlightColor:
-                                                            Colors.transparent,
-                                                        enableFeedback: false,
-                                                        tooltip: "Ocorrências",
-                                                        icon: const Icon(
-                                                          Icons
-                                                              .chat_bubble_outline,
-                                                          color: Colors.black,
-                                                          size: 20,
-                                                        ),
-                                                        onPressed:
-                                                            () => Navigator.of(
-                                                              context,
-                                                            ).pushReplacement(
-                                                              MaterialPageRoute(
-                                                                builder:
-                                                                    (
-                                                                      _,
-                                                                    ) => OcorrenciasScreen(
-                                                                      jovemId:
-                                                                          jovem['id'],
-                                                                      nomeJovem:
-                                                                          jovem['nome'],
+                                                            onPressed:
+                                                                () =>
+                                                                    _abrirDocumentos(
+                                                                      context,
+                                                                      jovem['id'],
                                                                     ),
-                                                              ),
-                                                            ),
-                                                      ),
-                                                      if (auth.tipoUsuario ==
-                                                          "administrador")
-                                                        Container(
-                                                          width: 2,
-                                                          // Espessura da linha
-                                                          height: 30,
-                                                          // Altura da linha
-                                                          color: Colors.black
-                                                              .withValues(
-                                                                alpha: 0.2,
-                                                              ), // Cor da linha
-                                                        ),
-                                                      if (auth.tipoUsuario ==
-                                                          "administrador")
-                                                        IconButton(
-                                                          focusColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          hoverColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          splashColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          highlightColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          enableFeedback: false,
-                                                          tooltip: "Editar",
-                                                          icon: const Icon(
-                                                            Icons.edit,
-                                                            color: Colors.black,
-                                                            size: 20,
                                                           ),
-                                                          onPressed:
-                                                              () =>
-                                                                  _abrirFormulario(
-                                                                    jovem:
-                                                                        jovem,
-                                                                  ),
-                                                        ),
-                                                      if (auth.tipoUsuario ==
-                                                          "administrador")
-                                                        Container(
-                                                          width: 2,
-                                                          // Espessura da linha
-                                                          height: 30,
-                                                          // Altura da linha
-                                                          color: Colors.black
-                                                              .withValues(
-                                                                alpha: 0.2,
-                                                              ), // Cor da linha
-                                                        ),
-                                                      if (auth.tipoUsuario ==
-                                                          "administrador")
-                                                        IconButton(
-                                                          focusColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          hoverColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          splashColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          highlightColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          enableFeedback: false,
-                                                          tooltip: "Documentos",
-                                                          icon: const Icon(
-                                                            Icons.attach_file,
-                                                            color: Colors.black,
-                                                            size: 20,
+                                                        if (auth.tipoUsuario ==
+                                                            "administrador")
+                                                          Container(
+                                                            width: 2,
+                                                            // Espessura da linha
+                                                            height: 30,
+                                                            // Altura da linha
+                                                            color: Colors.black
+                                                                .withValues(
+                                                                  alpha: 0.2,
+                                                                ), // Cor da linha
                                                           ),
-                                                          onPressed:
-                                                              () =>
-                                                                  _abrirDocumentos(
-                                                                    context,
-                                                                    jovem['id'],
-                                                                  ),
-                                                        ),
-                                                      if (auth.tipoUsuario ==
-                                                          "administrador")
-                                                        Container(
-                                                          width: 2,
-                                                          // Espessura da linha
-                                                          height: 30,
-                                                          // Altura da linha
-                                                          color: Colors.black
-                                                              .withValues(
-                                                                alpha: 0.2,
-                                                              ), // Cor da linha
-                                                        ),
-                                                      if (auth.tipoUsuario ==
-                                                          "administrador")
-                                                        IconButton(
-                                                          focusColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          hoverColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          splashColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          highlightColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          enableFeedback: false,
-                                                          tooltip:
+                                                        if (auth.tipoUsuario ==
+                                                            "administrador")
+                                                          IconButton(
+                                                            focusColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            hoverColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            splashColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            highlightColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            enableFeedback: false,
+                                                            tooltip:
+                                                                isAtivo == true
+                                                                    ? "Inativar"
+                                                                    : "Ativar",
+                                                            icon: Icon(
                                                               isAtivo == true
-                                                                  ? "Inativar"
-                                                                  : "Ativar",
-                                                          icon: Icon(
-                                                            isAtivo == true
-                                                                ? Icons.block
-                                                                : Icons.restore,
-                                                            color: Colors.black,
-                                                            size: 20,
+                                                                  ? Icons.block
+                                                                  : Icons.restore,
+                                                              color: Colors.black,
+                                                              size: 20,
+                                                            ),
+                                                            onPressed:
+                                                                () =>
+                                                                    isAtivo ==
+                                                                            true
+                                                                        ? inativarJovem(
+                                                                          jovem['id'],
+                                                                        )
+                                                                        : ativarJovem(
+                                                                          jovem['id'],
+                                                                        ),
                                                           ),
-                                                          onPressed:
-                                                              () =>
-                                                                  isAtivo ==
-                                                                          true
-                                                                      ? inativarJovem(
-                                                                        jovem['id'],
-                                                                      )
-                                                                      : ativarJovem(
-                                                                        jovem['id'],
-                                                                      ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ],
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                            );
+                                          },
+                                        ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -1419,7 +1419,7 @@ class _FormjovemState extends State<_Formjovem> {
       _cpfController.text = widget.jovem!['cpf'] ?? "";
       _horasTrabalhoController.text = widget.jovem!['horas_trabalho'] ?? "00:00:00";
       _remuneracaoController.text = formatarDinheiro(
-        widget.jovem!['remuneracao'] ?? 0.0,
+        double.tryParse(widget.jovem?['remuneracao']?.toString() ?? '0.0') ?? 0.0,
       );
       _outraEscolaController.text = widget.jovem!['outra_escola'] ?? "";
       _turmaSelecionada = widget.jovem!['turma_id'];
@@ -1443,7 +1443,7 @@ class _FormjovemState extends State<_Formjovem> {
       _cadastroCrasSelecionado = widget.jovem!['cadastro_cras'];
       _atoInfracionalSelecionado = widget.jovem!['infracao'];
       _rendaController.text = formatarDinheiro(
-        widget.jovem!['renda_mensal'] ?? 0.0,
+        double.tryParse(widget.jovem?['renda_mensal']?.toString() ?? '0.0') ?? 0.0,
       );
       _turnoColegioSelecionado = widget.jovem!['turno_escola'];
       _anoInicioColegioController.text = widget.jovem!['ano_inicio_escola'] ?? "";
