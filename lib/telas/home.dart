@@ -18,7 +18,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool modoDemo = false;
+  bool modoDemo = true;
   final PresencaService _presencaService = PresencaService();
   final OcorrenciaService _ocorrenciaService = OcorrenciaService();
   final JovemService _jovemService = JovemService();
@@ -1439,6 +1439,42 @@ class _HomeState extends State<Home> {
                                   );
                                 },
                               ),
+                              FutureBuilder<Map<String, int>>(
+                                future: _dadosIndiceFaltas,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return const Center(child: CircularProgressIndicator());
+                                  }
+
+                                  final dados = modoDemo
+                                      ? {
+                                    'João Silva': 6,
+                                    'Ana Costa': 5,
+                                    'Carlos M.': 4,
+                                    'L. Rodrigues': 4,
+                                    'F. Souza': 3,
+                                  }
+                                      : snapshot.data ?? {};
+
+                                  if (dados.isEmpty) {
+                                    return const Card(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Text(
+                                          'Alunos com mais faltas\nNenhum dado encontrado!',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  return IndicadorPizza(
+                                    titulo: 'Alunos com Mais Faltas',
+                                    dados: dados,
+                                    cores: gerarCoresRGB(dados.keys),
+                                  );
+                                },
+                              ),
                             FutureBuilder<Map<String, int>>(
                               future: _dadosOcorrenciasPorProfessor,
                               builder: (context, snapshot) {
@@ -1469,42 +1505,6 @@ class _HomeState extends State<Home> {
 
                                 return IndicadorPizza(
                                   titulo: 'Ocorrências Lançadas por Você',
-                                  dados: dados,
-                                  cores: gerarCoresRGB(dados.keys),
-                                );
-                              },
-                            ),
-                            FutureBuilder<Map<String, int>>(
-                              future: _dadosIndiceFaltas,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Center(child: CircularProgressIndicator());
-                                }
-
-                                final dados = modoDemo
-                                    ? {
-                                  'João Silva': 6,
-                                  'Ana Costa': 5,
-                                  'Carlos M.': 4,
-                                  'L. Rodrigues': 4,
-                                  'F. Souza': 3,
-                                }
-                                    : snapshot.data ?? {};
-
-                                if (dados.isEmpty) {
-                                  return const Card(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Text(
-                                        'Alunos com mais faltas\nNenhum dado encontrado!',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  );
-                                }
-
-                                return IndicadorPizza(
-                                  titulo: 'Alunos com Mais Faltas',
                                   dados: dados,
                                   cores: gerarCoresRGB(dados.keys),
                                 );

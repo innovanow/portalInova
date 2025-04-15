@@ -435,7 +435,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                         _info("RG", widget.jovem['rg']),
                         _info("Código PIS", widget.jovem['cod_pis']),
                         _info("Carteira de Trabalho", widget.jovem['cod_carteira_trabalho']),
-                        _info("Cidade Natal", widget.jovem['cidade_natal']),
+                        _info("Cidade Natal", widget.jovem['cidade_estado_natal']),
                       ]),
                       _buildSection("📞 Contato", [
                         _info("Telefone Jovem", widget.jovem['telefone_jovem']),
