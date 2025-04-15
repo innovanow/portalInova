@@ -365,7 +365,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() {
                           localSucesso = 'Senha atualizada com sucesso!';
                           localTokenEnviado = false;
-                          _emailController.clear();
                           _tokenController.clear();
                           _newPasswordController.clear();
                           _confirmPasswordResetController.clear();
