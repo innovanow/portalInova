@@ -320,37 +320,37 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                               String ext = 'jpg';
 
                               if (kIsWeb) {
-                                // ✅ Web: usa image_picker_for_web
+                                // ✅ Web
                                 final picker = ImagePicker();
                                 final picked = await picker.pickImage(source: ImageSource.gallery);
-
+                                if (picked != null) {
+                                  bytes = await picked.readAsBytes();
+                                  ext = picked.name.split('.').last.toLowerCase();
+                                }
+                              } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+                                // ✅ iOS — usa image_picker (sem permission_handler)
+                                final picker = ImagePicker();
+                                final picked = await picker.pickImage(source: ImageSource.gallery);
                                 if (picked != null) {
                                   bytes = await picked.readAsBytes();
                                   ext = picked.name.split('.').last.toLowerCase();
                                 }
                               } else {
-                                if (await Permission.photos.isDenied && await Permission.storage.isDenied) {
-                                  await Permission.photos.request();
-                                  await Permission.storage.request();
-                                }
-                                // ✅ Mobile: solicita permissão antes
-                                final status = await Permission.photos.request();
+                                // ✅ Android — mantém file_picker com permissões
+                                final status = await Permission.storage.request();
                                 if (!status.isGranted) {
-                                  if(context.mounted){
+                                  if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                          backgroundColor: Color(0xFF0A63AC),
-                                          content: Text('Permissão negada para acessar fotos',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ))
+                                        backgroundColor: Color(0xFF0A63AC),
+                                        content: Text('Permissão negada para acessar arquivos',
+                                            style: TextStyle(color: Colors.white)),
                                       ),
                                     );
                                   }
                                   return;
                                 }
 
-                                // ✅ Mobile: usa file_picker
                                 final result = await FilePicker.platform.pickFiles(
                                   type: FileType.image,
                                   allowMultiple: false,
@@ -385,11 +385,9 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                      backgroundColor: Color(0xFF0A63AC),
-                                      content: Text('Erro ao fazer upload da imagem: $e',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ))
+                                    backgroundColor: Color(0xFF0A63AC),
+                                    content: Text('Erro ao fazer upload da imagem: $e',
+                                        style: TextStyle(color: Colors.white)),
                                   ),
                                 );
                               }
