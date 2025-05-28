@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Inova</string>
+	<string>Instituto Inova</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Justificativas de permissão exigidas pelo iOS -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>O aplicativo precisa acessar suas fotos para permitir que você selecione ou altere sua imagem de perfil.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>O aplicativo precisa usar a câmera para capturar sua imagem de perfil.</string>
+
+	<!-- Permissão para acesso à internet externa -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
