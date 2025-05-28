@@ -299,7 +299,7 @@ class JovemService {
     required String rgMae,
     required String rgPai,
     required String? cidadeEstadoNatal,
-    required String codCarteiraTrabalho,
+    required String? codCarteiraTrabalho,
     required String? estadoCivilPai,
     required String? estadoCivilMae,
     required String? estadoCivil,
