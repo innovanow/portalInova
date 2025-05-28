@@ -198,6 +198,13 @@ class _ModuloScreenState extends State<ModuloScreen> {
         .replaceAll(RegExp(r"[^\w.]+"), "_"); // Substitui outros caracteres especiais por _
   }
 
+  String formatarDataParaExibicao(String data) {
+    DateTime dataConvertida = DateTime.parse(
+      data,
+    ); // Converte string para DateTime
+    return DateFormat('dd/MM/yyyy').format(dataConvertida); // Retorna formatado
+  }
+
   void _abrirDocumentos(BuildContext context, String userId) {
     showDialog(
       context: context,
@@ -703,9 +710,14 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                           children: [
                                             Text(
                                               "Professor: ${modulo['professores']?['nome'] ?? 'Desconhecido'}\n"
-                                                  "Turno: ${modulo['turno']}\n"
-                                                  "Período: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(modulo['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(modulo['data_termino']))}\n"
-                                                  "Horário: ${modulo['horario_inicial']} até ${modulo['horario_final']}",
+                                                  "Turno: ${modulo['turno'] ?? 'Desconhecido'}\n"
+                                                  "Horários: ${modulo['datas'] is List && (modulo['datas'] as List).length.isEven
+                                                  ? List.generate((modulo['datas'] as List).length ~/ 2, (i) {
+                                                final inicio = DateTime.parse(modulo['datas'][i * 2]);
+                                                final fim = DateTime.parse(modulo['datas'][i * 2 + 1]);
+                                                return "${DateFormat('dd/MM/yyyy').format(inicio)} das ${DateFormat('HH:mm').format(inicio)} às ${DateFormat('HH:mm').format(fim)}";
+                                              }).join('; ')
+                                                  : 'Nenhum'}",
                                               style: const TextStyle(color: Colors.black),
                                             ),
                                             Divider(color: Colors.black),
@@ -811,10 +823,6 @@ class _FormModulo extends StatefulWidget {
 class _FormModuloState extends State<_FormModulo> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
-  final _dataInicioController = TextEditingController();
-  final _dataTerminoController = TextEditingController();
-  final _horarioInicialController = TextEditingController();
-  final _horarioFinalController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
   bool _editando = false;
@@ -827,9 +835,9 @@ class _FormModuloState extends State<_FormModulo> {
     return DateFormat('dd/MM/yyyy').format(dataConvertida); // Retorna formatado
   }
   String? _turnoSelecionado;
-  String? _diaSelecionado;
   String? _professorSelecionado;
   List<Map<String, dynamic>> _professores = [];
+  List<Map<String, dynamic>> _datasComHorarios = [];
 
   @override
   void initState() {
@@ -840,13 +848,19 @@ class _FormModuloState extends State<_FormModulo> {
       _moduloId = widget.modulo!['id'].toString();
       _nomeController.text = widget.modulo!['nome'] ?? "";
       _turnoSelecionado = widget.modulo!['turno'] ?? "";
-      _diaSelecionado = widget.modulo!['dia_semana'] ?? "";
-      _dataInicioController.text = formatarDataParaExibicao(widget.modulo!['data_inicio'] ?? "");
-      _dataTerminoController.text = formatarDataParaExibicao(widget.modulo!['data_termino'] ?? "");
-      _horarioInicialController.text = widget.modulo!['horario_inicial'] ?? "";
-      _horarioFinalController.text = widget.modulo!['horario_final'] ?? "";
       selectedColor = Color(int.parse(widget.modulo!['cor']));
       _professorSelecionado = widget.modulo?['professor_id']?.toString();
+      final datas = (widget.modulo?['datas'] as List).cast<String>();
+
+      _datasComHorarios = List.generate(datas.length ~/ 2, (i) {
+        final inicio = DateTime.parse(datas[i * 2]);
+        final fim = DateTime.parse(datas[i * 2 + 1]);
+
+        return {
+          'inicio': inicio,
+          'fim': fim,
+        };
+      });
     }
   }
 
@@ -867,33 +881,17 @@ class _FormModuloState extends State<_FormModulo> {
           id: _moduloId!,
           nome: _nomeController.text.trim(),
           turno: _turnoSelecionado,
-          dataInicio: _dataInicioController.text.isNotEmpty
-              ? formatter.format(DateFormat('dd/MM/yyyy').parse(_dataInicioController.text))
-              : null,
-          dataTermino: _dataTerminoController.text.isNotEmpty
-              ? formatter.format(DateFormat('dd/MM/yyyy').parse(_dataTerminoController.text))
-              : null,
-          horarioInicial: _horarioInicialController.text.trim(),
-          horarioFinal: _horarioFinalController.text.trim(),
-          diaSemana: _diaSelecionado,
           cor: '0x${selectedColor.toARGB32().toRadixString(16).toUpperCase()}',
           professorId: _professorSelecionado!,
+          datasComHorarios: _datasComHorarios,
         );
       } else {
         error = await _moduloservice.cadastrarModulos(
           nome: _nomeController.text.trim(),
           turno: _turnoSelecionado,
-          diaSemana: _diaSelecionado,
-          horarioInicial: _horarioInicialController.text.trim(),
-          horarioFinal: _horarioFinalController.text.trim(),
-          dataInicio: _dataInicioController.text.isNotEmpty
-              ? formatter.format(DateFormat('dd/MM/yyyy').parse(_dataInicioController.text))
-              : null,
-          dataTermino: _dataTerminoController.text.isNotEmpty
-              ? formatter.format(DateFormat('dd/MM/yyyy').parse(_dataTerminoController.text))
-              : null,
           cor: '0x${selectedColor.toARGB32().toRadixString(16).toUpperCase()}',
           professorId: _professorSelecionado!,
+          datasComHorarios: _datasComHorarios,
         );
       }
 
@@ -918,57 +916,21 @@ class _FormModuloState extends State<_FormModulo> {
             mainAxisSize: MainAxisSize.min,
             children: [
               buildTextField(_nomeController, true, "Nome"),
-            DropdownButtonFormField<String>(
-              value: _turnoSelecionado, // Variável que armazena o valor selecionado
-              items: ['Matutino', 'Vespertino', 'Noturno']
-                  .map((String turno) => DropdownMenuItem(
-                value: turno,
-                child: Text(
-                  turno,
-                  style: const TextStyle(color: Colors.white), // Cor do texto no menu
-                ),
-              ))
-                  .toList(),
 
-              onChanged: (value) => setState(() => _turnoSelecionado = value), // Atualiza o estado
-
-              decoration: InputDecoration(
-                labelText: "Turno",
-                labelStyle: const TextStyle(color: Colors.white),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.white),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.white, width: 2.0),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              dropdownColor: const Color(0xFF0A63AC),
-              style: const TextStyle(color: Colors.white),
-            ),
-              const SizedBox(height: 10),
-              buildTextField(_dataInicioController, true, "Data de Início", isData: true, onChangedState: () => setState(() {})),
-              buildTextField(_dataTerminoController, true, "Data de Término", isData: true, onChangedState: () => setState(() {})),
-              buildTextField(_horarioInicialController, true, "Horário de Início", isHora: true, onChangedState: () => setState(() {})),
-              buildTextField(_horarioFinalController, true, "Horário de Término", isHora: true, onChangedState: () => setState(() {})),
               DropdownButtonFormField<String>(
-                value: _diaSelecionado, // Variável que armazena o valor selecionado
-                items: ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
-                    .map((String dia) => DropdownMenuItem(
-                  value: dia,
+                value: _turnoSelecionado,
+                items: ['Matutino', 'Vespertino', 'Noturno']
+                    .map((String turno) => DropdownMenuItem(
+                  value: turno,
                   child: Text(
-                    dia,
-                    style: const TextStyle(color: Colors.white), // Cor do texto no menu
+                    turno,
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ))
                     .toList(),
-
-                onChanged: (value) => setState(() => _diaSelecionado = value), // Atualiza o estado
-
+                onChanged: (value) => setState(() => _turnoSelecionado = value),
                 decoration: InputDecoration(
-                  labelText: "Dia da Semana",
+                  labelText: "Turno",
                   labelStyle: const TextStyle(color: Colors.white),
                   enabledBorder: OutlineInputBorder(
                     borderSide: const BorderSide(color: Colors.white),
@@ -983,70 +945,207 @@ class _FormModuloState extends State<_FormModulo> {
                 dropdownColor: const Color(0xFF0A63AC),
                 style: const TextStyle(color: Colors.white),
               ),
-              SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: _professores.any((p) => p['id'].toString() == _professorSelecionado)
-                  ? _professorSelecionado
-                  : null,
-              items: _professores.map((professor) {
-                final id = professor['id'].toString(); // id salvo no banco
-                final nome = professor['nome'];        // nome exibido
-                return DropdownMenuItem<String>(
-                  value: id,
-                  child: Text(
-                    nome,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _professorSelecionado = value;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: "Professor",
-                labelStyle: const TextStyle(color: Colors.white),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.white),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.white, width: 2.0),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              dropdownColor: const Color(0xFF0A63AC),
-              style: const TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 10),
-              ColorWheelPicker(
-                onColorSelected: (Color color) {
-                  if (kDebugMode) {
-                    print("Cor selecionada: $color");
+
+              const SizedBox(height: 10),
+
+              InkWell(
+                onTap: () async {
+                  final DateTime? dataSelecionada = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2100),
+                  );
+
+                  if (dataSelecionada != null && context.mounted) {
+                    final TimeOfDay? horarioInicial = await showTimePicker(
+                      context: context,
+                      initialTime: const TimeOfDay(hour: 7, minute: 30),
+                    );
+
+                    if (horarioInicial != null && context.mounted) {
+                      final TimeOfDay? horarioFinal = await showTimePicker(
+                        context: context,
+                        initialTime: const TimeOfDay(hour: 11, minute: 30),
+                      );
+
+                      if (horarioFinal != null) {
+                        final inicio = DateTime(
+                          dataSelecionada.year,
+                          dataSelecionada.month,
+                          dataSelecionada.day,
+                          horarioInicial.hour,
+                          horarioInicial.minute,
+                        );
+
+                        final fim = DateTime(
+                          dataSelecionada.year,
+                          dataSelecionada.month,
+                          dataSelecionada.day,
+                          horarioFinal.hour,
+                          horarioFinal.minute,
+                        );
+
+                        if (!fim.isAfter(inicio)) {
+                          setState(() {
+                            _errorMessage = "Horário inicial deve ser menor que o horário final.";
+                          });
+                          return;
+                        }
+
+                        // Verifica conflito com algum período já existente
+                        final bool conflito = _datasComHorarios.any((element) {
+                          final DateTime inicioExistente = element['inicio'];
+                          final DateTime fimExistente = element['fim'];
+
+                          return (inicio.isBefore(fimExistente) && fim.isAfter(inicioExistente));
+                        });
+
+                        if (conflito) {
+                          setState(() {
+                            _errorMessage = "Já existe um horário conflitante nesta data.";
+                          });
+                          return;
+                        }
+
+                        setState(() {
+                          _datasComHorarios.add({
+                            'inicio': inicio,
+                            'fim': fim,
+                          });
+                          _errorMessage = null; // limpa erro se houver
+                        });
+                      }
+                    }
                   }
                 },
+                child: Container(
+                  height: 50,
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white),
+                    borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Adicionar datas e horários",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
+
+              // Exibe as datas adicionadas
+              if (_datasComHorarios.isNotEmpty)
+                SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    itemCount: _datasComHorarios.length,
+                    itemBuilder: (context, index) {
+                      final item = _datasComHorarios[index];
+                      final inicio = item['inicio'] as DateTime;
+                      final fim = item['fim'] as DateTime;
+
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                        child: Container(
+                          height: 50,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white),
+                            borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              "${index + 1}º ${DateFormat('dd/MM/yyyy').format(inicio)} das ${DateFormat('HH:mm').format(inicio)} às ${DateFormat('HH:mm').format(fim)}",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            trailing: IconButton(
+                              tooltip: "Remover data",
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              enableFeedback: false,
+                              icon: const Icon(Icons.delete, color: Colors.white, size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  _datasComHorarios.removeAt(index);
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+              const SizedBox(height: 10),
+
+              DropdownButtonFormField<String>(
+                value: _professores.any((p) => p['id'].toString() == _professorSelecionado)
+                    ? _professorSelecionado
+                    : null,
+                items: _professores.map((professor) {
+                  final id = professor['id'].toString();
+                  final nome = professor['nome'];
+                  return DropdownMenuItem<String>(
+                    value: id,
+                    child: Text(nome, style: const TextStyle(color: Colors.white)),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => _professorSelecionado = value),
+                decoration: InputDecoration(
+                  labelText: "Professor",
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                dropdownColor: const Color(0xFF0A63AC),
+                style: const TextStyle(color: Colors.white),
+              ),
+
+              const SizedBox(height: 10),
+
+              ColorWheelPicker(
+                onColorSelected: (Color color) {
+                  if (kDebugMode) print("Cor selecionada: $color");
+                },
+              ),
+
+              const SizedBox(height: 20),
+              if (_errorMessage != null)
+                SelectableText(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
               const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()
                   : Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 10,
                 children: [
                   ElevatedButton(
                     onPressed: _salvar,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 24,
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                       elevation: 0,
                     ),
                     child: Text(
@@ -1054,28 +1153,22 @@ class _FormModuloState extends State<_FormModulo> {
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 24,
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                       elevation: 0,
                     ),
-                    child: Text(
+                    child: const Text(
                       "Cancelar",
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
               ),
-              if (_errorMessage != null)
-                SelectableText(_errorMessage!, style: const TextStyle(color: Colors.red)),
             ],
           ),
         ),

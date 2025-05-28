@@ -18,7 +18,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool modoDemo = true;
+  bool modoDemo = false;
   final PresencaService _presencaService = PresencaService();
   final OcorrenciaService _ocorrenciaService = OcorrenciaService();
   final JovemService _jovemService = JovemService();

@@ -38,9 +38,9 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
     if (userType == 'professor') {
       modulos = await supabase
           .from('modulos')
-          .select('nome, data_inicio, data_termino, dia_semana, cor')
+          .select('nome, datas, cor')
           .eq('status', 'ativo')
-          .eq('professor_id',  userId.toString());
+          .eq('professor_id', userId.toString());
     } else if (userType == 'jovem_aprendiz') {
       final jovem = await supabase
           .from('jovens_aprendizes')
@@ -61,7 +61,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
         if (moduloIds.isNotEmpty) {
           modulos = await supabase
               .from('modulos')
-              .select('nome, data_inicio, data_termino, dia_semana, cor')
+              .select('nome, datas, cor')
               .inFilter('id', moduloIds)
               .eq('status', 'ativo');
         }
@@ -85,7 +85,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
         if (moduloIds.isNotEmpty) {
           modulos = await supabase
               .from('modulos')
-              .select('nome, data_inicio, data_termino, dia_semana, cor')
+              .select('nome, datas, cor')
               .inFilter('id', moduloIds)
               .eq('status', 'ativo');
         }
@@ -109,7 +109,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
         if (moduloIds.isNotEmpty) {
           modulos = await supabase
               .from('modulos')
-              .select('nome, data_inicio, data_termino, dia_semana, cor')
+              .select('nome, datas, cor')
               .inFilter('id', moduloIds)
               .eq('status', 'ativo');
         }
@@ -118,22 +118,29 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
       // Administrador ou Instituto
       modulos = await supabase
           .from('modulos')
-          .select('nome, data_inicio, data_termino, dia_semana, cor')
+          .select('nome, datas, cor')
           .eq('status', 'ativo');
     }
 
     Map<DateTime, String> novosDiasModulos = {};
 
     for (var modulo in modulos) {
-      DateTime inicio = DateTime.parse(modulo['data_inicio']);
-      DateTime termino = DateTime.parse(modulo['data_termino']);
-      String? diaSemana = modulo['dia_semana'];
-      String nomeModulo = modulo['nome'];
-      String? corHex = modulo['cor'];
+      final nomeModulo = modulo['nome'];
+      final List<dynamic>? datas = modulo['datas'];
+      final String? corHex = modulo['cor'];
 
-      if (diaSemana != null) {
-        for (var dia in _getDiasSemanaNoIntervalo(inicio, termino, diaSemana)) {
-          novosDiasModulos[dia] = nomeModulo;
+      if (datas != null && datas.length.isEven) {
+        for (int i = 0; i < datas.length; i += 2) {
+          final DateTime inicio = DateTime.parse(datas[i]);
+          final DateTime fim = DateTime.parse(datas[i + 1]);
+
+          // Marca todos os dias entre início e fim (inclusive)
+          for (DateTime dia = inicio;
+          !dia.isAfter(fim);
+          dia = dia.add(const Duration(days: 1))) {
+            final diaSemHora = DateTime(dia.year, dia.month, dia.day);
+            novosDiasModulos[diaSemHora] = nomeModulo;
+          }
         }
       }
 
@@ -149,28 +156,6 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
 
   Color _hexToColor(String hex) {
     return Color(int.parse(hex));
-  }
-
-  Set<DateTime> _getDiasSemanaNoIntervalo(DateTime inicio, DateTime termino, String diaSemana) {
-    Set<DateTime> diasMarcados = {};
-    Map<String, int> dias = {
-      'Domingo': DateTime.sunday,
-      'Segunda-feira': DateTime.monday,
-      'Terça-feira': DateTime.tuesday,
-      'Quarta-feira': DateTime.wednesday,
-      'Quinta-feira': DateTime.thursday,
-      'Sexta-feira': DateTime.friday,
-      'Sábado': DateTime.saturday,
-    };
-
-    int diaSemanaInt = dias[diaSemana] ?? 0;
-
-    for (DateTime date = inicio; !date.isAfter(termino); date = date.add(const Duration(days: 1))) {
-      if (date.weekday == diaSemanaInt) {
-        diasMarcados.add(DateTime(date.year, date.month, date.day));
-      }
-    }
-    return diasMarcados;
   }
 
   void _mudarAno(int incremento) {

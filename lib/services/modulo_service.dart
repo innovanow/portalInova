@@ -60,7 +60,8 @@ class ModuloService {
   }
 
   Future<List<Map<String, dynamic>>> buscarProfessores() async {
-    final response = await supabase.from('professores').select().eq('status', 'ativo').order('nome', ascending: true);
+    final response = await supabase.from('professores').select().eq(
+        'status', 'ativo').order('nome', ascending: true);
     return response;
   }
 
@@ -137,31 +138,28 @@ class ModuloService {
     return resultado;
   }
 
-  // Cadastrar uma nova modulo
   Future<String?> cadastrarModulos({
     required String nome,
     required String? turno,
-    required String? dataInicio,
-    required String? dataTermino,
-    required String? horarioInicial,
-    required String? horarioFinal,
-    required String? diaSemana,
     required String? cor,
     required String professorId,
+    required List<Map<String, dynamic>> datasComHorarios,
   }) async {
     try {
+      // Converte para lista de strings ISO: cada item = 'inicio' e 'fim' como DateTime
+      final List<String> datasParaSalvar = datasComHorarios.expand((item) {
+        final DateTime inicio = item['inicio'] as DateTime;
+        final DateTime fim = item['fim'] as DateTime;
+        return [inicio.toIso8601String(), fim.toIso8601String()];
+      }).toList();
 
       await supabase.from('modulos').insert({
         'nome': nome,
         'turno': turno,
-        'data_inicio': dataInicio,
-        'data_termino': dataTermino,
-        'horario_inicial': horarioInicial,
-        'horario_final': horarioFinal,
-        'dia_semana': diaSemana,
         'status': 'ativo',
         'cor': cor,
         'professor_id': professorId,
+        'datas': datasParaSalvar,
       });
 
       return null;
@@ -170,31 +168,30 @@ class ModuloService {
     }
   }
 
-  // Atualizar modulos
   Future<String?> atualizarModulos({
     required String id,
     required String nome,
     required String? turno,
-    required String? dataInicio,
-    required String? dataTermino,
-    required String? horarioInicial,
-    required String? horarioFinal,
-    required String? diaSemana,
     required String? cor,
     required String professorId,
+    required List<Map<String, dynamic>> datasComHorarios,
   }) async {
     try {
+      // Converte para lista de strings ISO
+      final List<String> datasParaSalvar = datasComHorarios.expand((item) {
+        final DateTime inicio = item['inicio'] as DateTime;
+        final DateTime fim = item['fim'] as DateTime;
+        return [inicio.toIso8601String(), fim.toIso8601String()];
+      }).toList();
+
       await supabase.from('modulos').update({
         'nome': nome,
         'turno': turno,
-        'data_inicio': dataInicio,
-        'data_termino': dataTermino,
-        'horario_inicial': horarioInicial,
-        'horario_final': horarioFinal,
-        'dia_semana': diaSemana,
         'cor': cor,
         'professor_id': professorId,
+        'datas': datasParaSalvar,
       }).match({'id': id});
+
       return null;
     } catch (e) {
       return e.toString();
