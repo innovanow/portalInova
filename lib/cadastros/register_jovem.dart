@@ -3261,7 +3261,7 @@ class _FormjovemState extends State<_Formjovem> {
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
                 buildTextField(
                   _horasTrabalhoController, false,
-                  "Horas de Trabalho",
+                  "Horas de Trabalho Exemplo: 08:00:00",
                   isHora: true,
                   onChangedState: () => setState(() {}),
                 ),

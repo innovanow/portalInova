@@ -641,7 +641,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: const Text("Limpar Dados",
                                     style: TextStyle(color: Color(0xFF0A63AC)),)
                               ),
-                              Text("Versão: 0.30",
+                              Text("Versão: 0.31",
                                 style: TextStyle(color: Color(0xFF0A63AC)),),
                               SizedBox(height: 10),
                               Column(
@@ -2546,7 +2546,7 @@ class _FormjovemState extends State<_Formjovem> {
               if (_estaTrabalhandoSelecionado.toString().contains('Sim'))
                 buildTextField(
                   _horasTrabalhoController, false,
-                  "Horas de Trabalho",
+                  "Horas de Trabalho Exemplo: 08:00:00",
                   isHora: true,
                   onChangedState: () => setState(() {}),
                 ),
