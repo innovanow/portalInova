@@ -100,36 +100,38 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       canPop: false,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              opacity: 0.2,
-              image: AssetImage("assets/fundo.png"),
-              fit: BoxFit.cover,
+        body: SafeArea(
+          child: Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                opacity: 0.2,
+                image: AssetImage("assets/fundo.png"),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: Center(
-            child: ScaleTransition(
-              scale: _controller,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                      "assets/logoInova.svg",
-                      fit: BoxFit.contain,
-                      width: 200,
-                  ),
-                  Text(
-                    _textoExibido,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'FuturaBold',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25,
-                      color: Color(0xFF0A63AC),
+            child: Center(
+              child: ScaleTransition(
+                scale: _controller,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                        "assets/logoInova.svg",
+                        fit: BoxFit.contain,
+                        width: 200,
                     ),
-                  ),
-                ],
+                    Text(
+                      _textoExibido,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'FuturaBold',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25,
+                        color: Color(0xFF0A63AC),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

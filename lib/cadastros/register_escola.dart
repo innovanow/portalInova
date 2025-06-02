@@ -585,201 +585,203 @@ class _EscolaScreenState extends State<EscolaScreen> {
             ),
           ),
           drawer: InovaDrawer(context: context),
-          body: Container(
-            transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              image: DecorationImage(
-                opacity: 0.2,
-                image: AssetImage("assets/fundo.png"),
-                fit: BoxFit.cover,
+          body: SafeArea(
+            child: Container(
+              transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                image: DecorationImage(
+                  opacity: 0.2,
+                  image: AssetImage("assets/fundo.png"),
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            child: Stack(
-              children: [
-                // Ondas decorativas
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: ClipPath(
-                    clipper: WaveClipper(),
-                    child: Container(height: 45, color: Colors.orange),
+              child: Stack(
+                children: [
+                  // Ondas decorativas
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: ClipPath(
+                      clipper: WaveClipper(),
+                      child: Container(height: 45, color: Colors.orange),
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: ClipPath(
-                    clipper: WaveClipper(heightFactor: 0.6),
-                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: ClipPath(
+                      clipper: WaveClipper(heightFactor: 0.6),
+                      child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                    ),
                   ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: ClipPath(
-                    clipper: WaveClipper(flip: true),
-                    child: Container(height: 60, color: Colors.orange),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: ClipPath(
+                      clipper: WaveClipper(flip: true),
+                      child: Container(height: 60, color: Colors.orange),
+                    ),
                   ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: ClipPath(
-                    clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: ClipPath(
+                      clipper: WaveClipper(flip: true, heightFactor: 0.6),
+                      child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                    ),
                   ),
-                ),
-
-                // Formulário centralizado
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Align(
-                                alignment: Alignment.topRight,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      "Colégios: ${isAtivo ? "Ativos" : "Inativos"}",
-                                      textAlign: TextAlign.end,
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    Tooltip(
-                                      message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
-                                      child: Switch(
-                                        value: isAtivo,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            statusEscola = value ? "ativo" : "inativo";
-                                          });
-                                          _carregarescolas(statusEscola);
-                                        },
-                                        activeColor: Color(0xFF0A63AC),
+            
+                  // Formulário centralizado
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        "Colégios: ${isAtivo ? "Ativos" : "Inativos"}",
+                                        textAlign: TextAlign.end,
+                                        style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
-                                    ),
-                                  ],
+                                      Tooltip(
+                                        message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                        child: Switch(
+                                          value: isAtivo,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              statusEscola = value ? "ativo" : "inativo";
+                                            });
+                                            _carregarescolas(statusEscola);
+                                          },
+                                          activeColor: Color(0xFF0A63AC),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              height: 500,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child:
-                                _isFetching
-                                    ? const Center(
-                                  child: CircularProgressIndicator(),
-                                )
-                                    : ListView.builder(
-                                  itemCount: _escolasFiltradas.length,
-                                  itemBuilder: (context, index) {
-                                    final escola = _escolasFiltradas[index];
-                                    return Card(
-                                      elevation: 3,
-                                      child: ListTile(
-                                        title: Text(
-                                          escola['nome'],
-                                          style: TextStyle(color: Colors.black),
-                                        ),
-                                        leading: const Icon(Icons.school, color: Colors.black,),
-                                        subtitle: Column(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "CNPJ: ${cnpjFormatter.applyMask(escola['cnpj'] ?? '')}",
-                                              style: const TextStyle(color: Colors.black),
-                                            ),
-                                            Divider(color: Colors.black),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                if (auth.tipoUsuario == "administrador")
-                                                IconButton(
-                                                  tooltip: "Editar",
-                                                  focusColor: Colors.transparent,
-                                                  hoverColor: Colors.transparent,
-                                                  splashColor: Colors.transparent,
-                                                  highlightColor: Colors.transparent,
-                                                  enableFeedback: false,
-                                                  icon: const Icon(
-                                                      Icons.edit,
-                                                      color: Colors.black,
-                                                      size: 20
-                                                  ),
-                                                  onPressed:
-                                                      () => _abrirFormulario(
-                                                    escola: escola,
-                                                  ),
-                                                ),
-                                                if (auth.tipoUsuario == "administrador")
-                                                  Container(
-                                                    width: 2, // Espessura da linha
-                                                    height: 30, // Altura da linha
-                                                    color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                  ),
-                                                if (auth.tipoUsuario == "administrador")
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                height: 500,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child:
+                                  _isFetching
+                                      ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                      : ListView.builder(
+                                    itemCount: _escolasFiltradas.length,
+                                    itemBuilder: (context, index) {
+                                      final escola = _escolasFiltradas[index];
+                                      return Card(
+                                        elevation: 3,
+                                        child: ListTile(
+                                          title: Text(
+                                            escola['nome'],
+                                            style: TextStyle(color: Colors.black),
+                                          ),
+                                          leading: const Icon(Icons.school, color: Colors.black,),
+                                          subtitle: Column(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "CNPJ: ${cnpjFormatter.applyMask(escola['cnpj'] ?? '')}",
+                                                style: const TextStyle(color: Colors.black),
+                                              ),
+                                              Divider(color: Colors.black),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  if (auth.tipoUsuario == "administrador")
                                                   IconButton(
+                                                    tooltip: "Editar",
                                                     focusColor: Colors.transparent,
                                                     hoverColor: Colors.transparent,
                                                     splashColor: Colors.transparent,
                                                     highlightColor: Colors.transparent,
                                                     enableFeedback: false,
-                                                    tooltip: "Documentos",
-                                                    icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
-                                                    onPressed: () => _abrirDocumentos(context, escola['id']),
+                                                    icon: const Icon(
+                                                        Icons.edit,
+                                                        color: Colors.black,
+                                                        size: 20
+                                                    ),
+                                                    onPressed:
+                                                        () => _abrirFormulario(
+                                                      escola: escola,
+                                                    ),
                                                   ),
-                                                if (auth.tipoUsuario == "administrador")
-                                                Container(
-                                                  width: 2, // Espessura da linha
-                                                  height: 30, // Altura da linha
-                                                  color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                ),
-                                                if (auth.tipoUsuario == "administrador")
-                                                IconButton(
-                                                  tooltip: isAtivo == true ? "Inativar" : "Ativar",
-                                                  focusColor: Colors.transparent,
-                                                  hoverColor: Colors.transparent,
-                                                  splashColor: Colors.transparent,
-                                                  highlightColor: Colors.transparent,
-                                                  enableFeedback: false,
-                                                  icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
-                                                  onPressed: () => isAtivo == true ? inativarEscola(escola['id']) : ativarEscola(escola['id']),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                                  if (auth.tipoUsuario == "administrador")
+                                                    Container(
+                                                      width: 2, // Espessura da linha
+                                                      height: 30, // Altura da linha
+                                                      color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                    ),
+                                                  if (auth.tipoUsuario == "administrador")
+                                                    IconButton(
+                                                      focusColor: Colors.transparent,
+                                                      hoverColor: Colors.transparent,
+                                                      splashColor: Colors.transparent,
+                                                      highlightColor: Colors.transparent,
+                                                      enableFeedback: false,
+                                                      tooltip: "Documentos",
+                                                      icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
+                                                      onPressed: () => _abrirDocumentos(context, escola['id']),
+                                                    ),
+                                                  if (auth.tipoUsuario == "administrador")
+                                                  Container(
+                                                    width: 2, // Espessura da linha
+                                                    height: 30, // Altura da linha
+                                                    color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                  ),
+                                                  if (auth.tipoUsuario == "administrador")
+                                                  IconButton(
+                                                    tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                                    focusColor: Colors.transparent,
+                                                    hoverColor: Colors.transparent,
+                                                    splashColor: Colors.transparent,
+                                                    highlightColor: Colors.transparent,
+                                                    enableFeedback: false,
+                                                    icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
+                                                    onPressed: () => isAtivo == true ? inativarEscola(escola['id']) : ativarEscola(escola['id']),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           floatingActionButton: FloatingActionButton(

@@ -504,11 +504,11 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Ocorrências: ${widget.nomeJovem}",
+                        Text("Ocorrências: ${widget.nomeJovem.split(" ")[0]}",
                           style: TextStyle(
                             fontFamily: 'FuturaBold',
                             fontWeight: FontWeight.bold,
-                            fontSize: constraints.maxWidth > 800 ? 20 : 15,
+                            fontSize: 20,
                             color: Colors.white,
                           ),
                         ),
@@ -557,70 +557,72 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
               )
           ),
         ),
-        body: Container(
-          transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            image: DecorationImage(
-              opacity: 0.2,
-              image: AssetImage("assets/fundo.png"),
-              fit: BoxFit.cover,
+        body: SafeArea(
+          child: Container(
+            transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              image: DecorationImage(
+                opacity: 0.2,
+                image: AssetImage("assets/fundo.png"),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: Stack(
-            children: [
-              // Ondas decorativas
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(),
-                  child: Container(height: 45, color: Colors.orange),
+            child: Stack(
+              children: [
+                // Ondas decorativas
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(),
+                    child: Container(height: 45, color: Colors.orange),
+                  ),
                 ),
-              ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(heightFactor: 0.6),
-                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(heightFactor: 0.6),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true),
-                  child: Container(height: 60, color: Colors.orange),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true),
+                    child: Container(height: 60, color: Colors.orange),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true, heightFactor: 0.6),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  ),
                 ),
-              ),
-              _isCarregando
-                  ? const Center(child: CircularProgressIndicator())
-                  : Padding(
-                padding: const EdgeInsets.fromLTRB(10, 40, 10, 60),
-                child: ListView(
-                  children: [
-                    _buildListaPorTipo('escola'),
-                    _buildListaPorTipo('instituto'),
-                    _buildListaPorTipo('empresa'),
-                  ],
+                _isCarregando
+                    ? const Center(child: CircularProgressIndicator())
+                    : Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 40, 10, 60),
+                  child: ListView(
+                    children: [
+                      _buildListaPorTipo('escola'),
+                      _buildListaPorTipo('instituto'),
+                      _buildListaPorTipo('empresa'),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         floatingActionButton: FloatingActionButton(

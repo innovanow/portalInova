@@ -244,86 +244,88 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
           ),
         ),
         drawer: InovaDrawer(context: context),
-        body: Container(
-          transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            image: DecorationImage(
-              opacity: 0.2,
-              image: AssetImage("assets/fundo.png"),
-              fit: BoxFit.cover,
+        body: SafeArea(
+          child: Container(
+            transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              image: DecorationImage(
+                opacity: 0.2,
+                image: AssetImage("assets/fundo.png"),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: Stack(
-            children: [
-              // Ondas decorativas
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(),
-                  child: Container(height: 45, color: Colors.orange),
+            child: Stack(
+              children: [
+                // Ondas decorativas
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(),
+                    child: Container(height: 45, color: Colors.orange),
+                  ),
                 ),
-              ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(heightFactor: 0.6),
-                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(heightFactor: 0.6),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true),
-                  child: Container(height: 60, color: Colors.orange),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true),
+                    child: Container(height: 60, color: Colors.orange),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true, heightFactor: 0.6),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  ),
                 ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 40, 20, 60),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GridView.builder(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: colunas,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
-                            childAspectRatio: 0.85,
+          
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 40, 20, 60),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: GridView.builder(
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: colunas,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 0.85,
+                            ),
+                            itemCount: 12,
+                            itemBuilder: (context, index) {
+                              DateTime primeiroDiaMes = DateTime(anoAtual, index + 1, 1);
+                              return _buildCalendarioMes(primeiroDiaMes, alturaCardBase);
+                            },
                           ),
-                          itemCount: 12,
-                          itemBuilder: (context, index) {
-                            DateTime primeiroDiaMes = DateTime(anoAtual, index + 1, 1);
-                            return _buildCalendarioMes(primeiroDiaMes, alturaCardBase);
-                          },
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildLegenda(),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildLegenda(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

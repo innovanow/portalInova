@@ -154,181 +154,183 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
             ),
           ),
         ),
-        body: Container(
-          transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            image: DecorationImage(
-              opacity: 0.2,
-              image: AssetImage("assets/fundo.png"),
-              fit: BoxFit.cover,
+        body: SafeArea(
+          child: Container(
+            transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              image: DecorationImage(
+                opacity: 0.2,
+                image: AssetImage("assets/fundo.png"),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: Stack(
-            children: [
-              // Ondas decorativas
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(),
-                  child: Container(height: 45, color: Colors.orange),
+            child: Stack(
+              children: [
+                // Ondas decorativas
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(),
+                    child: Container(height: 45, color: Colors.orange),
+                  ),
                 ),
-              ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(heightFactor: 0.6),
-                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(heightFactor: 0.6),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true),
-                  child: Container(height: 60, color: Colors.orange),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true),
+                    child: Container(height: 60, color: Colors.orange),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: WaveClipper(flip: true, heightFactor: 0.6),
-                  child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ClipPath(
+                    clipper: WaveClipper(flip: true, heightFactor: 0.6),
+                    child: Container(height: 60, color: const Color(0xFF0A63AC)),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 40, 10, 60),
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _historicoFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Erro: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                        child: Text('Nenhuma presença registrada.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'FuturaBold',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.black,)),
-                      );
-                    }
-
-                    final historico = snapshot.data!;
-
-                    return ListView.builder(
-                      itemCount: historico.length,
-                      itemBuilder: (context, index) {
-                        final item = historico[index];
-                        final data = DateTime.parse(item['data']);
-                        final presentes = item['presentes'] ?? 0;
-                        final faltas = item['faltas'] ?? 0;
-                        final total = presentes + faltas;
-                        final percentual = total == 0 ? 0.0 : presentes / total;
-                        final nomesFaltantes = item['faltantes'] ?? [];
-
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '${DateFormat('dd/MM/yyyy').format(data)} - ${item['modulo_nome']} (Turma ${item['codigo_turma']})',
-                                        style: const TextStyle(
-                                          fontFamily: 'FuturaBold',
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 40, 10, 60),
+                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _historicoFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Erro: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text('Nenhuma presença registrada.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'FuturaBold',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.black,)),
+                        );
+                      }
+          
+                      final historico = snapshot.data!;
+          
+                      return ListView.builder(
+                        itemCount: historico.length,
+                        itemBuilder: (context, index) {
+                          final item = historico[index];
+                          final data = DateTime.parse(item['data']);
+                          final presentes = item['presentes'] ?? 0;
+                          final faltas = item['faltas'] ?? 0;
+                          final total = presentes + faltas;
+                          final percentual = total == 0 ? 0.0 : presentes / total;
+                          final nomesFaltantes = item['faltantes'] ?? [];
+          
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '${DateFormat('dd/MM/yyyy').format(data)} - ${item['modulo_nome']} (Turma ${item['codigo_turma']})',
+                                          style: const TextStyle(
+                                            fontFamily: 'FuturaBold',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    IconButton(
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      enableFeedback: false,
-                                      icon: const Icon(Icons.refresh),
-                                      tooltip: 'Refazer chamada',
-                                      onPressed:
-                                          () => _refazerChamada(
-                                            data,
-                                            item['modulo_id'],
-                                            item['turma_id'],
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    CircularPercentIndicator(
-                                      radius: 30,
-                                      lineWidth: 5,
-                                      percent: percentual,
-                                      center: Text(
-                                        '${(percentual * 100).toStringAsFixed(0)}%',
+                                      IconButton(
+                                        focusColor: Colors.transparent,
+                                        hoverColor: Colors.transparent,
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        enableFeedback: false,
+                                        icon: const Icon(Icons.refresh),
+                                        tooltip: 'Refazer chamada',
+                                        onPressed:
+                                            () => _refazerChamada(
+                                              data,
+                                              item['modulo_id'],
+                                              item['turma_id'],
+                                            ),
                                       ),
-                                      progressColor: Colors.green,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Presentes: $presentes'),
-                                          Text('Faltas: $faltas'),
-                                          if (nomesFaltantes.isNotEmpty) ...[
-                                            const SizedBox(height: 6),
-                                            const Text(
-                                              'Jovens faltantes:',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      CircularPercentIndicator(
+                                        radius: 30,
+                                        lineWidth: 5,
+                                        percent: percentual,
+                                        center: Text(
+                                          '${(percentual * 100).toStringAsFixed(0)}%',
+                                        ),
+                                        progressColor: Colors.green,
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text('Presentes: $presentes'),
+                                            Text('Faltas: $faltas'),
+                                            if (nomesFaltantes.isNotEmpty) ...[
+                                              const SizedBox(height: 6),
+                                              const Text(
+                                                'Jovens faltantes:',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
-                                            ),
-                                            ...List.generate(
-                                              nomesFaltantes.length,
-                                              (i) =>
-                                                  Text('👤 ${nomesFaltantes[i]}'),
-                                            ),
+                                              ...List.generate(
+                                                nomesFaltantes.length,
+                                                (i) =>
+                                                    Text('👤 ${nomesFaltantes[i]}'),
+                                              ),
+                                            ],
                                           ],
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

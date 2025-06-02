@@ -22,13 +22,9 @@ Future<void> main() async {
   final bool sessionRestaurada = session != null;
 
   // Define as cores da barra de navegação e status antes de iniciar o app
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    systemNavigationBarDividerColor: Color(0xFF0A63AC), // Cor do divisor da barra de navegação
-    systemNavigationBarColor: Color(0xFF0A63AC), // Cor da barra de navegação
-    systemNavigationBarIconBrightness: Brightness.light, // Ícones da barra de navegação
-    statusBarColor: Color(0xFF0A63AC), // Cor da barra de status
-    statusBarIconBrightness: Brightness.light, // Ícones da barra de status
-  ));
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      systemNavigationBarColor: Color(0xFF0A63AC)));
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   runApp(MyApp(sessionRestaurada: sessionRestaurada));
 }
 

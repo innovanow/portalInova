@@ -399,283 +399,279 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: Color(0xFF0A63AC), // Cor da barra de navegação
-      systemNavigationBarIconBrightness: Brightness.light, // Ícones da barra de navegação
-      statusBarColor: Color(0xFF0A63AC), // Cor da barra de status
-      statusBarIconBrightness: Brightness.light,
-    ));
     return PopScope(
       canPop: kIsWeb ? false : true, // impede voltar
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              opacity: 0.2,
-              image: AssetImage("assets/fundo.png"),
-              fit: BoxFit.cover,
+        body: SafeArea(
+          child: Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                opacity: 0.2,
+                image: AssetImage("assets/fundo.png"),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                        height: 70,
-                        child: SvgPicture.asset("assets/logoInova.svg")
-                    ),
-                    Text(
-                      "Login",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'FuturaBold',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25,
-                        color: Color(0xFF0A63AC),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                          height: 70,
+                          child: SvgPicture.asset("assets/logoInova.svg")
                       ),
-                    ),
-                    LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Column(
-                            children: [
-                              SizedBox(
-                                width: constraints.maxWidth > 800 ?  MediaQuery.of(context).size.width / 2 :  MediaQuery.of(context).size.width,
-                                child: Card.filled(
-                                  color: const Color(0xFF0A63AC),
-                                  elevation: 5,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Form(
-                                      key: _formKey,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          TextFormField(
-                                            controller: _emailController,
-                                            keyboardType: TextInputType.emailAddress,
-                                            decoration: InputDecoration(
-                                              labelText: "E-mail",
-                                              labelStyle: const TextStyle(color: Colors.white),
-                                              hoverColor: Colors.white,
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.white), // Borda branca quando não está focado
-                                                borderRadius: BorderRadius.circular(8),
+                      Text(
+                        "Login",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'FuturaBold',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 25,
+                          color: Color(0xFF0A63AC),
+                        ),
+                      ),
+                      LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  width: constraints.maxWidth > 800 ?  MediaQuery.of(context).size.width / 2 :  MediaQuery.of(context).size.width,
+                                  child: Card.filled(
+                                    color: const Color(0xFF0A63AC),
+                                    elevation: 5,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20.0),
+                                      child: Form(
+                                        key: _formKey,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            TextFormField(
+                                              controller: _emailController,
+                                              keyboardType: TextInputType.emailAddress,
+                                              decoration: InputDecoration(
+                                                labelText: "E-mail",
+                                                labelStyle: const TextStyle(color: Colors.white),
+                                                hoverColor: Colors.white,
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.white), // Borda branca quando não está focado
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.white, width: 2.0), // Borda branca mais espessa ao focar
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.red), // Borda vermelha quando há erro
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                focusedErrorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.red, width: 2.0),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
                                               ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.white, width: 2.0), // Borda branca mais espessa ao focar
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.red), // Borda vermelha quando há erro
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              focusedErrorBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.red, width: 2.0),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
+                                              style: const TextStyle(color: Colors.white), // Texto branco
+                                              validator: (value) => value!.isEmpty ? "Digite seu e-mail" : null,
                                             ),
-                                            style: const TextStyle(color: Colors.white), // Texto branco
-                                            validator: (value) => value!.isEmpty ? "Digite seu e-mail" : null,
-                                          ),
-                                          const SizedBox(height: 10),
-                                          TextFormField(
-                                            controller: _passwordController,
-                                            keyboardType: TextInputType.visiblePassword,
-                                            decoration: InputDecoration(
-                                              labelText: "Senha",
-                                              labelStyle: const TextStyle(color: Colors.white),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.white), // Borda branca quando não está focado
-                                                borderRadius: BorderRadius.circular(8),
+                                            const SizedBox(height: 10),
+                                            TextFormField(
+                                              controller: _passwordController,
+                                              keyboardType: TextInputType.visiblePassword,
+                                              decoration: InputDecoration(
+                                                labelText: "Senha",
+                                                labelStyle: const TextStyle(color: Colors.white),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.white), // Borda branca quando não está focado
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.white, width: 2.0), // Borda branca mais espessa ao focar
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.red), // Borda vermelha quando há erro
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                focusedErrorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(color: Colors.red, width: 2.0),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
                                               ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.white, width: 2.0), // Borda branca mais espessa ao focar
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.red), // Borda vermelha quando há erro
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              focusedErrorBorder: OutlineInputBorder(
-                                                borderSide: const BorderSide(color: Colors.red, width: 2.0),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
+                                              obscureText: true,
+                                              style: const TextStyle(color: Colors.white), // Texto branco
+                                              validator: (value) => value!.isEmpty ? "Digite sua senha" : null,
                                             ),
-                                            obscureText: true,
-                                            style: const TextStyle(color: Colors.white), // Texto branco
-                                            validator: (value) => value!.isEmpty ? "Digite sua senha" : null,
-                                          ),
-                                          const SizedBox(height: 10),
-                                          if (_errorMessage != null)
-                                            SelectableText(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Row(
-                                                  spacing: 5,
-                                                  children: [
-                                                    SizedBox(
-                                                      height: 24.0,
-                                                      width: 24.0,
-                                                      child: Transform.scale(
-                                                        scale: 0.9,
-                                                        child: Checkbox(
-                                                          value: lembrarDados, // Variável booleana para controlar o estado do checkbox
-                                                          onChanged: (bool? value) {
-                                                            setState(() {
-                                                              lembrarDados = value ?? false; // Atualiza o estado ao clicar no checkbox
-                                                            });
-
-                                                            // Usa 'value' em vez de 'lembrarDados' para garantir que o novo valor seja considerado
-                                                            if (value == false) {
-                                                              _emailController.clear();
-                                                              _passwordController.clear();
-                                                            }
-                                                          },
-                                                          splashRadius: 0, // Remove o efeito de splash ao clicar
-                                                          overlayColor: WidgetStateProperty.all(Colors.transparent),
-                                                          checkColor: Colors.white,
-                                                          activeColor: Colors.orange,
-                                                          side: BorderSide(color: Colors.white, width: 2.0), // Define a cor e a espessura do contorno
+                                            const SizedBox(height: 10),
+                                            if (_errorMessage != null)
+                                              SelectableText(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Row(
+                                                    spacing: 5,
+                                                    children: [
+                                                      SizedBox(
+                                                        height: 24.0,
+                                                        width: 24.0,
+                                                        child: Transform.scale(
+                                                          scale: 0.9,
+                                                          child: Checkbox(
+                                                            value: lembrarDados, // Variável booleana para controlar o estado do checkbox
+                                                            onChanged: (bool? value) {
+                                                              setState(() {
+                                                                lembrarDados = value ?? false; // Atualiza o estado ao clicar no checkbox
+                                                              });
+          
+                                                              // Usa 'value' em vez de 'lembrarDados' para garantir que o novo valor seja considerado
+                                                              if (value == false) {
+                                                                _emailController.clear();
+                                                                _passwordController.clear();
+                                                              }
+                                                            },
+                                                            splashRadius: 0, // Remove o efeito de splash ao clicar
+                                                            overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                                            checkColor: Colors.white,
+                                                            activeColor: Colors.orange,
+                                                            side: BorderSide(color: Colors.white, width: 2.0), // Define a cor e a espessura do contorno
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    Text(
-                                                      'Lembrar dados',
-                                                      style: TextStyle(fontSize: 14,
-                                                          color: Colors.white), // Estiliza o texto, se necessário
-                                                    ),
-                                                  ],
+                                                      Text(
+                                                        'Lembrar dados',
+                                                        style: TextStyle(fontSize: 14,
+                                                            color: Colors.white), // Estiliza o texto, se necessário
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            _isLoading
+                                                ? const CircularProgressIndicator()
+                                                : ElevatedButton(
+                                              onPressed: _login,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.orange, // Define a cor laranja do botão
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.zero, // Deixa as bordas quadradas
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                          _isLoading
-                                              ? const CircularProgressIndicator()
-                                              : ElevatedButton(
-                                            onPressed: _login,
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.orange, // Define a cor laranja do botão
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.zero, // Deixa as bordas quadradas
+                                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24), // Ajusta o tamanho do botão
+                                                elevation: 0, // Remove a elevação (sombra)
                                               ),
-                                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24), // Ajusta o tamanho do botão
-                                              elevation: 0, // Remove a elevação (sombra)
-                                            ),
-                                            child: const Text(
-                                              "Entrar",
-                                              style: TextStyle(color: Colors.white), // Mantém o texto branco para contraste
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          TextButton(
-                                            style: ButtonStyle(
-                                              overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
-                                            ),
-                                            onPressed: _showResetPasswordDialog,
-                                            child: const Text(
-                                              "Esqueceu a senha?",
-                                              style: TextStyle(color: Colors.white),
-                                            ),
-                                          ),
-                                          TextButton(
-                                            style: ButtonStyle(
-                                              overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
-                                            ),
-                                            onPressed: _abrirFormulario,
-                                            child: const Text(
-                                              "Inscreva-se aqui 🖐️",
-                                              style: TextStyle(
-                                                  color: Colors.orange,
-                                                  fontFamily: 'FuturaBold',
-                                                  fontSize: 15,
+                                              child: const Text(
+                                                "Entrar",
+                                                style: TextStyle(color: Colors.white), // Mantém o texto branco para contraste
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 10),
+                                            TextButton(
+                                              style: ButtonStyle(
+                                                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                                              ),
+                                              onPressed: _showResetPasswordDialog,
+                                              child: const Text(
+                                                "Esqueceu a senha?",
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                            ),
+                                            TextButton(
+                                              style: ButtonStyle(
+                                                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                                              ),
+                                              onPressed: _abrirFormulario,
+                                              child: const Text(
+                                                "Inscreva-se aqui 🖐️",
+                                                style: TextStyle(
+                                                    color: Colors.orange,
+                                                    fontFamily: 'FuturaBold',
+                                                    fontSize: 15,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              SizedBox(height: 20),
-                              TextButton(
-                                  style: ButtonStyle(
-                                    overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
-                                  ),
-                                  onPressed: () async {
-                                    await _authService.clearCredentials();
-
-                                    SharedPreferences preferences =
-                                    await SharedPreferences.getInstance();
-                                    await preferences.clear();
-
-                                    // Opcional: limpar os campos da tela
-                                    setState(() {
-                                      _emailController.clear();
-                                      _passwordController.clear();
-                                      lembrarDados = false;
-                                    });
-                                    if(context.mounted){
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text("Credenciais apagadas com sucesso.",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              )),
-                                          backgroundColor: Color(0xFF0A63AC),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: const Text("Limpar Dados",
-                                    style: TextStyle(color: Color(0xFF0A63AC)),)
-                              ),
-                              Text("Versão: 0.32",
-                                style: TextStyle(color: Color(0xFF0A63AC)),),
-                              SizedBox(height: 10),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text("Desenvolvido por:",
-                                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),),
-                                  const SizedBox(height: 5),
-                                  InkWell(
-                                    focusColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    enableFeedback: false,
-                                    onTap: () async {
-                                      final Uri url = Uri.parse("https://innovanow.com.br");
-                                      if (!await launchUrl(url)) {
-                                        throw Exception('Could not launch $url');
+                                SizedBox(height: 20),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
+                                    ),
+                                    onPressed: () async {
+                                      await _authService.clearCredentials();
+          
+                                      SharedPreferences preferences =
+                                      await SharedPreferences.getInstance();
+                                      await preferences.clear();
+          
+                                      // Opcional: limpar os campos da tela
+                                      setState(() {
+                                        _emailController.clear();
+                                        _passwordController.clear();
+                                        lembrarDados = false;
+                                      });
+                                      if(context.mounted){
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text("Credenciais apagadas com sucesso.",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                )),
+                                            backgroundColor: Color(0xFF0A63AC),
+                                          ),
+                                        );
                                       }
                                     },
-                                    child: SizedBox(
-                                      height: 20,
-                                      width: 80,
-                                      child:  SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
+                                    child: const Text("Limpar Dados",
+                                      style: TextStyle(color: Color(0xFF0A63AC)),)
+                                ),
+                                Text("Versão: 0.33",
+                                  style: TextStyle(color: Color(0xFF0A63AC)),),
+                                SizedBox(height: 10),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text("Desenvolvido por:",
+                                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),),
+                                    const SizedBox(height: 5),
+                                    InkWell(
+                                      focusColor: Colors.transparent,
+                                      hoverColor: Colors.transparent,
+                                      splashColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
+                                      enableFeedback: false,
+                                      onTap: () async {
+                                        final Uri url = Uri.parse("https://innovanow.com.br");
+                                        if (!await launchUrl(url)) {
+                                          throw Exception('Could not launch $url');
+                                        }
+                                      },
+                                      child: SizedBox(
+                                        height: 20,
+                                        width: 80,
+                                        child:  SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          );
-                        }
-                    ),
-                  ],
+                                  ],
+                                ),
+                              ],
+                            );
+                          }
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
