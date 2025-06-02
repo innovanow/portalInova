@@ -641,7 +641,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: const Text("Limpar Dados",
                                     style: TextStyle(color: Color(0xFF0A63AC)),)
                               ),
-                              Text("Versão: 0.31",
+                              Text("Versão: 0.32",
                                 style: TextStyle(color: Color(0xFF0A63AC)),),
                               SizedBox(height: 10),
                               Column(
@@ -1421,7 +1421,7 @@ class _FormjovemState extends State<_Formjovem> {
                 onChangedState: () => setState(() {}),
               ),
               buildTextField(
-                _rgController, true,
+                _rgController, false,
                 "RG",
                 isRg: true,
                 onChangedState: () => setState(() {}),

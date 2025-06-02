@@ -2148,7 +2148,7 @@ class _FormjovemState extends State<_Formjovem> {
                 onChangedState: () => setState(() {}),
               ),
               buildTextField(
-                _rgController, true,
+                _rgController, false,
                 "RG",
                 isRg: true,
                 onChangedState: () => setState(() {}),

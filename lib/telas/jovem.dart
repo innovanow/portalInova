@@ -423,7 +423,8 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                             color: Colors.black,)
                       ),
                       Text(
-                        widget.jovem['status']?.toUpperCase() ?? '',
+                        "${widget.jovem['status']?.toUpperCase()}\nCÓD: ${widget.jovem['codigo']}" ?? '',
+                        textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.grey),
                       ),
                       const SizedBox(height: 20),
