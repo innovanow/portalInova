@@ -424,7 +424,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                               color: Colors.black,)
                         ),
                         Text(
-                          "${widget.jovem['status']?.toUpperCase()}\nCÓD: ${widget.jovem['codigo']}" ?? '',
+                          "${widget.jovem['status']?.toUpperCase()}\nCÓD: ${widget.jovem['codigo']}",
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.grey),
                         ),
@@ -459,8 +459,8 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                           _info("Escolaridade", widget.jovem['escolaridade']),
                           _info("Estudando", widget.jovem['estudando']),
                           _info("Turno da Escola", widget.jovem['turno_escola']),
-                          _info("Ano Início", widget.jovem['ano_inicio_escola']?.toString()),
-                          _info("Ano Conclusão", widget.jovem['ano_conclusao_escola']),
+                          _info("Ano Início", widget.jovem['ano_inicio_escola'].toString()),
+                          _info("Ano Conclusão", widget.jovem['ano_conclusao_escola'].toString()),
                           _info("Instituição", widget.jovem['instituicao_escola']),
                           _info("Informática", widget.jovem['informatica']),
                           _info("Habilidade em Destaque", widget.jovem['habilidade_destaque']),
