@@ -326,9 +326,6 @@ class _HomeState extends State<Home> {
                                             child: Text(
                                               'Presença Geral\nNenhum dado encontrado!',
                                               textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                              ),
                                             ),
                                           ),
                                         ),

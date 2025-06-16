@@ -184,39 +184,39 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
             backgroundColor: const Color(0xFF0A63AC),
             title: LayoutBuilder(
                 builder: (context, constraints) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(constraints.maxWidth > 800 ?  'Calendário Inova $anoAtual' : '$anoAtual',
-                      style: TextStyle(
-                        fontFamily: 'FuturaBold',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Colors.white,
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(constraints.maxWidth > 800 ?  'Calendário Inova $anoAtual' : '$anoAtual',
+                        style: TextStyle(
+                          fontFamily: 'FuturaBold',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                            focusColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            enableFeedback: false,
-                            onPressed: () => _mudarAno(-1), icon: Icon(Icons.arrow_back)),
-                        IconButton(
-                            focusColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            enableFeedback: false,
-                            onPressed: () => _mudarAno(1), icon: Icon(Icons.arrow_forward)),
-                      ],
-                    ),
-                  ],
-                );
-              }
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              enableFeedback: false,
+                              onPressed: () => _mudarAno(-1), icon: Icon(Icons.arrow_back)),
+                          IconButton(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              enableFeedback: false,
+                              onPressed: () => _mudarAno(1), icon: Icon(Icons.arrow_forward)),
+                        ],
+                      ),
+                    ],
+                  );
+                }
             ),
             iconTheme: const IconThemeData(color: Colors.white),
             automaticallyImplyLeading: false,
@@ -296,7 +296,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                     child: Container(height: 60, color: const Color(0xFF0A63AC)),
                   ),
                 ),
-          
+
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 40, 20, 60),
                   child: Column(
@@ -320,7 +320,14 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildLegenda(),
+                      // Envolver _buildLegenda em Expanded e SingleChildScrollView
+                      Expanded(
+                        flex: 0, // Flex zero para ocupar apenas o espaço necessário
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical, // Rolagem vertical
+                          child: _buildLegenda(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -336,6 +343,8 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
   Widget _buildLegenda() {
     return Wrap(
       alignment: WrapAlignment.center,
+      spacing: 12, // Espaçamento horizontal entre os itens
+      runSpacing: 8, // Espaçamento vertical entre as linhas
       children: [
         // Exibe os módulos cadastrados com suas cores
         ...coresModulos.entries.map((entry) {
@@ -343,7 +352,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
         }),
 
         // Adiciona a indicação da data de hoje
-        _buildLegendaItem(Colors.orange, "Hoje - ${DateFormat('d MMMM yyyy', 'pt_BR').format(DateTime.now())}"),
+        _buildLegendaItem(Colors.orange, "Hoje - ${DateFormat('d MMMM', 'pt_BR').format(DateTime.now())}"),
       ],
     );
   }
@@ -354,9 +363,22 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 12, height: 12, color: color),
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(3), // Bordas arredondadas para os indicadores de cor
+            ),
+          ),
           const SizedBox(width: 5),
-          Text(label, style: const TextStyle(fontSize: 12)),
+          Flexible( // Usar Flexible para evitar overflow de texto
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12),
+              overflow: TextOverflow.ellipsis, // Truncar texto longo com reticências
+            ),
+          ),
         ],
       ),
     );
@@ -396,8 +418,8 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                 textAlign: TextAlign.center,
                 style: const TextStyle
                   (color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
                   fontFamily: 'FuturaBold',
                 ),
               ),

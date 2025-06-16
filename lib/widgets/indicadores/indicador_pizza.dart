@@ -75,27 +75,35 @@ class IndicadorPizza extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 20,
-                children: dados.entries.map((entry) {
-                  final cor = cores?[entry.key] ?? Colors.grey;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(width: 14, height: 14, color: cor),
-                          const SizedBox(width: 6),
-                          Text('${entry.key}: ${entry.value}',
-                              style: const TextStyle(fontSize: 10)),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                    ],
-                  );
-                }).toList(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 20,
+                    children: dados.entries.map((entry) {
+                      final cor = cores?[entry.key] ?? Colors.grey;
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Container(width: 14, height: 14, color: cor),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text('${entry.key}: ${entry.value}',
+                                      style: const TextStyle(fontSize: 10)),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 4),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               )
             ],
           ),
