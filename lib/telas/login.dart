@@ -635,7 +635,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text("Limpar Dados",
                                       style: TextStyle(color: Color(0xFF0A63AC)),)
                                 ),
-                                Text("Versão: 0.35",
+                                Text("Versão: 0.36",
                                   style: TextStyle(color: Color(0xFF0A63AC)),),
                                 SizedBox(height: 10),
                                 Column(
@@ -737,13 +737,13 @@ class _FormjovemState extends State<_Formjovem> {
   String? _identidadeSelecionado;
   String? _corSelecionado;
   String? _pcdSelecionado;
-  String? _estadoCivilSelecionado;
-  String? _estadoCivilPaiSelecionado;
-  String? _estadoCivilMaeSelecionado;
-  String? _estadoCivilResponsavelSelecionado;
+  String? _estadoCivilSelecionado = "Solteiro";
+  String? _estadoCivilPaiSelecionado = "Solteiro";
+  String? _estadoCivilMaeSelecionado = "Solteiro";
+  String? _estadoCivilResponsavelSelecionado = "Solteiro";
   String? _moraComSelecionado;
-  String? _filhosSelecionado;
-  String? _membrosSelecionado;
+  String? _filhosSelecionado = "Não";
+  String? _membrosSelecionado = "1";
   String? _escolaridadeSelecionado;
   String? _estaEstudandoSelecionado;
   String? _turnoColegioSelecionado;
