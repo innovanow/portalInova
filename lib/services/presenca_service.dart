@@ -127,33 +127,16 @@ class PresencaService {
     // 1. Pega todos os módulos do professor
     final modulos = await _client
         .from('modulos')
-        .select('id, nome')
+        .select('id, nome, turma_id')
         .eq('professor_id', professorId)
         .eq('status', 'ativo')
         .order('data_inicio');
 
-    List<Map<String, dynamic>> modulosComTurma = [];
-
-    for (var modulo in modulos) {
-      final moduloId = modulo['id'];
-
-      // 2. Pega as turmas ligadas a esse módulo via tabela intermediária
-      final turmas = await _client
-          .from('modulos_turmas')
-          .select('turma_id, turmas(codigo_turma)')
-          .eq('modulo_id', moduloId);
-
-      for (var turma in turmas) {
-        modulosComTurma.add({
-          'id': moduloId,
-          'nome': modulo['nome'],
-          'codigo_turma': turma['turmas']?['codigo_turma'] ?? 'Sem código',
-          'turma_id': turma['turma_id'],
-        });
-      }
+    if (kDebugMode) {
+      print('Modulos: $modulos $professorId');
     }
 
-    return modulosComTurma;
+    return modulos;
   }
 
   Future<List<Map<String, dynamic>>> listarAlunosPorTurma(String turmaId) async {
@@ -162,7 +145,7 @@ class PresencaService {
         .select('id, nome')
         .eq('turma_id', turmaId)
         .eq('status', 'ativo')
-        .order('nome');
+        .order('nome', ascending: true);
 
     return List<Map<String, dynamic>>.from(response);
   }

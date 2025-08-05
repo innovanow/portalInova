@@ -1004,7 +1004,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                                                 Text(
                                                                   auth.tipoUsuario ==
                                                                           "professor"
-                                                                      ? "Turma: ${jovem['cod_turma'] ?? ''}\nMódulo: ${jovem['turmas']?['modulos_turmas']?[0]?['modulos']?['nome'] ?? 'Não informado'}"
+                                                                      ? "Turma: ${jovem['cod_turma'] ?? ''}\nMódulo: ${jovem['nome_modulo']}"
                                                                       : "",
                                                                   style:
                                                                       const TextStyle(

@@ -95,10 +95,9 @@ class ModuloService {
     final professorId = supabase.auth.currentUser?.id;
     if (professorId == null) return {};
 
-    // 1. Buscar módulos do professor
     final modulos = await supabase
         .from('modulos')
-        .select('id, nome')
+        .select('id, nome, turma_id')
         .eq('professor_id', professorId);
 
     if (modulos.isEmpty) return {};
@@ -106,33 +105,21 @@ class ModuloService {
     final Map<String, int> resultado = {};
 
     for (final modulo in modulos) {
-      final moduloId = modulo['id'];
       final nomeModulo = modulo['nome'];
-
-      // 2. Buscar turmas associadas a esse módulo
-      final modulosTurmas = await supabase
-          .from('modulos_turmas')
-          .select('turma_id')
-          .eq('modulo_id', moduloId);
-
-      final turmaIds = modulosTurmas
-          .map((mt) => mt['turma_id'])
-          .where((id) => id != null)
-          .toSet();
-
-      // 3. Contar jovens nessas turmas
+      final turmaId = modulo['turma_id'];
       int totalJovens = 0;
 
-      if (turmaIds.isNotEmpty) {
-        final jovens = await supabase
+      if (turmaId != null) {
+        totalJovens = await supabase
             .from('jovens_aprendizes')
-            .select('id')
-            .inFilter('turma_id', turmaIds.toList());
-
-        totalJovens = jovens.length;
+            .count(CountOption.exact)
+            .eq('turma_id', turmaId);
       }
 
-      resultado[nomeModulo] = totalJovens;
+      // ✅ APENAS ADICIONA AO MAPA SE A CONTAGEM FOR MAIOR QUE ZERO
+      if (totalJovens > 0) {
+        resultado[nomeModulo] = totalJovens;
+      }
     }
 
     return resultado;
@@ -143,6 +130,7 @@ class ModuloService {
     required String? turno,
     required String? cor,
     required String professorId,
+    required String? turmaId,
     required List<Map<String, dynamic>> datasComHorarios,
   }) async {
     try {
@@ -160,6 +148,7 @@ class ModuloService {
         'cor': cor,
         'professor_id': professorId,
         'datas': datasParaSalvar,
+        'turma_id': turmaId,
       });
 
       return null;
@@ -174,6 +163,7 @@ class ModuloService {
     required String? turno,
     required String? cor,
     required String professorId,
+    required String? turmaId,
     required List<Map<String, dynamic>> datasComHorarios,
   }) async {
     try {
@@ -190,11 +180,17 @@ class ModuloService {
         'cor': cor,
         'professor_id': professorId,
         'datas': datasParaSalvar,
+        'turma_id': turmaId,
       }).match({'id': id});
 
       return null;
     } catch (e) {
       return e.toString();
     }
+  }
+  // Buscar turmas para o dropdown
+  Future<List<Map<String, dynamic>>> buscarTurmas() async {
+    final response = await supabase.from('turmas').select().or('status.eq.ativo,status.eq.outro').order('codigo_turma', ascending: true);
+    return response;
   }
 }

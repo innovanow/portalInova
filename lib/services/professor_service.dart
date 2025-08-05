@@ -23,7 +23,7 @@ class ProfessorService {
     return double.tryParse(numeroLimpo) ?? 0.0;
   }
 
-  // Cadastrar um novo professor
+  // Cadastrar um novo professor com todas as validações
   Future<String?> cadastrarprofessor({
     required String nome,
     required String? dataNascimento,
@@ -45,23 +45,73 @@ class ProfessorService {
     required String? sexo,
   }) async {
     try {
+      final supabase = Supabase.instance.client;
 
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: senha,
-      );
+      // 1. Verifica se o CPF já está cadastrado na tabela 'professores'
+      final existeCpf = await supabase
+          .from('professores')
+          .select('id')
+          .eq('cpf', cpf)
+          .maybeSingle();
 
-      final userId = response.user?.id;
-      if (userId == null) return "Erro ao criar usuário.";
+      if (existeCpf != null) {
+        return "Este CPF já está cadastrado para um professor.";
+      }
 
-      await supabase.from('users').insert({
-        'id': userId,
-        'nome': nome,
-        'email': email,
-        'tipo': 'professor',
-      });
+      // 2. Verifica se o perfil do usuário já existe na tabela 'users'
+      final userDB = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
 
+      String userId;
 
+      if (userDB != null) {
+        // Se o perfil já existe na nossa tabela 'users', usamos o ID dele.
+        userId = userDB['id'];
+      } else {
+        // Se não existe na tabela 'users', vamos verificar no sistema de autenticação (Auth)
+        try {
+          // 3. Tenta fazer login. Se funcionar, o usuário já existe no Auth.
+          final login = await supabase.auth.signInWithPassword(
+            email: email,
+            password: senha,
+          );
+          userId = login.user?.id ?? '';
+          if (userId.isEmpty) return "Erro ao recuperar ID de usuário existente.";
+
+        } catch (_) {
+          // 4. Se o login falhar, o usuário é realmente novo. Criamos no Auth.
+          final signUpResp = await supabase.auth.signUp(
+            email: email,
+            password: senha,
+          );
+          userId = signUpResp.user?.id ?? '';
+          if (userId.isEmpty) {
+            return "Erro ao criar o novo usuário no sistema de autenticação.";
+          }
+        }
+
+        // 5. Com o ID do Auth em mãos, inserimos o perfil na tabela 'users'
+        //    Isso só acontece se ele não existia lá antes.
+        try {
+          await supabase.from('users').insert({
+            'id': userId,
+            'nome': nome,
+            'email': email,
+            'tipo': 'professor', // Define o tipo de usuário corretamente
+          });
+        } catch (e) {
+          // Ignora o erro se a chave for duplicada (caso de uma condição de corrida)
+          // mas reporta qualquer outro erro.
+          if (!e.toString().contains("duplicate key")) {
+            return "Erro ao salvar o perfil do usuário: $e";
+          }
+        }
+      }
+
+      // 6. Agora que temos um userId válido, inserimos os dados na tabela 'professores'
       await supabase.from('professores').insert({
         'id': userId,
         'nome': nome,
@@ -78,14 +128,26 @@ class ProfessorService {
         'telefone': telefone,
         'formacao': formacao,
         'nacionalidade': nacionalidade,
-        'cidade_natal': cidadeEstadoNatal,
+        'cidade_natal': cidadeEstadoNatal, // Atenção: Verifique se o nome da coluna no DB é 'cidade_natal'
         'status': 'ativo',
         'sexo': sexo,
       });
 
+      // Se todas as etapas foram concluídas com sucesso, retorna null (sem erro)
       return null;
+
     } catch (e) {
-      return e.toString();
+      // Trata erros de forma mais amigável para o usuário final
+      if (e is AuthException) {
+        if (e.message.contains("User already registered")) {
+          return "Este e-mail já está cadastrado. Tente fazer login ou use um e-mail diferente.";
+        }
+        if (e.message.contains("Password should be at least 6 characters")) {
+          return "A senha deve ter no mínimo 6 caracteres.";
+        }
+        return "Erro de autenticação: ${e.message}";
+      }
+      return "Ocorreu um erro inesperado: ${e.toString()}";
     }
   }
 

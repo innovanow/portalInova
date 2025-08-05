@@ -838,7 +838,9 @@ class _FormModuloState extends State<_FormModulo> {
   }
   String? _turnoSelecionado;
   String? _professorSelecionado;
+  String? _turmaSelecionada;
   List<Map<String, dynamic>> _professores = [];
+  List<Map<String, dynamic>> _turmas = [];
   List<Map<String, dynamic>> _datasComHorarios = [];
 
   @override
@@ -852,6 +854,7 @@ class _FormModuloState extends State<_FormModulo> {
       _turnoSelecionado = widget.modulo!['turno'] ?? "";
       selectedColor = Color(int.parse(widget.modulo!['cor']));
       _professorSelecionado = widget.modulo?['professor_id']?.toString();
+      _turmaSelecionada = widget.modulo?['turma_id']?.toString();
       final datas = (widget.modulo?['datas'] as List).cast<String>();
 
       _datasComHorarios = List.generate(datas.length ~/ 2, (i) {
@@ -868,8 +871,10 @@ class _FormModuloState extends State<_FormModulo> {
 
   void _carregarProfessores() async {
     final professores = await _moduloservice.buscarProfessores();
+    final turmas = await _moduloservice.buscarTurmas();
     setState(() {
       _professores = professores;
+      _turmas = turmas;
     });
   }
 
@@ -886,6 +891,7 @@ class _FormModuloState extends State<_FormModulo> {
           cor: '0x${selectedColor.toARGB32().toRadixString(16).toUpperCase()}',
           professorId: _professorSelecionado!,
           datasComHorarios: _datasComHorarios,
+          turmaId: _turmaSelecionada,
         );
       } else {
         error = await _moduloservice.cadastrarModulos(
@@ -894,6 +900,7 @@ class _FormModuloState extends State<_FormModulo> {
           cor: '0x${selectedColor.toARGB32().toRadixString(16).toUpperCase()}',
           professorId: _professorSelecionado!,
           datasComHorarios: _datasComHorarios,
+          turmaId: _turmaSelecionada,
         );
       }
 
@@ -918,7 +925,37 @@ class _FormModuloState extends State<_FormModulo> {
             mainAxisSize: MainAxisSize.min,
             children: [
               buildTextField(_nomeController, true, "Nome"),
-
+              DropdownButtonFormField<String>(
+                value: _turmas.any((t) => t['id'].toString() == _turmaSelecionada)
+                    ? _turmaSelecionada
+                    : null,
+                items: _turmas.map((turma) {
+                  final id = turma['id'].toString();
+                  final nome = turma['codigo_turma'];
+                  final ano =  turma['ano'];
+                  return DropdownMenuItem<String>(
+                    value: id,
+                    child: Text("$nome - $ano", style: const TextStyle(color: Colors.white)),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => _turmaSelecionada = value),
+                decoration: InputDecoration(
+                  labelText: "Turma",
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                dropdownColor: const Color(0xFF0A63AC),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: _turnoSelecionado,
                 items: ['Matutino', 'Vespertino', 'Noturno']

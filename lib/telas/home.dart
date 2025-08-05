@@ -244,6 +244,7 @@ class _HomeState extends State<Home> {
               ),
             ),
             child: Stack(
+              alignment: Alignment.center,
               children: [
                 // Onda Superior Laranja
                 Positioned(
@@ -322,7 +323,7 @@ class _HomeState extends State<Home> {
                                       return Card(
                                         child: Center(
                                           child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
+                                            padding: const EdgeInsets.all(16.0),
                                             child: Text(
                                               'Presença Geral\nNenhum dado encontrado!',
                                               textAlign: TextAlign.center,

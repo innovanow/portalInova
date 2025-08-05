@@ -298,15 +298,18 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                           border: OutlineInputBorder(),
                         ),
                         items: _modulos.map((modulo) {
-                          final label = 'Turma: ${modulo['codigo_turma']} - ${modulo['nome']}';
+                          final label = 'Turma: ${modulo['nome']}';
                           return DropdownMenuItem(
                             value: modulo,
                             child: Text(label),
                           );
                         }).toList(),
                         onChanged: (value) {
+                          if (kDebugMode) {
+                            print(value?['turma_id'].toString());
+                          }
                           if (value != null) {
-                            _carregarAlunosPorTurmaId(value['turma_id']);
+                            _carregarAlunosPorTurmaId(value['turma_id'].toString());
                             setState(() {
                               _moduloSelecionado = value;
                             });
@@ -348,7 +351,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                             return Column(
                               children: [
                                 CheckboxListTile(
-                                  title: Text(aluno['nome']),
+                                  title: Text("${index + 1} - ${aluno['nome']}"),
                                   value: _presencas[aluno['id']] ?? false,
                                   onChanged: (value) {
                                     setState(() {

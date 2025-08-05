@@ -9,53 +9,48 @@ class JovemService {
     final response = await supabase.from('jovens_aprendizes').select().eq('status', '$status').order('nome', ascending: true);
     return response;
   }
-
   Future<List<String>> buscarTurmasDoProfessor(String professorId) async {
-    // 1. Buscar os módulos do professor
     final modulos = await supabase
         .from('modulos')
-        .select('id')
-        .eq('professor_id', professorId);
-
-    final moduloIds = (modulos as List)
-        .map((modulo) => modulo['id'].toString())
-        .toList();
-
-    if (moduloIds.isEmpty) return [];
-
-    // 2. Buscar as turmas associadas a esses módulos via tabela intermediária
-    final modulosTurmas = await supabase
-        .from('modulos_turmas')
         .select('turma_id')
-        .inFilter('modulo_id', moduloIds);
+        .eq('professor_id', professorId)
+    // Pede para o banco não trazer linhas onde turma_id é nulo
+        .not('turma_id', 'is', null);
 
-    // 3. Extrair os IDs das turmas (evita duplicados com toSet())
-    final turmaIds = (modulosTurmas as List)
-        .map((item) => item['turma_id'].toString())
-        .toSet()
+    // Agora o `map` é seguro, pois não haverá mais nulos
+    final turmasIds = (modulos as List)
+        .map((modulo) => modulo['turma_id'].toString())
         .toList();
 
-    return turmaIds;
+    return turmasIds;
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDoProfessor(String professorId, String status) async {
-    final turmasIds = await buscarTurmasDoProfessor(professorId);
+    // Chamamos nossa função customizada (RPC)
+    final response = await supabase.rpc(
+      'buscar_jovens_do_professor_com_modulo',
+      params: {
+        'p_professor_id': professorId,
+        'p_status': status,
+      },
+    );
+    print(response);
 
-    if (turmasIds.isEmpty) return [];
-
-    final response = await supabase
-        .from('jovens_aprendizes')
-        .select('*, turmas(codigo_turma, modulos_turmas(modulos(nome)))')
-        .inFilter('turma_id', turmasIds)
-        .eq('status', status);
-
-    return response;
+    // A resposta do RPC vem como uma lista, e cada item tem 'jovem_json' e 'nome_modulo'.
+    // Este código desempacota o JSON do jovem e adiciona a chave 'nome_modulo' a ele.
+    return response.map<Map<String, dynamic>>((item) {
+      // Pega o objeto JSON com os dados do jovem
+      final Map<String, dynamic> dadosJovem = Map.from(item['jovem_json']);
+      // Adiciona o nome do módulo a esse mapa
+      dadosJovem['nome_modulo'] = item['nome_modulo'];
+      return dadosJovem;
+    }).toList();
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDaEscola(String escolaId, String status) async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('*, turmas(codigo_turma)')
+        .select('*, turmas(codigo_turma), modulos(nome)')
         .eq('escola_id', escolaId)
         .eq('status', status)
         .order('nome', ascending: true);
@@ -90,7 +85,6 @@ class JovemService {
 
     return double.tryParse(numeroLimpo) ?? 0.0;
   }
-
 
   // Cadastrar um novo jovem
   Future<String?> cadastrarjovem({
