@@ -6,6 +6,7 @@ import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/turma_service.dart';
 import '../services/uploud_docs.dart';
@@ -50,7 +51,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
     _carregarTurmas(statusTurma);
   }
 
-  void _carregarTurmas(statusTurma) async {
+  void _carregarTurmas(String statusTurma) async {
     final turmas = await _turmaService.buscarTurmas(statusTurma);
     setState(() {
       _turmas = turmas;
@@ -306,7 +307,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                         );
                       }
 
-                      return ListView.builder(
+                      return SuperListView.builder(
                         shrinkWrap: true,
                         itemCount: docs.length,
                         itemBuilder: (_, i) {
@@ -642,139 +643,137 @@ class _TurmaScreenState extends State<TurmaScreen> {
                     padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Align(
-                                  alignment: Alignment.topRight,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "Turmas: ${isAtivo ? "Ativas" : "Inativas"}",
-                                        textAlign: TextAlign.end,
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "Turmas: ${isAtivo ? "Ativas" : "Inativas"}",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    Tooltip(
+                                      message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                      child: Switch(
+                                        value: isAtivo,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            statusTurma = value ? "ativo" : "inativo";
+                                          });
+                                          _carregarTurmas(statusTurma);
+                                        },
+                                        activeColor: Color(0xFF0A63AC),
                                       ),
-                                      Tooltip(
-                                        message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
-                                        child: Switch(
-                                          value: isAtivo,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              statusTurma = value ? "ativo" : "inativo";
-                                            });
-                                            _carregarTurmas(statusTurma);
-                                          },
-                                          activeColor: Color(0xFF0A63AC),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                height: 500,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child:
-                                  _isFetching
-                                      ? const Center(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                      : ListView.builder(
-                                    itemCount: _turmasFiltradas.length,
-                                    itemBuilder: (context, index) {
-                                      final turma = _turmasFiltradas[index];
-                                      return Card(
-                                        elevation: 3,
-                                        child: ListTile(
-                                          title: Text(
-                                            "Turma: ${turma['codigo_turma']}",
-                                            style: TextStyle(color: Colors.black),
-                                          ),
-                                          leading: const Icon(Icons.groups, color: Colors.black,),
-                                          subtitle: Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "Ano: ${turma['ano']} - ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_termino']))}",
-                                                style: const TextStyle(color: Colors.black),
-                                              ),
-                                              Divider(color: Colors.black),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  if (auth.tipoUsuario == "administrador")
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: constraints.maxHeight - 100,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child:
+                                _isFetching
+                                    ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                    : SuperListView.builder(
+                                  itemCount: _turmasFiltradas.length,
+                                  itemBuilder: (context, index) {
+                                    final turma = _turmasFiltradas[index];
+                                    return Card(
+                                      elevation: 3,
+                                      child: ListTile(
+                                        title: Text(
+                                          "Turma: ${turma['codigo_turma']}",
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        leading: const Icon(Icons.groups, color: Colors.black,),
+                                        subtitle: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Ano: ${turma['ano']} - ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_inicio']))} até ${DateFormat('dd/MM/yyyy').format(DateTime.parse(turma['data_termino']))}",
+                                              style: const TextStyle(color: Colors.black),
+                                            ),
+                                            Divider(color: Colors.black),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                if (auth.tipoUsuario == "administrador")
+                                                IconButton(
+                                                  tooltip: "Editar",
+                                                  focusColor: Colors.transparent,
+                                                  hoverColor: Colors.transparent,
+                                                  splashColor: Colors.transparent,
+                                                  highlightColor: Colors.transparent,
+                                                  enableFeedback: false,
+                                                  icon: const Icon(
+                                                    Icons.edit,
+                                                    size: 20,
+                                                    color: Colors.black,
+                                                  ),
+                                                  onPressed:
+                                                      () => _abrirFormulario(
+                                                    turma: turma,
+                                                  ),
+                                                ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                Container(
+                                                  width: 2, // Espessura da linha
+                                                  height: 30, // Altura da linha
+                                                  color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                ),
+                                                if (auth.tipoUsuario == "administrador")
                                                   IconButton(
-                                                    tooltip: "Editar",
                                                     focusColor: Colors.transparent,
                                                     hoverColor: Colors.transparent,
                                                     splashColor: Colors.transparent,
                                                     highlightColor: Colors.transparent,
                                                     enableFeedback: false,
-                                                    icon: const Icon(
-                                                      Icons.edit,
-                                                      size: 20,
-                                                      color: Colors.black,
-                                                    ),
-                                                    onPressed:
-                                                        () => _abrirFormulario(
-                                                      turma: turma,
-                                                    ),
+                                                    tooltip: "Documentos",
+                                                    icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
+                                                    onPressed: () => _abrirDocumentos(context, turma['id']),
                                                   ),
-                                                  if (auth.tipoUsuario == "administrador")
+                                                if (auth.tipoUsuario == "administrador")
                                                   Container(
                                                     width: 2, // Espessura da linha
                                                     height: 30, // Altura da linha
                                                     color: Colors.black.withValues(alpha: 0.2), // Cor da linha
                                                   ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    IconButton(
-                                                      focusColor: Colors.transparent,
-                                                      hoverColor: Colors.transparent,
-                                                      splashColor: Colors.transparent,
-                                                      highlightColor: Colors.transparent,
-                                                      enableFeedback: false,
-                                                      tooltip: "Documentos",
-                                                      icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
-                                                      onPressed: () => _abrirDocumentos(context, turma['id']),
-                                                    ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    Container(
-                                                      width: 2, // Espessura da linha
-                                                      height: 30, // Altura da linha
-                                                      color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                    ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                  IconButton(
-                                                    tooltip: isAtivo == true ? "Inativar" : "Ativar",
-                                                    focusColor: Colors.transparent,
-                                                    hoverColor: Colors.transparent,
-                                                    splashColor: Colors.transparent,
-                                                    highlightColor: Colors.transparent,
-                                                    enableFeedback: false,
-                                                    icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
-                                                    onPressed: () => isAtivo == true ? inativarTurma(turma['id']) : ativarTurma(turma['id']),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                IconButton(
+                                                  tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                                  focusColor: Colors.transparent,
+                                                  hoverColor: Colors.transparent,
+                                                  splashColor: Colors.transparent,
+                                                  highlightColor: Colors.transparent,
+                                                  enableFeedback: false,
+                                                  icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
+                                                  onPressed: () => isAtivo == true ? inativarTurma(turma['id']) : ativarTurma(turma['id']),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -820,8 +819,8 @@ class _FormTurmaState extends State<_FormTurma> {
   bool _editando = false;
   String? _turmaId;
   final TurmaService _turmaservice = TurmaService();
-  final TurmaService _moduloService = TurmaService();
-  List<Map<String, dynamic>> _modulos = [];
+  //final TurmaService _moduloService = TurmaService();
+  //List<Map<String, dynamic>> _modulos = [];
   // Criando um formatador de data no formato "yyyy-MM-dd"
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
   String formatarDataParaExibicao(String data) {
@@ -833,7 +832,7 @@ class _FormTurmaState extends State<_FormTurma> {
   @override
   void initState() {
     super.initState();
-    _carregarModulos();
+    //_carregarModulos();
 
     if (widget.turma != null) {
       _editando = true;
@@ -843,23 +842,23 @@ class _FormTurmaState extends State<_FormTurma> {
       _dataInicioController.text = formatarDataParaExibicao(widget.turma!['data_inicio'] ?? "");
       _dataTerminoController.text = formatarDataParaExibicao(widget.turma!['data_termino'] ?? "");
 
-      _turmaservice.buscarModulosDaTurma(_turmaId!).then((modulos) {
+      /*_turmaservice.buscarModulosDaTurma(_turmaId!).then((modulos) {
         if (kDebugMode) {
           print("Modulos da turma: $modulos");
         }
         setState(() {
           modulosSelecionados = modulos;
         });
-      });
+      });*/
     }
   }
 
-  void _carregarModulos() async {
+/*  void _carregarModulos() async {
     final modulos = await _moduloService.buscarModulos();
     setState(() {
       _modulos = modulos;
     });
-  }
+  }*/
 
   void _salvar() async {
     if (_formKey.currentState!.validate()) {
@@ -877,7 +876,7 @@ class _FormTurmaState extends State<_FormTurma> {
           dataTermino: _dataTerminoController.text.isNotEmpty
               ? formatter.format(DateFormat('dd/MM/yyyy').parse(_dataTerminoController.text))
               : null,
-          modulosSelecionados: modulosSelecionados,
+          //modulosSelecionados: modulosSelecionados,
         );
       } else {
         error = await _turmaservice.cadastrarTurmas(
@@ -889,7 +888,7 @@ class _FormTurmaState extends State<_FormTurma> {
           dataTermino: _dataTerminoController.text.isNotEmpty
               ? formatter.format(DateFormat('dd/MM/yyyy').parse(_dataTerminoController.text))
               : null,
-          modulosSelecionados: modulosSelecionados,
+          //modulosSelecionados: modulosSelecionados,
         );
       }
 
@@ -917,7 +916,7 @@ class _FormTurmaState extends State<_FormTurma> {
               buildTextField(_anoController, true, "Ano", isAno: true, onChangedState: () => setState(() {})),
               buildTextField(_dataInicioController, true, "Data de Início", isData: true, onChangedState: () => setState(() {})),
               buildTextField(_dataTerminoController, true, "Data de Término", isData: true, onChangedState: () => setState(() {})),
-              MultiSelectChips(
+              /*MultiSelectChips(
                 modulos: _modulos, // Lista de módulos carregada do Supabase
                 onSelecionado: (selecionados) {
                   setState(() {
@@ -925,7 +924,7 @@ class _FormTurmaState extends State<_FormTurma> {
                   });
                 },
                 modulosSelecionados: modulosSelecionados, // Garante que os valores iniciais sejam preenchidos
-              ),
+              ),*/
               const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()

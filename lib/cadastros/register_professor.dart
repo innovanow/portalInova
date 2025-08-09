@@ -7,6 +7,7 @@ import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/professor_service.dart';
 import '../services/uploud_docs.dart';
@@ -39,7 +40,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
     _carregarprofessores(statusProfessor);
   }
 
-  void _carregarprofessores(statusProfessor) async {
+  void _carregarprofessores(String statusProfessor) async {
     final professores = await _professorService.buscarprofessor(statusProfessor);
     setState(() {
       _professores = professores;
@@ -307,7 +308,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                         );
                       }
 
-                      return ListView.builder(
+                      return SuperListView.builder(
                         shrinkWrap: true,
                         itemCount: docs.length,
                         itemBuilder: (_, i) {
@@ -642,139 +643,137 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                     padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Align(
-                                  alignment: Alignment.topRight,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "Professores: ${isAtivo ? "Ativos" : "Inativos"}",
-                                        textAlign: TextAlign.end,
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "Professores: ${isAtivo ? "Ativos" : "Inativos"}",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    Tooltip(
+                                      message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                      child: Switch(
+                                        value: isAtivo,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            statusProfessor = value ? "ativo" : "inativo";
+                                          });
+                                          _carregarprofessores(statusProfessor);
+                                        },
+                                        activeColor: Color(0xFF0A63AC),
                                       ),
-                                      Tooltip(
-                                        message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
-                                        child: Switch(
-                                          value: isAtivo,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              statusProfessor = value ? "ativo" : "inativo";
-                                            });
-                                            _carregarprofessores(statusProfessor);
-                                          },
-                                          activeColor: Color(0xFF0A63AC),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                height: 500,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child:
-                                  _isFetching
-                                      ? const Center(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                      : ListView.builder(
-                                    itemCount: _professoresFiltrados.length,
-                                    itemBuilder: (context, index) {
-                                      final professor = _professoresFiltrados[index];
-                                      return Card(
-                                        elevation: 3,
-                                        child: ListTile(
-                                          title: Text(
-                                            professor['nome'] ?? '',
-                                            style: TextStyle(color: Colors.black),
-                                          ),
-                                          leading: const Icon(Icons.man, color: Colors.black,),
-                                          subtitle: Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "Formação: ${professor['formacao'] ?? ''}",
-                                                style: const TextStyle(color: Colors.black),
-                                              ),
-                                              Divider(color: Colors.black),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  if (auth.tipoUsuario == "administrador")
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: constraints.maxHeight - 100,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child:
+                                _isFetching
+                                    ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                    : SuperListView.builder(
+                                  itemCount: _professoresFiltrados.length,
+                                  itemBuilder: (context, index) {
+                                    final professor = _professoresFiltrados[index];
+                                    return Card(
+                                      elevation: 3,
+                                      child: ListTile(
+                                        title: Text(
+                                          professor['nome'] ?? '',
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        leading: const Icon(Icons.man, color: Colors.black,),
+                                        subtitle: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Formação: ${professor['formacao'] ?? ''}",
+                                              style: const TextStyle(color: Colors.black),
+                                            ),
+                                            Divider(color: Colors.black),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                if (auth.tipoUsuario == "administrador")
+                                                IconButton(
+                                                  tooltip: "Editar",
+                                                  focusColor: Colors.transparent,
+                                                  hoverColor: Colors.transparent,
+                                                  splashColor: Colors.transparent,
+                                                  highlightColor: Colors.transparent,
+                                                  enableFeedback: false,
+                                                  icon: const Icon(
+                                                      Icons.edit,
+                                                      color: Colors.black,
+                                                      size: 20
+                                                  ),
+                                                  onPressed:
+                                                      () => _abrirFormulario(
+                                                    jovem: professor,
+                                                  ),
+                                                ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                  Container(
+                                                    width: 2, // Espessura da linha
+                                                    height: 30, // Altura da linha
+                                                    color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                  ),
+                                                if (auth.tipoUsuario == "administrador")
                                                   IconButton(
-                                                    tooltip: "Editar",
                                                     focusColor: Colors.transparent,
                                                     hoverColor: Colors.transparent,
                                                     splashColor: Colors.transparent,
                                                     highlightColor: Colors.transparent,
                                                     enableFeedback: false,
-                                                    icon: const Icon(
-                                                        Icons.edit,
-                                                        color: Colors.black,
-                                                        size: 20
-                                                    ),
-                                                    onPressed:
-                                                        () => _abrirFormulario(
-                                                      jovem: professor,
-                                                    ),
+                                                    tooltip: "Documentos",
+                                                    icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
+                                                    onPressed: () => _abrirDocumentos(context, professor['id']),
                                                   ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    Container(
-                                                      width: 2, // Espessura da linha
-                                                      height: 30, // Altura da linha
-                                                      color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                    ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    IconButton(
-                                                      focusColor: Colors.transparent,
-                                                      hoverColor: Colors.transparent,
-                                                      splashColor: Colors.transparent,
-                                                      highlightColor: Colors.transparent,
-                                                      enableFeedback: false,
-                                                      tooltip: "Documentos",
-                                                      icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
-                                                      onPressed: () => _abrirDocumentos(context, professor['id']),
-                                                    ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    Container(
-                                                      width: 2, // Espessura da linha
-                                                      height: 30, // Altura da linha
-                                                      color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                    ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    IconButton(
-                                                      tooltip: isAtivo == true ? "Inativar" : "Ativar",
-                                                      focusColor: Colors.transparent,
-                                                      hoverColor: Colors.transparent,
-                                                      splashColor: Colors.transparent,
-                                                      highlightColor: Colors.transparent,
-                                                      enableFeedback: false,
-                                                      icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
-                                                      onPressed: () => isAtivo == true ? inativarProfessor(professor['id']) : ativarProfessor(professor['id']),
-                                                    ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                  Container(
+                                                    width: 2, // Espessura da linha
+                                                    height: 30, // Altura da linha
+                                                    color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                  ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                  IconButton(
+                                                    tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                                    focusColor: Colors.transparent,
+                                                    hoverColor: Colors.transparent,
+                                                    splashColor: Colors.transparent,
+                                                    highlightColor: Colors.transparent,
+                                                    enableFeedback: false,
+                                                    icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
+                                                    onPressed: () => isAtivo == true ? inativarProfessor(professor['id']) : ativarProfessor(professor['id']),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         );
                       },
                     ),

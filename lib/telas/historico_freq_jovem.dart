@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import '../services/presenca_service.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
@@ -155,7 +156,7 @@ class _HistoricoFrequenciaJovemPageState extends State<HistoricoFrequenciaJovemP
           
                       final registros = snapshot.data!;
           
-                      return ListView.builder(
+                      return SuperListView.builder(
                         padding: const EdgeInsets.all(12),
                         itemCount: registros.length,
                         itemBuilder: (context, index) {

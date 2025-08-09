@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:inova/cadastros/register_jovem.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import '../services/ocorrencia_service.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
@@ -613,7 +614,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : Padding(
                   padding: const EdgeInsets.fromLTRB(10, 40, 10, 60),
-                  child: ListView(
+                  child: SuperListView(
                     children: [
                       _buildListaPorTipo('escola'),
                       _buildListaPorTipo('instituto'),

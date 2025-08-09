@@ -502,6 +502,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   borderRadius: BorderRadius.circular(8),
                                                 ),
                                               ),
+                                              onFieldSubmitted: (value) {
+                                                _login();
+                                              },
                                               obscureText: true,
                                               style: const TextStyle(color: Colors.white), // Texto branco
                                               validator: (value) => value!.isEmpty ? "Digite sua senha" : null,
@@ -635,7 +638,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text("Limpar Dados",
                                       style: TextStyle(color: Color(0xFF0A63AC)),)
                                 ),
-                                Text("Versão: 0.37",
+                                Text("Versão: 0.38",
                                   style: TextStyle(color: Color(0xFF0A63AC)),),
                                 SizedBox(height: 10),
                                 Column(

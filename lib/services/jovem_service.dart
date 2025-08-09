@@ -1,14 +1,16 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class JovemService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas os jovens
-  Future<List<Map<String, dynamic>>> buscarjovem(status) async {
-    final response = await supabase.from('jovens_aprendizes').select().eq('status', '$status').order('nome', ascending: true);
+  Future<List<Map<String, dynamic>>> buscarjovem(String status) async {
+    final response = await supabase.from('jovens_aprendizes').select().eq('status', status).order('nome', ascending: true);
     return response;
   }
+
   Future<List<String>> buscarTurmasDoProfessor(String professorId) async {
     final modulos = await supabase
         .from('modulos')
@@ -26,7 +28,7 @@ class JovemService {
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDoProfessor(String professorId, String status) async {
-    // Chamamos nossa função customizada (RPC)
+    // 1. Executa a chamada RPC sem o .order()
     final response = await supabase.rpc(
       'buscar_jovens_do_professor_com_modulo',
       params: {
@@ -34,23 +36,36 @@ class JovemService {
         'p_status': status,
       },
     );
-    print(response);
 
-    // A resposta do RPC vem como uma lista, e cada item tem 'jovem_json' e 'nome_modulo'.
-    // Este código desempacota o JSON do jovem e adiciona a chave 'nome_modulo' a ele.
-    return response.map<Map<String, dynamic>>((item) {
-      // Pega o objeto JSON com os dados do jovem
+    if (kDebugMode) {
+      print(response);
+    }
+
+    // A resposta do RPC é uma lista de mapas.
+    final List<dynamic> data = response;
+
+    // 2. Transforma os dados e adiciona o nome do módulo
+    final List<Map<String, dynamic>> jovensComModulo = data.map<Map<String, dynamic>>((item) {
       final Map<String, dynamic> dadosJovem = Map.from(item['jovem_json']);
-      // Adiciona o nome do módulo a esse mapa
       dadosJovem['nome_modulo'] = item['nome_modulo'];
       return dadosJovem;
     }).toList();
+
+    // 3. Ordena a lista de jovens pelo nome
+    jovensComModulo.sort((a, b) {
+      // Acessa o campo 'nome' para fazer a comparação
+      final nomeA = a['nome'] as String? ?? '';
+      final nomeB = b['nome'] as String? ?? '';
+      return nomeA.compareTo(nomeB);
+    });
+
+    return jovensComModulo;
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDaEscola(String escolaId, String status) async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('*, turmas(codigo_turma), modulos(nome)')
+        .select('*, turmas(codigo_turma)')
         .eq('escola_id', escolaId)
         .eq('status', status)
         .order('nome', ascending: true);
@@ -90,6 +105,9 @@ class JovemService {
   Future<String?> cadastrarjovem({
     required String nome,
     required String? dataNascimento,
+    required String email,
+    required String senha,
+    // ... (todos os outros parâmetros continuam aqui)
     required String nomePai,
     required String nomeMae,
     required String nomeResponsavel,
@@ -104,8 +122,6 @@ class JovemService {
     required String? escola,
     required String? empresa,
     required String? escolaridade,
-    required String email,
-    required String senha,
     required String cpf,
     required String cpfMae,
     required String cpfPai,
@@ -146,10 +162,10 @@ class JovemService {
     required String? areaAprendizado,
   }) async {
     try {
-      final supabase = Supabase.instance.client;
+      final supabaseAdmin = Supabase.instance.client;
 
       // 1. Verifica se o CPF já existe
-      final existeCpf = await supabase
+      final existeCpf = await supabaseAdmin
           .from('jovens_aprendizes')
           .select('id')
           .eq('cpf', cpf)
@@ -157,57 +173,35 @@ class JovemService {
 
       if (existeCpf != null) return "CPF já cadastrado.";
 
-      // 2. Verifica se o usuário já está na tabela 'users'
-      final userDB = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', email)
-          .maybeSingle();
+      // 2. Cria o novo usuário usando o cliente admin, sem fazer login.
+      final adminUserResponse = await supabaseAdmin.auth.admin.createUser(
+        AdminUserAttributes(
+          email: email,
+          password: senha,
+          emailConfirm: true, // Já cria o usuário como confirmado
+        ),
+      );
 
-      String userId;
-
-      if (userDB != null) {
-        // Usuário já existe na tabela 'users'
-        userId = userDB['id'];
-      } else {
-        // 3. Tenta autenticar para ver se já está no Auth
-        try {
-          final login = await supabase.auth.signInWithPassword(
-            email: email,
-            password: senha,
-          );
-          userId = login.user?.id ?? '';
-        } catch (_) {
-          // 4. Se não está no Auth, cria novo usuário
-          final signUpResp = await supabase.auth.signUp(
-            email: email,
-            password: senha,
-          );
-          userId = signUpResp.user?.id ?? '';
-          if (userId.isEmpty) return "Erro ao criar usuário no Supabase Auth.";
-        }
-
-        // 5. Insere na tabela users se ainda não estava
-        try {
-          await supabase.from('users').insert({
-            'id': userId,
-            'nome': nome,
-            'email': email,
-            'tipo': 'jovem_aprendiz',
-          });
-        } catch (e) {
-          // Ignora erro se já existe (duplicado)
-          if (!e.toString().contains("duplicate key")) {
-            return "Erro ao salvar dados do usuário: $e";
-          }
-        }
+      final novoUsuario = adminUserResponse.user;
+      if (novoUsuario == null) {
+        return "Erro ao criar o usuário de autenticação.";
       }
+      final userId = novoUsuario.id;
 
-      // 6. Insere em jovens_aprendizes
-      await supabase.from('jovens_aprendizes').insert({
+      // 3. Insere na tabela 'users'
+      await supabaseAdmin.from('users').insert({
+        'id': userId,
+        'nome': nome,
+        'email': email,
+        'tipo': 'jovem_aprendiz',
+      });
+
+      // 4. Insere na tabela 'jovens_aprendizes'
+      await supabaseAdmin.from('jovens_aprendizes').insert({
         'id': userId,
         'nome': nome,
         'data_nascimento': dataNascimento,
+        'cpf': cpf,
         'nome_pai': nomePai,
         'nome_mae': nomeMae,
         'endereco': endereco,
@@ -221,7 +215,6 @@ class JovemService {
         'escola_id': escola,
         'empresa_id': empresa,
         'escolaridade': escolaridade,
-        'cpf': cpf,
         'remuneracao': converterParaNumero(remuneracao),
         'horas_trabalho': horasTrabalho,
         'rg': rg,
@@ -260,7 +253,10 @@ class JovemService {
         'area_aprendizado': areaAprendizado,
       });
 
-      return null;
+      return null; // Sucesso
+    } on AuthException catch (e) {
+      // Trata erros específicos de autenticação, como email já existente
+      return "Erro de autenticação: ${e.message}";
     } catch (e) {
       return "Erro inesperado ao cadastrar: ${e.toString()}";
     }

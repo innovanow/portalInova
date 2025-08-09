@@ -144,7 +144,8 @@ class InovaDrawer extends StatelessWidget {
                   child: SvgPicture.asset("assets/logoInova.svg"),
                 ),
                 Text(
-                  'Usuário: ${auth.nomeUsuario ?? "Carregando..."}',
+                  'Usuário:\n${auth.nomeUsuario ?? "Carregando..."}',
+                  textAlign: TextAlign.center,
                   style: const TextStyle(color: Color(0xFF0A63AC)),
                 ),
                 Text(

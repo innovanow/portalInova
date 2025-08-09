@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:inova/telas/presenca.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import '../services/presenca_service.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
@@ -229,7 +230,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
           
                       final historico = snapshot.data!;
           
-                      return ListView.builder(
+                      return SuperListView.builder(
                         itemCount: historico.length,
                         itemBuilder: (context, index) {
                           final item = historico[index];

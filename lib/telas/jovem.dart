@@ -58,7 +58,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
     }
   }
 
-  Future<void> _excluirFoto(context) async {
+  Future<void> _excluirFoto(BuildContext context) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {

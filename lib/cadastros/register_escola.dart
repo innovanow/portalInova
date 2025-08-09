@@ -6,6 +6,7 @@ import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/cnpj_service.dart';
 import '../services/escola_service.dart';
@@ -39,7 +40,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
     _carregarescolas(statusEscola);
   }
 
-  void _carregarescolas(statusEscola) async {
+  void _carregarescolas(String statusEscola) async {
     final escolas = await _escolaService.buscarescolas(statusEscola);
     setState(() {
       _escolas = escolas;
@@ -307,7 +308,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                         );
                       }
 
-                      return ListView.builder(
+                      return SuperListView.builder(
                         shrinkWrap: true,
                         itemCount: docs.length,
                         itemBuilder: (_, i) {
@@ -643,139 +644,137 @@ class _EscolaScreenState extends State<EscolaScreen> {
                     padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Align(
-                                  alignment: Alignment.topRight,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "Colégios: ${isAtivo ? "Ativos" : "Inativos"}",
-                                        textAlign: TextAlign.end,
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "Colégios: ${isAtivo ? "Ativos" : "Inativos"}",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    Tooltip(
+                                      message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                      child: Switch(
+                                        value: isAtivo,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            statusEscola = value ? "ativo" : "inativo";
+                                          });
+                                          _carregarescolas(statusEscola);
+                                        },
+                                        activeColor: Color(0xFF0A63AC),
                                       ),
-                                      Tooltip(
-                                        message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
-                                        child: Switch(
-                                          value: isAtivo,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              statusEscola = value ? "ativo" : "inativo";
-                                            });
-                                            _carregarescolas(statusEscola);
-                                          },
-                                          activeColor: Color(0xFF0A63AC),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                height: 500,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child:
-                                  _isFetching
-                                      ? const Center(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                      : ListView.builder(
-                                    itemCount: _escolasFiltradas.length,
-                                    itemBuilder: (context, index) {
-                                      final escola = _escolasFiltradas[index];
-                                      return Card(
-                                        elevation: 3,
-                                        child: ListTile(
-                                          title: Text(
-                                            escola['nome'],
-                                            style: TextStyle(color: Colors.black),
-                                          ),
-                                          leading: const Icon(Icons.school, color: Colors.black,),
-                                          subtitle: Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "CNPJ: ${cnpjFormatter.applyMask(escola['cnpj'] ?? '')}",
-                                                style: const TextStyle(color: Colors.black),
-                                              ),
-                                              Divider(color: Colors.black),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  if (auth.tipoUsuario == "administrador")
-                                                  IconButton(
-                                                    tooltip: "Editar",
-                                                    focusColor: Colors.transparent,
-                                                    hoverColor: Colors.transparent,
-                                                    splashColor: Colors.transparent,
-                                                    highlightColor: Colors.transparent,
-                                                    enableFeedback: false,
-                                                    icon: const Icon(
-                                                        Icons.edit,
-                                                        color: Colors.black,
-                                                        size: 20
-                                                    ),
-                                                    onPressed:
-                                                        () => _abrirFormulario(
-                                                      escola: escola,
-                                                    ),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: constraints.maxHeight - 100,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child:
+                                _isFetching
+                                    ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                    : SuperListView.builder(
+                                  itemCount: _escolasFiltradas.length,
+                                  itemBuilder: (context, index) {
+                                    final escola = _escolasFiltradas[index];
+                                    return Card(
+                                      elevation: 3,
+                                      child: ListTile(
+                                        title: Text(
+                                          escola['nome'],
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        leading: const Icon(Icons.school, color: Colors.black,),
+                                        subtitle: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "CNPJ: ${cnpjFormatter.applyMask(escola['cnpj'] ?? '')}",
+                                              style: const TextStyle(color: Colors.black),
+                                            ),
+                                            Divider(color: Colors.black),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                if (auth.tipoUsuario == "administrador")
+                                                IconButton(
+                                                  tooltip: "Editar",
+                                                  focusColor: Colors.transparent,
+                                                  hoverColor: Colors.transparent,
+                                                  splashColor: Colors.transparent,
+                                                  highlightColor: Colors.transparent,
+                                                  enableFeedback: false,
+                                                  icon: const Icon(
+                                                      Icons.edit,
+                                                      color: Colors.black,
+                                                      size: 20
                                                   ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    Container(
-                                                      width: 2, // Espessura da linha
-                                                      height: 30, // Altura da linha
-                                                      color: Colors.black.withValues(alpha: 0.2), // Cor da linha
-                                                    ),
-                                                  if (auth.tipoUsuario == "administrador")
-                                                    IconButton(
-                                                      focusColor: Colors.transparent,
-                                                      hoverColor: Colors.transparent,
-                                                      splashColor: Colors.transparent,
-                                                      highlightColor: Colors.transparent,
-                                                      enableFeedback: false,
-                                                      tooltip: "Documentos",
-                                                      icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
-                                                      onPressed: () => _abrirDocumentos(context, escola['id']),
-                                                    ),
-                                                  if (auth.tipoUsuario == "administrador")
+                                                  onPressed:
+                                                      () => _abrirFormulario(
+                                                    escola: escola,
+                                                  ),
+                                                ),
+                                                if (auth.tipoUsuario == "administrador")
                                                   Container(
                                                     width: 2, // Espessura da linha
                                                     height: 30, // Altura da linha
                                                     color: Colors.black.withValues(alpha: 0.2), // Cor da linha
                                                   ),
-                                                  if (auth.tipoUsuario == "administrador")
+                                                if (auth.tipoUsuario == "administrador")
                                                   IconButton(
-                                                    tooltip: isAtivo == true ? "Inativar" : "Ativar",
                                                     focusColor: Colors.transparent,
                                                     hoverColor: Colors.transparent,
                                                     splashColor: Colors.transparent,
                                                     highlightColor: Colors.transparent,
                                                     enableFeedback: false,
-                                                    icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
-                                                    onPressed: () => isAtivo == true ? inativarEscola(escola['id']) : ativarEscola(escola['id']),
+                                                    tooltip: "Documentos",
+                                                    icon: const Icon(Icons.attach_file, color: Colors.black, size: 20),
+                                                    onPressed: () => _abrirDocumentos(context, escola['id']),
                                                   ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                Container(
+                                                  width: 2, // Espessura da linha
+                                                  height: 30, // Altura da linha
+                                                  color: Colors.black.withValues(alpha: 0.2), // Cor da linha
+                                                ),
+                                                if (auth.tipoUsuario == "administrador")
+                                                IconButton(
+                                                  tooltip: isAtivo == true ? "Inativar" : "Ativar",
+                                                  focusColor: Colors.transparent,
+                                                  hoverColor: Colors.transparent,
+                                                  splashColor: Colors.transparent,
+                                                  highlightColor: Colors.transparent,
+                                                  enableFeedback: false,
+                                                  icon: Icon(isAtivo == true ? Icons.block : Icons.restore, color: Colors.black, size: 20,),
+                                                  onPressed: () => isAtivo == true ? inativarEscola(escola['id']) : ativarEscola(escola['id']),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         );
                       },
                     ),

@@ -31,14 +31,33 @@ class EscolaService {
     required String bairro,
   }) async {
     try {
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: senha,
+      // 1. Verifica se o CNPJ já existe
+      final existeCnpj = await supabase
+          .from('escolas')
+          .select('id')
+          .eq('cnpj', cnpj)
+          .maybeSingle();
+
+      if (existeCnpj != null) {
+        return "CNPJ já cadastrado.";
+      }
+
+      // 2. Cria o novo usuário usando o cliente admin, sem fazer login.
+      final adminUserResponse = await supabase.auth.admin.createUser(
+        AdminUserAttributes(
+          email: email,
+          password: senha,
+          emailConfirm: true, // Já cria o usuário como confirmado
+        ),
       );
 
-      final userId = response.user?.id;
-      if (userId == null) return "Erro ao criar usuário.";
+      final novoUsuario = adminUserResponse.user;
+      if (novoUsuario == null) {
+        return "Erro ao criar o usuário de autenticação.";
+      }
+      final userId = novoUsuario.id;
 
+      // 3. Insere na tabela 'users'
       await supabase.from('users').insert({
         'id': userId,
         'nome': nome,
@@ -46,6 +65,7 @@ class EscolaService {
         'tipo': 'escola',
       });
 
+      // 4. Insere na tabela 'escolas'
       await supabase.from('escolas').insert({
         'id': userId,
         'nome': nome,
@@ -59,9 +79,12 @@ class EscolaService {
         'bairro': bairro,
       });
 
-      return null;
+      return null; // Sucesso
+    } on AuthException catch (e) {
+      // Trata erros específicos de autenticação, como email já existente
+      return "Erro de autenticação: ${e.message}";
     } catch (e) {
-      return e.toString();
+      return "Erro inesperado ao cadastrar: ${e.toString()}";
     }
   }
 

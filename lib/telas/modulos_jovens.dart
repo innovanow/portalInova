@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/drawer.dart';
@@ -27,69 +28,70 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
 
   Future<void> carregarModulos() async {
     final supabase = Supabase.instance.client;
-    dynamic response;
+    List<Map<String, dynamic>> modulosResponse = [];
 
+    // --- Lógica para Jovem Aprendiz ---
     if (auth.tipoUsuario == "jovem_aprendiz") {
-      response = await supabase
+      // 1. Pega a turma_id do jovem.
+      final jovemResponse = await supabase
           .from('jovens_aprendizes')
-          .select('turma_id, turmas(modulos_turmas(modulos(*, professores(nome))))')
+          .select('turma_id')
           .eq('id', widget.jovemId)
           .single();
+
+      final turmaId = jovemResponse['turma_id'];
+
+      if (turmaId != null) {
+        // 2. Busca os módulos que pertencem àquela turma.
+        modulosResponse = await supabase
+            .from('modulos')
+            .select('*, professores(nome)') // Pega dados do módulo e nome do professor
+            .eq('turma_id', turmaId);
+      }
+
+      // --- Lógica para Professor ---
     } else if (auth.tipoUsuario == "professor") {
-      // Para professor: busca os módulos onde ele é o professor
-      response = await supabase
+      // A lógica para professor permanece a mesma.
+      modulosResponse = await supabase
           .from('modulos')
           .select('*, professores(nome)')
           .eq('professor_id', auth.idUsuario.toString());
     }
 
+    // --- Processamento dos resultados ---
     final List<Map<String, dynamic>> resultado = [];
 
-    if (auth.tipoUsuario == "jovem_aprendiz") {
-      final modulosTurma = response['turmas']['modulos_turmas'] as List;
+    for (var modulo in modulosResponse) {
+      // Busca os materiais no Storage
+      final materiais = await supabase
+          .storage
+          .from('fotosjovens')
+          .list(path: '${modulo["id"]}/documentos/');
 
-      for (var m in modulosTurma) {
-        final modulo = m['modulos'];
-        final materiais = await supabase
-            .storage
+      // Gera os links de acesso para os materiais
+      final links = await Future.wait(materiais.map((file) async {
+        final signedUrl = await supabase.storage
             .from('fotosjovens')
-            .list(path: '${modulo["id"]}/documentos/');
+            .createSignedUrl('${modulo["id"]}/documentos/${file.name}', 3600);
+        return {"nome": file.name, "url": signedUrl};
+      }));
 
-        final links = await Future.wait(materiais.map((file) async {
-          final signedUrl = await supabase.storage
-              .from('fotosjovens')
-              .createSignedUrl('${modulo["id"]}/documentos/${file.name}', 3600);
-          return {"nome": file.name, "url": signedUrl};
-        }));
-
-        resultado.add({
-          "nomeModulo": modulo['nome'],
-          "professor": modulo['professores']?['nome'] ?? "Não informado",
-          "materiais": links,
-        });
+      // Define o nome do professor
+      String professorNome = "Não informado";
+      if (modulo['professores'] != null) {
+        professorNome = modulo['professores']['nome'];
+      } else if (auth.tipoUsuario == "professor") {
+        professorNome = "Você";
       }
-    } else if (auth.tipoUsuario == "professor") {
-      for (var modulo in response) {
-        final materiais = await supabase
-            .storage
-            .from('fotosjovens')
-            .list(path: '${modulo["id"]}/documentos/');
 
-        final links = await Future.wait(materiais.map((file) async {
-          final signedUrl = await supabase.storage
-              .from('fotosjovens')
-              .createSignedUrl('${modulo["id"]}/documentos/${file.name}', 3600);
-          return {"nome": file.name, "url": signedUrl};
-        }));
-
-        resultado.add({
-          "nomeModulo": modulo['nome'],
-          "professor": modulo['professores']?['nome'] ?? "Você",
-          "materiais": links,
-        });
-      }
+      resultado.add({
+        "nomeModulo": modulo['nome'],
+        "professor": professorNome,
+        "materiais": links,
+      });
     }
 
+    // Atualiza o estado da UI
     setState(() {
       modulos = resultado;
       carregando = false;
@@ -206,7 +208,7 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                   padding: const EdgeInsets.fromLTRB(5, 40, 5, 30),
                   child: carregando
                     ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
+                    : modulos.isNotEmpty ? SuperListView.builder(
                   itemCount: modulos.length,
                   itemBuilder: (context, index) {
                     final m = modulos[index];
@@ -235,7 +237,15 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                       ),
                     );
                   },
-                            ),
+                            ) : const Center(
+                    child: Text('Nenhum módulo encontrado.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'FuturaBold',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.black,)),
+                  )
                 ),]
             ),
           ),

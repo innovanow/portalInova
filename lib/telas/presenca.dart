@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:inova/telas/splash.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import '../services/presenca_service.dart';
 import 'package:intl/intl.dart';
 import '../widgets/drawer.dart';
@@ -285,7 +286,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                 // Conteúdo Centralizado
                 // Dropdown de Módulos
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 60, 10, 60),
+                  padding: const EdgeInsets.fromLTRB(10, 60, 10, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -344,7 +345,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                       _carregando
                           ? const Expanded(child: Center(child: CircularProgressIndicator()))
                           : Expanded(
-                        child: ListView.builder(
+                        child: SuperListView.builder(
                           itemCount: _alunos.length,
                           itemBuilder: (context, index) {
                             final aluno = _alunos[index];
@@ -365,33 +366,33 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                           },
                         ),
                       ),
+                      Container(
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.check,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            label: const Text("Salvar Presença",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                )),
+                            onPressed: _moduloSelecionado == null ? null : _salvarPresencas,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              disabledBackgroundColor: Colors.grey,
+                              minimumSize: const Size(double.infinity, 50),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
-        bottomNavigationBar: Container(
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.check,
-                color: Colors.white,
-                size: 20,
-              ),
-              label: const Text("Salvar Presença",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                )),
-              onPressed: _moduloSelecionado == null ? null : _salvarPresencas,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                disabledBackgroundColor: Colors.grey,
-                minimumSize: const Size(double.infinity, 50),
-              ),
             ),
           ),
         ),

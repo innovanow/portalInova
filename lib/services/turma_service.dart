@@ -1,11 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TurmaService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas as turmas
-  Future<List<Map<String, dynamic>>> buscarTurmas(status) async {
-    final response = await supabase.from('turmas').select().eq('status', '$status').order('codigo_turma', ascending: true);
+  Future<List<Map<String, dynamic>>> buscarTurmas(String status) async {
+    final response = await supabase.from('turmas').select().eq('status', status).order('codigo_turma', ascending: true);
     return response;
   }
 
@@ -41,7 +42,7 @@ class TurmaService {
     required int ano,
     required String? dataInicio,
     required String? dataTermino,
-    required List<String> modulosSelecionados,
+    //required List<String> modulosSelecionados,
   }) async {
     try {
       // 1. Cria a turma
@@ -55,13 +56,17 @@ class TurmaService {
 
       final turmaId = turmaInsert['id'];
 
-      // 2. Insere os relacionamentos na tabela modulos_turmas
+      if (kDebugMode) {
+        print(turmaId);
+      }
+
+/*      // 2. Insere os relacionamentos na tabela modulos_turmas
       for (var moduloId in modulosSelecionados) {
         await supabase.from('modulos_turmas').insert({
           'modulo_id': moduloId,
           'turma_id': turmaId,
         });
-      }
+      }*/
 
       return null;
     } catch (e) {
@@ -77,7 +82,7 @@ class TurmaService {
     required int ano,
     required String? dataInicio,
     required String? dataTermino,
-    required List<String> modulosSelecionados,
+    //required List<String> modulosSelecionados,
   }) async {
     try {
       // 1. Atualiza os dados básicos da turma
@@ -92,12 +97,12 @@ class TurmaService {
       await supabase.from('modulos_turmas').delete().eq('turma_id', id);
 
       // 3. Insere os novos relacionamentos
-      for (var moduloId in modulosSelecionados) {
+/*      for (var moduloId in modulosSelecionados) {
         await supabase.from('modulos_turmas').insert({
           'modulo_id': moduloId,
           'turma_id': id,
         });
-      }
+      }*/
 
       return null;
     } catch (e) {

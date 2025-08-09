@@ -1,5 +1,4 @@
 import 'package:chips_choice/chips_choice.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_multi_formatter/formatters/currency_input_formatter.dart';
@@ -351,7 +350,7 @@ class _ColorWheelPickerState extends State<ColorWheelPicker> {
   }
 }
 
-Widget buildStatusCard(statusJovem) {
+Widget buildStatusCard(String? statusJovem) {
   if (statusJovem == null) return const SizedBox.shrink();
 
   IconData icon;
@@ -380,25 +379,29 @@ Widget buildStatusCard(statusJovem) {
       label = 'DESCONHECIDO';
   }
 
-  return Card(
-    margin: const EdgeInsets.all(16),
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 30),
-          const SizedBox(width: 12),
-          Text(
-            'Status: $label',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: color,
+  return SizedBox(
+    width: 300,
+    height: 100,
+    child: Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 30),
+            const SizedBox(width: 12),
+            Text(
+              'Status: $label',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: color,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );

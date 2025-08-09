@@ -1325,43 +1325,7 @@ class _HomeState extends State<Home> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                              FutureBuilder<Map<String, int>>(
-                            future: _dadosHistoricoOcorrenciaJovem,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Center(child: CircularProgressIndicator());
-                              }
-          
-                              final dados = modoDemo
-                                  ? {
-                                'Instituto': 2,
-                                'Escola': 1,
-                                'Empresa': 3,
-                              }
-                                  : snapshot.data ?? {};
-          
-                              final nenhumDado = dados.values.every((v) => v == 0);
-          
-                              if (dados.isEmpty || nenhumDado) {
-                                return const Card(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Text(
-                                      'Ocorrências Pessoais\nNenhum dado encontrado!',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                );
-                              }
-          
-                              return IndicadorPizza(
-                                titulo: 'Minhas Ocorrências',
-                                dados: dados,
-                                cores: gerarCoresRGB(dados.keys),
-                              );
-                            },
-                            ),
-                              FutureBuilder<Map<String, int>>(
+                                FutureBuilder<Map<String, int>>(
                                 future: _dadosModulosParticipados,
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1395,6 +1359,42 @@ class _HomeState extends State<Home> {
                                   );
                                 },
                               ),
+                                FutureBuilder<Map<String, int>>(
+                                  future: _dadosHistoricoOcorrenciaJovem,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const Center(child: CircularProgressIndicator());
+                                    }
+
+                                    final dados = modoDemo
+                                        ? {
+                                      'Instituto': 2,
+                                      'Escola': 1,
+                                      'Empresa': 3,
+                                    }
+                                        : snapshot.data ?? {};
+
+                                    final nenhumDado = dados.values.every((v) => v == 0);
+
+                                    if (dados.isEmpty || nenhumDado) {
+                                      return const Card(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Text(
+                                            'Ocorrências Pessoais\nNenhum dado encontrado!',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    return IndicadorPizza(
+                                      titulo: 'Minhas Ocorrências',
+                                      dados: dados,
+                                      cores: gerarCoresRGB(dados.keys),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ),

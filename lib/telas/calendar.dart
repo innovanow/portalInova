@@ -14,10 +14,12 @@ class ModulosCalendarScreen extends StatefulWidget {
 
 class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
   final SupabaseClient supabase = Supabase.instance.client;
-  Map<DateTime, String> diasModulos = {};
+  Map<DateTime, List<Map<String, dynamic>>> diasModulos = {};
   Map<String, Color> coresModulos = {};
   int anoAtual = DateTime.now().year;
-  final DateTime hoje = DateTime.now(); // Data de hoje
+  final DateTime hoje = DateTime.now();
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -25,12 +27,20 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
     _carregarModulos();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> _carregarModulos() async {
     final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
     final userType = (await supabase
         .from('users')
         .select('tipo')
-        .eq('id', userId.toString())
+        .eq('id', userId)
         .maybeSingle())?['tipo'];
 
     List<Map<String, dynamic>> modulos = [];
@@ -38,108 +48,87 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
     if (userType == 'professor') {
       modulos = await supabase
           .from('modulos')
-          .select('nome, datas, cor')
+          .select('id, nome, datas, cor')
           .eq('status', 'ativo')
-          .eq('professor_id', userId.toString());
+          .eq('professor_id', userId);
     } else if (userType == 'jovem_aprendiz') {
       final jovem = await supabase
           .from('jovens_aprendizes')
           .select('turma_id')
-          .eq('id', userId.toString())
-          .maybeSingle();
-
-      final turmaId = jovem?['turma_id'];
-
+          .eq('id', userId)
+          .single();
+      final turmaId = jovem['turma_id'];
       if (turmaId != null) {
-        final modulosTurmas = await supabase
-            .from('modulos_turmas')
-            .select('modulo_id')
-            .eq('turma_id', turmaId);
-
-        final moduloIds = modulosTurmas.map((e) => e['modulo_id']).toList();
-
-        if (moduloIds.isNotEmpty) {
-          modulos = await supabase
-              .from('modulos')
-              .select('nome, datas, cor')
-              .inFilter('id', moduloIds)
-              .eq('status', 'ativo');
-        }
+        modulos = await supabase
+            .from('modulos')
+            .select('id, nome, datas, cor')
+            .eq('turma_id', turmaId)
+            .eq('status', 'ativo');
       }
     } else if (userType == 'empresa') {
-      final jovens = await supabase
+      final jovensResponse = await supabase
           .from('jovens_aprendizes')
           .select('turma_id')
-          .eq('empresa_id', userId.toString());
-
-      final turmaIds = jovens.map((e) => e['turma_id']).where((id) => id != null).toSet().toList();
-
+          .eq('empresa_id', userId);
+      final turmaIds = jovensResponse
+          .map((jovem) => jovem['turma_id'])
+          .where((id) => id != null)
+          .toSet()
+          .toList();
       if (turmaIds.isNotEmpty) {
-        final modulosTurmas = await supabase
-            .from('modulos_turmas')
-            .select('modulo_id')
-            .inFilter('turma_id', turmaIds);
-
-        final moduloIds = modulosTurmas.map((e) => e['modulo_id']).toSet().toList();
-
-        if (moduloIds.isNotEmpty) {
-          modulos = await supabase
-              .from('modulos')
-              .select('nome, datas, cor')
-              .inFilter('id', moduloIds)
-              .eq('status', 'ativo');
-        }
+        modulos = await supabase
+            .from('modulos')
+            .select('id, nome, datas, cor')
+            .inFilter('turma_id', turmaIds)
+            .eq('status', 'ativo');
       }
     } else if (userType == 'escola') {
-      final jovens = await supabase
+      final jovensResponse = await supabase
           .from('jovens_aprendizes')
           .select('turma_id')
-          .eq('escola_id', userId.toString());
-
-      final turmaIds = jovens.map((e) => e['turma_id']).where((id) => id != null).toSet().toList();
-
+          .eq('escola_id', userId);
+      final turmaIds = jovensResponse
+          .map((jovem) => jovem['turma_id'])
+          .where((id) => id != null)
+          .toSet()
+          .toList();
       if (turmaIds.isNotEmpty) {
-        final modulosTurmas = await supabase
-            .from('modulos_turmas')
-            .select('modulo_id')
-            .inFilter('turma_id', turmaIds);
-
-        final moduloIds = modulosTurmas.map((e) => e['modulo_id']).toSet().toList();
-
-        if (moduloIds.isNotEmpty) {
-          modulos = await supabase
-              .from('modulos')
-              .select('nome, datas, cor')
-              .inFilter('id', moduloIds)
-              .eq('status', 'ativo');
-        }
+        modulos = await supabase
+            .from('modulos')
+            .select('id, nome, datas, cor')
+            .inFilter('turma_id', turmaIds)
+            .eq('status', 'ativo');
       }
     } else {
-      // Administrador ou Instituto
       modulos = await supabase
           .from('modulos')
-          .select('nome, datas, cor')
+          .select('id, nome, datas, cor')
           .eq('status', 'ativo');
     }
 
-    Map<DateTime, String> novosDiasModulos = {};
-
-    for (var modulo in modulos) {
+    Map<DateTime, List<Map<String, dynamic>>> novosDiasModulos = {};
+    for (var moduloData in modulos) {
+      // AJUSTE: Garante que o item da lista é um Map antes de usá-lo.
+      final Map<String, dynamic> modulo = moduloData;
+      final idModulo = modulo['id'];
       final nomeModulo = modulo['nome'];
       final List<dynamic>? datas = modulo['datas'];
       final String? corHex = modulo['cor'];
 
-      if (datas != null && datas.length.isEven) {
-        for (int i = 0; i < datas.length; i += 2) {
-          final DateTime inicio = DateTime.parse(datas[i]);
-          final DateTime fim = DateTime.parse(datas[i + 1]);
-
-          // Marca todos os dias entre início e fim (inclusive)
-          for (DateTime dia = inicio;
-          !dia.isAfter(fim);
-          dia = dia.add(const Duration(days: 1))) {
+      if (datas != null) {
+        for (final dataStr in datas) {
+          if (dataStr != null) {
+            final dia = DateTime.parse(dataStr.toString());
             final diaSemHora = DateTime(dia.year, dia.month, dia.day);
-            novosDiasModulos[diaSemHora] = nomeModulo;
+            final moduloInfo = {'id': idModulo, 'nome': nomeModulo};
+
+            if (novosDiasModulos.containsKey(diaSemHora)) {
+              if (!novosDiasModulos[diaSemHora]!.any((m) => m['id'] == idModulo)) {
+                novosDiasModulos[diaSemHora]!.add(moduloInfo);
+              }
+            } else {
+              novosDiasModulos[diaSemHora] = [moduloInfo];
+            }
           }
         }
       }
@@ -149,9 +138,11 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
       }
     }
 
-    setState(() {
-      diasModulos = novosDiasModulos;
-    });
+    if (mounted) {
+      setState(() {
+        diasModulos = novosDiasModulos;
+      });
+    }
   }
 
   Color _hexToColor(String hex) {
@@ -164,6 +155,118 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
     });
   }
 
+  Future<int> _getContagemJovens(String moduloId) async {
+    try {
+      final moduloResponse = await supabase
+          .from('modulos')
+          .select('turma_id')
+          .eq('id', moduloId)
+          .single();
+      final turmaId = moduloResponse['turma_id'];
+      if (turmaId == null) return 0;
+
+      final count = await supabase
+          .from('jovens_aprendizes')
+          .count(CountOption.exact)
+          .eq('turma_id', turmaId);
+
+      return count;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erro ao buscar contagem de jovens: $e');
+      }
+      return 0;
+    }
+  }
+
+  void _mostrarDialogoModulos(
+      BuildContext context, DateTime dia, List<Map<String, dynamic>> modulos) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF0A63AC),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  "Módulos em ${DateFormat('dd/MM/yyyy', 'pt_BR').format(dia)}",
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
+                    color: Colors.white,
+                    fontFamily: 'FuturaBold',
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: "Fechar",
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                enableFeedback: false,
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width > 800 ? 400 : 300,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: modulos.length,
+              itemBuilder: (BuildContext context, int index) {
+                final moduloInfo = modulos[index];
+                final nomeModulo = moduloInfo['nome'] as String;
+                final idModulo = moduloInfo['id'] as String;
+
+                return FutureBuilder<int>(
+                  future: _getContagemJovens(idModulo),
+                  builder: (context, snapshot) {
+                    String subtitleText = 'Carregando...';
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        subtitleText = 'Erro ao carregar';
+                      } else {
+                        final count = snapshot.data ?? 0;
+                        subtitleText = '$count ${count == 1 ? 'jovem' : 'jovens'}';
+                      }
+                    }
+                    return ListTile(
+                      leading: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2,
+                          ),
+                          color: coresModulos[nomeModulo] ?? Colors.white,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      title: Text(nomeModulo,
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width > 800 ? 18 : 14,
+                            color: Colors.white,
+                          )),
+                      subtitle: Text(subtitleText,
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width > 800 ? 14 : 12,
+                            color: Colors.white70,
+                          )),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double larguraTela = MediaQuery.of(context).size.width;
@@ -173,70 +276,73 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
     double alturaCardBase = (alturaTela * 0.20).clamp(180, 320);
 
     return PopScope(
-      canPop: kIsWeb ? false : true, // impede voltar
+      canPop: kIsWeb ? false : true,
       child: Scaffold(
-        backgroundColor: Color(0xFF0A63AC),
+        backgroundColor: const Color(0xFF0A63AC),
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(60.0),
           child: AppBar(
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             backgroundColor: const Color(0xFF0A63AC),
-            title: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Row(
+            title: LayoutBuilder(builder: (context, constraints) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    constraints.maxWidth > 800
+                        ? 'Calendário Inova $anoAtual'
+                        : '$anoAtual',
+                    style: const TextStyle(
+                      fontFamily: 'FuturaBold',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(constraints.maxWidth > 800 ?  'Calendário Inova $anoAtual' : '$anoAtual',
-                        style: TextStyle(
-                          fontFamily: 'FuturaBold',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              enableFeedback: false,
-                              onPressed: () => _mudarAno(-1), icon: Icon(Icons.arrow_back)),
-                          IconButton(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              enableFeedback: false,
-                              onPressed: () => _mudarAno(1), icon: Icon(Icons.arrow_forward)),
-                        ],
-                      ),
+                      IconButton(
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          enableFeedback: false,
+                          onPressed: () => _mudarAno(-1),
+                          icon: const Icon(Icons.arrow_back)),
+                      IconButton(
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          enableFeedback: false,
+                          onPressed: () => _mudarAno(1),
+                          icon: const Icon(Icons.arrow_forward)),
                     ],
-                  );
-                }
-            ),
+                  ),
+                ],
+              );
+            }),
             iconTheme: const IconThemeData(color: Colors.white),
             automaticallyImplyLeading: false,
-            // Evita que o Flutter gere um botão automático
             leading: Builder(
-              builder:
-                  (context) => Tooltip(
-                message: "Abrir Menu", // Texto do tooltip
+              builder: (context) => Tooltip(
+                message: "Abrir Menu",
                 child: IconButton(
                   focusColor: Colors.transparent,
                   hoverColor: Colors.transparent,
                   splashColor: Colors.transparent,
                   highlightColor: Colors.transparent,
                   enableFeedback: false,
-                  icon: Icon(Icons.menu,
-                    color: Colors.white,) ,// Ícone do Drawer
+                  icon: const Icon(
+                    Icons.menu,
+                    color: Colors.white,
+                  ),
                   onPressed: () {
                     Scaffold.of(
                       context,
-                    ).openDrawer(); // Abre o Drawer manualmente
+                    ).openDrawer();
                   },
                 ),
               ),
@@ -246,7 +352,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
         drawer: InovaDrawer(context: context),
         body: SafeArea(
           child: Container(
-            transform: Matrix4.translationValues(0, -1, 0), //remove a linha branca
+            transform: Matrix4.translationValues(0, -1, 0),
             width: double.infinity,
             height: double.infinity,
             decoration: const BoxDecoration(
@@ -259,7 +365,6 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
             ),
             child: Stack(
               children: [
-                // Ondas decorativas
                 Positioned(
                   top: 0,
                   left: 0,
@@ -296,7 +401,6 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                     child: Container(height: 60, color: const Color(0xFF0A63AC)),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 40, 20, 60),
                   child: Column(
@@ -305,7 +409,8 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: GridView.builder(
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                            SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: colunas,
                               crossAxisSpacing: 8,
                               mainAxisSpacing: 8,
@@ -313,20 +418,18 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                             ),
                             itemCount: 12,
                             itemBuilder: (context, index) {
-                              DateTime primeiroDiaMes = DateTime(anoAtual, index + 1, 1);
-                              return _buildCalendarioMes(primeiroDiaMes, alturaCardBase);
+                              DateTime primeiroDiaMes =
+                              DateTime(anoAtual, index + 1, 1);
+                              return _buildCalendarioMes(
+                                  primeiroDiaMes, alturaCardBase);
                             },
                           ),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Envolver _buildLegenda em Expanded e SingleChildScrollView
-                      Expanded(
-                        flex: 0, // Flex zero para ocupar apenas o espaço necessário
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical, // Rolagem vertical
-                          child: _buildLegenda(),
-                        ),
+                      SizedBox(
+                        height: 40,
+                        child: _buildLegenda(),
                       ),
                     ],
                   ),
@@ -339,27 +442,58 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
     );
   }
 
-  /// Legenda do calendário
   Widget _buildLegenda() {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 12, // Espaçamento horizontal entre os itens
-      runSpacing: 8, // Espaçamento vertical entre as linhas
-      children: [
-        // Exibe os módulos cadastrados com suas cores
-        ...coresModulos.entries.map((entry) {
-          return _buildLegendaItem(entry.value, entry.key);
-        }),
+    final List<MapEntry<String, Color>> moduleEntries =
+    coresModulos.entries.toList();
 
-        // Adiciona a indicação da data de hoje
-        _buildLegendaItem(Colors.orange, "Hoje - ${DateFormat('d MMMM', 'pt_BR').format(DateTime.now())}"),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 16),
+          onPressed: () {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.offset - 150,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          },
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ...moduleEntries
+                    .map((entry) => _buildLegendaItem(entry.value, entry.key)),
+                _buildLegendaItem(Colors.orange,
+                    "Hoje - ${DateFormat('d MMMM', 'pt_BR').format(DateTime.now())}"),
+              ],
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.arrow_forward_ios, size: 16),
+          onPressed: () {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.offset + 150,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          },
+        ),
       ],
     );
   }
 
   Widget _buildLegendaItem(Color color, String label) {
     return Padding(
-      padding: const EdgeInsets.all(4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -368,32 +502,31 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
             height: 12,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(3), // Bordas arredondadas para os indicadores de cor
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
           const SizedBox(width: 5),
-          Flexible( // Usar Flexible para evitar overflow de texto
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 12),
-              overflow: TextOverflow.ellipsis, // Truncar texto longo com reticências
-            ),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12),
+            softWrap: false,
           ),
         ],
       ),
     );
   }
 
-
   Widget _buildCalendarioMes(DateTime primeiroDiaMes, double alturaBase) {
-    int ultimoDiaMes = DateTime(primeiroDiaMes.year, primeiroDiaMes.month + 1, 0).day;
+    int ultimoDiaMes =
+        DateTime(primeiroDiaMes.year, primeiroDiaMes.month + 1, 0).day;
     List<DateTime> diasDoMes = List.generate(
       ultimoDiaMes,
           (index) => DateTime(primeiroDiaMes.year, primeiroDiaMes.month, index + 1),
     );
 
     int primeiroDiaSemana = primeiroDiaMes.weekday;
-    List<DateTime?> diasComEspacos = List.generate(primeiroDiaSemana % 7, (index) => null);
+    List<DateTime?> diasComEspacos =
+    List.generate(primeiroDiaSemana % 7, (index) => null);
     diasComEspacos.addAll(diasDoMes);
 
     int totalLinhas = ((diasComEspacos.length / 7).ceil());
@@ -409,38 +542,50 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0A63AC),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0A63AC),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
               ),
               child: Text(
                 DateFormat.yMMMM('pt_BR').format(primeiroDiaMes).toUpperCase(),
                 textAlign: TextAlign.center,
-                style: const TextStyle
-                  (color: Colors.white,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'FuturaBold',
                 ),
               ),
             ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: const [
-                  Text("D", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text("S", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text("T", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text("Q", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text("Q", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text("S", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text("S", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                children: [
+                  Text("D",
+                      style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text("S",
+                      style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text("T",
+                      style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text("Q",
+                      style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text("Q",
+                      style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text("S",
+                      style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text("S",
+                      style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
-
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -453,17 +598,44 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                 ),
                 itemCount: diasComEspacos.length,
                 itemBuilder: (context, index) {
-                  DateTime? dia = diasComEspacos[index];
-                  bool isHoje = dia != null &&
-                      dia.year == hoje.year &&
+                  final DateTime? dia = diasComEspacos[index];
+                  if (dia == null) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final bool isHoje = dia.year == hoje.year &&
                       dia.month == hoje.month &&
                       dia.day == hoje.day;
-                  Color corFundo = isHoje ? Colors.orange : (dia != null ? coresModulos[diasModulos[dia] ?? ""] ?? Colors.transparent : Colors.transparent);
 
-                  return Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: corFundo, shape: BoxShape.rectangle),
-                    child: Text(dia != null ? "${dia.day}" : ""),
+                  final List<Map<String, dynamic>>? modulosDoDia = diasModulos[dia];
+
+                  Color corFundo = Colors.transparent;
+                  if (isHoje) {
+                    corFundo = Colors.orange;
+                  } else if (modulosDoDia != null && modulosDoDia.isNotEmpty) {
+                    corFundo = coresModulos[modulosDoDia.first['nome']] ?? Colors.transparent;
+                  }
+
+                  return GestureDetector(
+                    onTap: () {
+                      if (modulosDoDia != null && modulosDoDia.isNotEmpty) {
+                        _mostrarDialogoModulos(context, dia, modulosDoDia);
+                      }
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration:
+                      BoxDecoration(color: corFundo, shape: BoxShape.rectangle),
+                      child: Text(
+                        "${dia.day}",
+                        style: TextStyle(
+                          color: corFundo != Colors.transparent
+                              ? Colors.white
+                              : Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),

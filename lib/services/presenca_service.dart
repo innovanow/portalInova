@@ -36,7 +36,7 @@ class PresencaService {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return [];
 
-    // 1. Buscar o jovem e descobrir a turma dele
+    // 1. Buscar o jovem e descobrir a turma dele (lógica inalterada)
     final jovem = await _client
         .from('jovens_aprendizes')
         .select('turma_id')
@@ -46,31 +46,37 @@ class PresencaService {
     final turmaId = jovem['turma_id'];
     if (turmaId == null) return [];
 
-    // 2. Buscar os módulos da turma com lista de dias da semana
-    final modulos = await _client
+    // 2. Buscar os módulos que pertencem diretamente à turma do jovem.
+    final modulosResponse = await _client
         .from('modulos')
-        .select('data_inicio, data_fim, dia_semana')
+        .select('datas')
         .eq('turma_id', turmaId);
 
     final diasComAula = <DateTime>{};
 
-    for (final modulo in modulos) {
-      final inicio = DateTime.parse(modulo['data_inicio']);
-      final fim = DateTime.parse(modulo['data_fim']);
-      final diasSemanaStr = List<String>.from(modulo['dia_semana'] ?? []);
+    // AJUSTE: Pega a data de hoje para filtrar apenas aulas passadas.
+    final hoje = DateTime.now();
+    final hojeNormalizado = DateTime(hoje.year, hoje.month, hoje.day);
 
-      final diasSemana = _converterDiasSemana(diasSemanaStr);
+    // 3. Ler os dias de aula diretamente do array 'datas' de cada módulo
+    for (final modulo in modulosResponse) {
+      final List<dynamic>? datasDoModulo = modulo['datas'];
+      if (datasDoModulo != null) {
+        for (final dataStr in datasDoModulo) {
+          if (dataStr != null) {
+            final dataAula = DateTime.parse(dataStr as String);
+            final dataAulaNormalizada = DateTime(dataAula.year, dataAula.month, dataAula.day);
 
-      for (var dia = inicio;
-      dia.isBefore(fim.add(const Duration(days: 1)));
-      dia = dia.add(const Duration(days: 1))) {
-        if (diasSemana.contains(dia.weekday)) {
-          diasComAula.add(dia);
+            // AJUSTE: Adiciona a data apenas se for hoje ou uma data passada.
+            if (!dataAulaNormalizada.isAfter(hojeNormalizado)) {
+              diasComAula.add(dataAulaNormalizada);
+            }
+          }
         }
       }
     }
 
-    // 3. Buscar as presenças do jovem
+    // 4. Buscar as presenças do jovem (lógica inalterada)
     final presencas = await _client
         .from('presencas')
         .select('data, presente')
@@ -82,35 +88,16 @@ class PresencaService {
         p['presente'] == true
     };
 
-    // 4. Gerar histórico baseado nos dias letivos
-    final historico = diasComAula.toList()
-      ..sort();
+    // 5. Gerar histórico baseado nos dias letivos (lógica inalterada)
+    final historico = diasComAula.toList()..sort((a, b) => a.compareTo(b));
 
     return historico.map((data) {
       final chave = DateFormat('yyyy-MM-dd').format(data);
       return {
         'data': data,
-        'presente': mapaPresenca[chave] ?? false,
+        'presente': mapaPresenca[chave] ?? false, // Se não houver registro, assume falta
       };
     }).toList();
-  }
-
-  // 🧠 Converte lista de strings para números do DateTime.weekday (1 = segunda)
-  Set<int> _converterDiasSemana(List<String> dias) {
-    const map = {
-      'segunda-feira': DateTime.monday,
-      'terça-feira': DateTime.tuesday,
-      'quarta-feira': DateTime.wednesday,
-      'quinta-feira': DateTime.thursday,
-      'sexta-feira': DateTime.friday,
-      'sábado': DateTime.saturday,
-      'domingo': DateTime.sunday,
-    };
-
-    return dias
-        .map((d) => map[d.toLowerCase()] ?? -1)
-        .where((d) => d > 0)
-        .toSet();
   }
 
   Future<String?> buscarTurmaIdPorModulo(String moduloId) async {
@@ -363,6 +350,7 @@ class PresencaService {
     final response = await _client
         .from('historico_chamadas')
         .select('*')
+    .eq('professor_id', professorId)
         .order('data', ascending: false);
 
     return List<Map<String, dynamic>>.from(response);

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MyApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Você pode customizar o tema principal do seu app aqui -->
+    </style>
+
+    <!-- Tema da Splash Screen -->
+    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">
+        <!-- Cor de fundo da tela -->
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+
+        <!-- Ícone que será exibido no centro -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+
+        <!-- Cor de fundo para o ícone (opcional) -->
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+
+        <!-- Tema que será aplicado APÓS a splash screen.
+             Ele aponta para o tema principal definido acima. -->
+        <item name="postSplashScreenTheme">@style/Theme.MyApp</item>
+    </style>
+</resources>
