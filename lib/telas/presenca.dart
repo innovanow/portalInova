@@ -6,7 +6,7 @@ import '../services/presenca_service.dart';
 import 'package:intl/intl.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
-import 'historico_chamada.dart';
+import 'historico_chamada.dart' hide auth;
 
 class RegistrarPresencaPage extends StatefulWidget {
   final String professorId;
@@ -162,6 +162,26 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
       locale: const Locale('pt', 'BR'),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            datePickerTheme: const DatePickerThemeData(
+              confirmButtonStyle: ButtonStyle(
+                textStyle: WidgetStatePropertyAll(TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+              ),
+              cancelButtonStyle: ButtonStyle(
+                textStyle: WidgetStatePropertyAll(TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+              ),
+
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (data != null) {

@@ -135,107 +135,8 @@ class _CadastroJovemState extends State<CadastroJovem> {
     });
   }
 
-  Future<void> _gerarPdfRelatorio(List<Map<String, dynamic>> jovens) async {
-    final doc = pw.Document();
-    const headers = ['Nome', 'Turma', 'Módulo'];
-
-    // Carrega a imagem SVG do diretório de assets
-    final logoSvg = await rootBundle.loadString('assets/logoInova.svg');
-
-    final data = jovens.map((jovem) {
-      return [
-        jovem['nome'] ?? '',
-        jovem['cod_turma'] ?? 'N/A',
-        jovem['nome_modulo'] ?? 'N/A',
-      ];
-    }).toList();
-
-    // AJUSTE: Usa pw.MultiPage para permitir que o conteúdo se estenda por várias páginas.
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      // Constrói o cabeçalho que se repetirá em cada página
-      header: (pw.Context context) {
-        return pw.Column(children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('Relatório de Jovens',
-                  style:
-                  pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-              pw.SvgImage(svg: logoSvg, width: 60),
-            ],
-          ),
-          pw.Divider(thickness: 2),
-          pw.SizedBox(height: 10),
-        ]);
-      },
-      // Constrói o corpo do documento
-      build: (pw.Context context) => [
-        pw.TableHelper.fromTextArray(
-          headers: headers,
-          data: data,
-          border: pw.TableBorder.all(),
-          headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-          headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-          cellHeight: 30,
-          cellAlignments: {
-            0: pw.Alignment.centerLeft,
-            1: pw.Alignment.center,
-            2: pw.Alignment.centerLeft,
-          },
-          cellPadding: const pw.EdgeInsets.all(5),
-        ),
-      ],
-    ));
-
-    // Exibe a tela de impressão/visualização do PDF
-    try {
-      final bytes = await doc.save();
-
-      if (kIsWeb) {
-        // Lógica para Web: Cria um link de download para forçar o nome do arquivo.
-        final blob = html.Blob([bytes], 'application/pdf');
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        // Cria um elemento <a> invisível
-        final anchor = html.AnchorElement(href: url)
-          ..style.display = 'none'
-          ..setAttribute("download", "Relatorio_Jovens.pdf");
-
-        // Adiciona o elemento ao corpo do documento, clica nele e o remove
-        html.document.body!.append(anchor);
-        anchor.click();
-        anchor.remove();
-
-        // Revoga a URL do objeto para liberar memória
-        html.Url.revokeObjectUrl(url);
-      } else {
-        // Lógica para Mobile/Desktop: Salva em arquivo temporário e usa o SharePlus.
-        final output = await getTemporaryDirectory();
-        final file = File("${output.path}/Relatorio_Jovens.pdf");
-        await file.writeAsBytes(bytes);
-        final files = [XFile(file.path, name: 'Relatorio_Jovens.pdf')];
-
-        final result = await SharePlus.instance.share(ShareParams(
-          files: files,
-          text: 'Confira o relatório de jovens em anexo.',
-          subject: 'Relatório de Jovens',
-        ));
-
-        // Opcional: verificar o status do compartilhamento para depuração
-        if (result.status == ShareResultStatus.success) {
-          debugPrint('Sucesso! Arquivo compartilhado para: ${result.raw}');
-        } else {
-          debugPrint('Compartilhamento finalizado com status: ${result.status}');
-        }
-      }
-    } catch (e) {
-      // Adicione um tratamento de erro, se necessário
-      debugPrint('Erro ao gerar ou abrir o PDF: $e');
-    }
-  }
-
   void _abrirDialogoRelatorio() {
-    // Pega listas únicas de turmas e módulos da lista já filtrada na tela
+    // Pega listas únicas de turmas, módulos, escolas e empresas da lista já filtrada na tela
     final turmas = {
       'Todos',
       ..._jovensFiltrados
@@ -248,9 +149,26 @@ class _CadastroJovemState extends State<CadastroJovem> {
           .map((j) => j['nome_modulo']?.toString())
           .where((m) => m != null && m.isNotEmpty)
     }.toList();
+    // AJUSTE: Adicionada a lista de escolas
+    final escolas = {
+      'Todos',
+      ..._jovensFiltrados
+          .map((j) => j['escola']?.toString())
+          .where((e) => e != null && e.isNotEmpty)
+    }.toList();
+    // AJUSTE: Adicionada a lista de empresas
+    final empresas = {
+      'Todos',
+      ..._jovensFiltrados
+          .map((j) => j['empresa']?.toString())
+          .where((e) => e != null && e.isNotEmpty)
+    }.toList();
 
     String? turmaSelecionada = 'Todos';
     String? moduloSelecionado = 'Todos';
+    // AJUSTE: Adicionadas variáveis de estado para os novos filtros
+    String? escolaSelecionada = 'Todos';
+    String? empresaSelecionada = 'Todos';
 
     showDialog(
       context: context,
@@ -265,75 +183,145 @@ class _CadastroJovemState extends State<CadastroJovem> {
                   color: Colors.white,
                   fontFamily: 'FuturaBold',
                 ),),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<String>(
-                    value: turmaSelecionada,
-                    decoration: InputDecoration(
-                      labelText: "Filtrar por turma",
-                      labelStyle: const TextStyle(color: Colors.white),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Colors.white,
-                          width: 2.0,
+              content: SingleChildScrollView( // Garante que o conteúdo não estoure em telas menores
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      value: turmaSelecionada,
+                      decoration: InputDecoration(
+                        labelText: "Filtrar por turma",
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    dropdownColor: const Color(0xFF0A63AC),
-                    icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                    style: const TextStyle(color: Colors.white),
-                    items: turmas.map((turma) => DropdownMenuItem(value: turma,
-                        child: Text(turma!,
-                          style: const TextStyle(
-                              color: Colors.white
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors.white,
+                            width: 2.0,
                           ),
-                        ))).toList(),
-                    onChanged: (value) {
-                      setStateDialog(() {
-                        turmaSelecionada = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  DropdownButtonFormField<String>(
-                    value: moduloSelecionado,
-                    decoration: InputDecoration(
-                      labelText: "Filtrar por módulo",
-                      labelStyle: const TextStyle(color: Colors.white),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Colors.white,
-                          width: 2.0,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        borderRadius: BorderRadius.circular(8),
                       ),
+                      dropdownColor: const Color(0xFF0A63AC),
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
+                      items: turmas.map((turma) => DropdownMenuItem(value: turma,
+                          child: Text(turma!,
+                            style: const TextStyle(
+                                color: Colors.white
+                            ),
+                          ))).toList(),
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          turmaSelecionada = value;
+                        });
+                      },
                     ),
-                    dropdownColor: const Color(0xFF0A63AC),
-                    icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                    style: const TextStyle(color: Colors.white),
-                    items: modulos.map((modulo) => DropdownMenuItem(value: modulo,
-                        child: Text(modulo!,
-                          style: const TextStyle(
-                              color: Colors.white
+                    const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      value: moduloSelecionado,
+                      decoration: InputDecoration(
+                        labelText: "Filtrar por módulo",
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors.white,
+                            width: 2.0,
                           ),
-                        ))).toList(),
-                    onChanged: (value) {
-                      setStateDialog(() {
-                        moduloSelecionado = value;
-                      });
-                    },
-                  ),
-                ],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      dropdownColor: const Color(0xFF0A63AC),
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
+                      items: modulos.map((modulo) => DropdownMenuItem(value: modulo,
+                          child: Text(modulo!,
+                            style: const TextStyle(
+                                color: Colors.white
+                            ),
+                          ))).toList(),
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          moduloSelecionado = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    // AJUSTE: Adicionado Dropdown para filtrar por Escola
+                    DropdownButtonFormField<String>(
+                      value: escolaSelecionada,
+                      decoration: InputDecoration(
+                        labelText: "Filtrar por escola",
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors.white,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      dropdownColor: const Color(0xFF0A63AC),
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
+                      items: escolas.map((escola) => DropdownMenuItem(value: escola,
+                          child: Text(escola!,
+                            style: const TextStyle(
+                                color: Colors.white
+                            ),
+                          ))).toList(),
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          escolaSelecionada = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    // AJUSTE: Adicionado Dropdown para filtrar por Empresa
+                    DropdownButtonFormField<String>(
+                      value: empresaSelecionada,
+                      decoration: InputDecoration(
+                        labelText: "Filtrar por empresa",
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors.white,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      dropdownColor: const Color(0xFF0A63AC),
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
+                      items: empresas.map((empresa) => DropdownMenuItem(value: empresa,
+                          child: Text(empresa!,
+                            style: const TextStyle(
+                                color: Colors.white
+                            ),
+                          ))).toList(),
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          empresaSelecionada = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -385,6 +373,20 @@ class _CadastroJovemState extends State<CadastroJovem> {
                       }).toList();
                     }
 
+                    // AJUSTE: Adicionada a lógica de filtro para escola
+                    if (escolaSelecionada != 'Todos') {
+                      jovensParaPdf = jovensParaPdf.where((jovem) {
+                        return jovem['escola'] == escolaSelecionada;
+                      }).toList();
+                    }
+
+                    // AJUSTE: Adicionada a lógica de filtro para empresa
+                    if (empresaSelecionada != 'Todos') {
+                      jovensParaPdf = jovensParaPdf.where((jovem) {
+                        return jovem['empresa'] == empresaSelecionada;
+                      }).toList();
+                    }
+
                     Navigator.of(context).pop();
                     if (jovensParaPdf.isNotEmpty) {
                       if (kDebugMode) {
@@ -408,6 +410,137 @@ class _CadastroJovemState extends State<CadastroJovem> {
       },
     );
   }
+
+  pw.TextAlign _getHorizontalAlignment(int cellIndex) {
+    switch (cellIndex) {
+      case 1: // Coluna "Turma"
+        return pw.TextAlign.center;
+      default: // Outras colunas
+        return pw.TextAlign.left;
+    }
+  }
+
+  Future<void> _gerarPdfRelatorio(List<Map<String, dynamic>> jovens) async {
+    final doc = pw.Document();
+    const headers = ['Nome', 'Turma', 'Módulo', 'Escola', 'Empresa'];
+
+    // Carrega a imagem SVG do diretório de assets
+    final logoSvg = await rootBundle.loadString('assets/logoInova.svg');
+
+    final data = jovens.map((jovem) {
+      return [
+        jovem['nome'] ?? 'N/A',
+        jovem['cod_turma'] ?? 'N/A',
+        jovem['nome_modulo'] ?? 'N/A',
+        jovem['escola'] ?? 'N/A',
+        jovem['empresa'] ?? 'N/A',
+      ];
+    }).toList();
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        header: (pw.Context context) {
+          return pw.Column(children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('Relatório de Jovens',
+                    style: pw.TextStyle(
+                        fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                pw.SvgImage(svg: logoSvg, width: 60),
+              ],
+            ),
+            pw.Divider(thickness: 2),
+            pw.SizedBox(height: 10),
+          ]);
+        },
+        build: (pw.Context context) => [
+          // Usando pw.Table diretamente para ter mais controle e compatibilidade
+          pw.Table(
+            border: pw.TableBorder.all(),
+            // Define o alinhamento vertical padrão para todas as células da tabela
+            defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+            columnWidths: {
+              0: const pw.FlexColumnWidth(2.5), // Nome
+              1: const pw.FlexColumnWidth(2),   // Turma
+              2: const pw.FlexColumnWidth(3),   // Módulo
+              3: const pw.FlexColumnWidth(3),   // Escola
+              4: const pw.FlexColumnWidth(2.5), // Empresa
+            },
+            children: [
+              // Linha do Cabeçalho
+              pw.TableRow(
+                decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                children: headers.map((header) {
+                  return pw.Padding(
+                    padding: const pw.EdgeInsets.all(5),
+                    child: pw.Text(
+                      header,
+                      textAlign: pw.TextAlign.center,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                  );
+                }).toList(),
+              ),
+              // Linhas com os dados dos jovens
+              ...data.map((rowData) {
+                return pw.TableRow(
+                  children: rowData.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final text = entry.value;
+                    // AJUSTE: Define que as colunas 3 (Escola) e 4 (Empresa) terão o texto cortado.
+                    final bool isTruncatedColumn = idx == 3 || idx == 4;
+
+                    return pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        text,
+                        textAlign: _getHorizontalAlignment(idx),
+                        // Aplica maxLines somente às colunas especificadas
+                        maxLines: isTruncatedColumn ? 3 : null,
+                      ),
+                    );
+                  }).toList(),
+                );
+              }),
+            ],
+          )
+        ],
+      ),
+    );
+
+    // Bloco para salvar e compartilhar o PDF (mantido como estava)
+    try {
+      final bytes = await doc.save();
+      if (kIsWeb) {
+        final blob = html.Blob([bytes], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..style.display = 'none'
+          ..setAttribute("download", "Relatorio_Jovens.pdf");
+        html.document.body!.append(anchor);
+        anchor.click();
+        anchor.remove();
+        html.Url.revokeObjectUrl(url);
+      }
+      else {
+        final output = await getTemporaryDirectory();
+        final file = File("${output.path}/Relatorio_Jovens.pdf");
+        await file.writeAsBytes(bytes);
+        final files = [XFile(file.path, name: 'Relatorio_Jovens.pdf')];
+        await SharePlus.instance.share(ShareParams(
+          files: files,
+          text: 'Confira o relatório de jovens em anexo.',
+          subject: 'Relatório de Jovens',
+        ));
+      }
+    } catch (e) {
+      debugPrint('Erro ao gerar ou abrir o PDF: $e');
+    }
+  }
+
+
 
   void _abrirFormulario({Map<String, dynamic>? jovem}) {
     showDialog(
@@ -1380,19 +1513,22 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                                             size: 20,
                                                           ),
                                                           onPressed:
-                                                              () => Navigator.of(
-                                                                context,
-                                                              ).pushReplacement(
-                                                                MaterialPageRoute(
-                                                                  builder:
-                                                                      (
+                                                              () {
+                                                            print(jovem);
+                                                                Navigator.of(
+                                                                  context,
+                                                                ).pushReplacement(
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (
                                                                         _,
-                                                                      ) => JovemAprendizDetalhes(
-                                                                        jovem:
-                                                                            jovem,
-                                                                      ),
-                                                                ),
-                                                              ),
+                                                                        ) => JovemAprendizDetalhes(
+                                                                      jovem:
+                                                                      jovem,
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
                                                         ),
                                                         Container(
                                                           width: 2,

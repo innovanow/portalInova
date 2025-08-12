@@ -356,6 +356,15 @@ class PresencaService {
     return List<Map<String, dynamic>>.from(response);
   }
 
+  Future<List<Map<String, dynamic>>> buscarHistoricoChamadasGeral() async {
+    final response = await _client
+        .from('historico_chamadas')
+        .select('*')
+        .order('data', ascending: false);
+
+    return List<Map<String, dynamic>>.from(response);
+  }
+
   Future<void> removerChamada(DateTime data, String moduloId) async {
     await _client
         .from('presencas')
@@ -385,5 +394,4 @@ class PresencaService {
       };
     }).toList();
   }
-
 }

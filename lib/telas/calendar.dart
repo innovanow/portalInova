@@ -120,7 +120,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
           if (dataStr != null) {
             final dia = DateTime.parse(dataStr.toString());
             final diaSemHora = DateTime(dia.year, dia.month, dia.day);
-            final moduloInfo = {'id': idModulo, 'nome': nomeModulo};
+            final moduloInfo = {'id': idModulo, 'nome': nomeModulo, 'horario': dia};
 
             if (novosDiasModulos.containsKey(diaSemHora)) {
               if (!novosDiasModulos[diaSemHora]!.any((m) => m['id'] == idModulo)) {
@@ -221,6 +221,9 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                 final nomeModulo = moduloInfo['nome'] as String;
                 final idModulo = moduloInfo['id'] as String;
 
+                final DateTime horario = moduloInfo['horario'] as DateTime;
+                final String horarioFormatado = DateFormat('HH:mm', 'pt_BR').format(horario);
+
                 return FutureBuilder<int>(
                   future: _getContagemJovens(idModulo),
                   builder: (context, snapshot) {
@@ -230,7 +233,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                         subtitleText = 'Erro ao carregar';
                       } else {
                         final count = snapshot.data ?? 0;
-                        subtitleText = '$count ${count == 1 ? 'jovem' : 'jovens'}';
+                        subtitleText = 'Início: $horarioFormatado h(s) - $count ${count == 1 ? 'jovem' : 'jovens'}';
                       }
                     }
                     return ListTile(

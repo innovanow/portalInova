@@ -107,7 +107,6 @@ class JovemService {
     required String? dataNascimento,
     required String email,
     required String senha,
-    // ... (todos os outros parâmetros continuam aqui)
     required String nomePai,
     required String nomeMae,
     required String nomeResponsavel,
@@ -162,48 +161,16 @@ class JovemService {
     required String? areaAprendizado,
   }) async {
     try {
-      final supabaseAdmin = Supabase.instance.client;
-
-      // 1. Verifica se o CPF já existe
-      final existeCpf = await supabaseAdmin
-          .from('jovens_aprendizes')
-          .select('id')
-          .eq('cpf', cpf)
-          .maybeSingle();
-
-      if (existeCpf != null) return "CPF já cadastrado.";
-
-      // 2. Cria o novo usuário usando o cliente admin, sem fazer login.
-      final adminUserResponse = await supabaseAdmin.auth.admin.createUser(
-        AdminUserAttributes(
-          email: email,
-          password: senha,
-          emailConfirm: true, // Já cria o usuário como confirmado
-        ),
-      );
-
-      final novoUsuario = adminUserResponse.user;
-      if (novoUsuario == null) {
-        return "Erro ao criar o usuário de autenticação.";
-      }
-      final userId = novoUsuario.id;
-
-      // 3. Insere na tabela 'users'
-      await supabaseAdmin.from('users').insert({
-        'id': userId,
-        'nome': nome,
-        'email': email,
-        'tipo': 'jovem_aprendiz',
-      });
-
-      // 4. Insere na tabela 'jovens_aprendizes'
-      await supabaseAdmin.from('jovens_aprendizes').insert({
-        'id': userId,
+      // 1. Monta o objeto com todos os dados do jovem.
+      // As chaves devem corresponder exatamente às colunas da sua tabela 'jovens_aprendizes'.
+      final jovemData = {
         'nome': nome,
         'data_nascimento': dataNascimento,
-        'cpf': cpf,
+        'email': email,
+        'senha': senha, // A senha será usada pela Edge Function e não será salva no banco
         'nome_pai': nomePai,
         'nome_mae': nomeMae,
+        'nome_responsavel': nomeResponsavel,
         'endereco': endereco,
         'numero': numero,
         'bairro': bairro,
@@ -215,19 +182,21 @@ class JovemService {
         'escola_id': escola,
         'empresa_id': empresa,
         'escolaridade': escolaridade,
-        'remuneracao': converterParaNumero(remuneracao),
-        'horas_trabalho': horasTrabalho,
+        'cpf': cpf,
+        'cpf_mae': cpfMae,
+        'cpf_pai': cpfPai,
         'rg': rg,
+        'rg_mae': rgMae,
+        'rg_pai': rgPai,
         'cidade_estado_natal': cidadeEstadoNatal,
         'cod_carteira_trabalho': codCarteiraTrabalho,
         'estado_civil_pai': estadoCivilPai,
         'estado_civil_mae': estadoCivilMae,
-        'cpf_pai': cpfPai,
-        'cpf_mae': cpfMae,
-        'rg_pai': rgPai,
-        'rg_mae': rgMae,
+        'estado_civil': estadoCivil,
+        'estado_civil_responsavel': estadoCivilResponsavel,
+        'remuneracao': converterParaNumero(remuneracao),
+        'horas_trabalho': horasTrabalho,
         'turma_id': turma,
-        'status': 'ativo',
         'sexo_biologico': sexoBiologico,
         'orientacao_sexual': orientacaoSexual,
         'identidade_genero': identidadeGenero,
@@ -251,18 +220,34 @@ class JovemService {
         'instagram': instagram,
         'linkedin': linkedin,
         'area_aprendizado': areaAprendizado,
-      });
+        'status': 'ativo', // Define o status inicial
+      };
 
-      return null; // Sucesso
-    } on AuthException catch (e) {
-      // Trata erros específicos de autenticação, como email já existente
-      return "Erro de autenticação: ${e.message}";
+      // 2. Invoca a Função de Borda 'cadastrar-jovem'
+      final response = await supabase.functions.invoke(
+        'cadastrar-jovem',
+        body: {'jovemData': jovemData},
+      );
+
+      // 3. Trata a resposta da função
+      if (response.status != 201) { // 201 significa 'Created'
+        final responseBody = response.data;
+        // Pega a mensagem de erro específica retornada pela sua função de borda
+        final errorMessage = responseBody?['error'] ?? "Erro desconhecido ao cadastrar o jovem.";
+        return errorMessage;
+      }
+
+      // Se chegou aqui, o cadastro foi um sucesso
+      return null;
+
     } catch (e) {
-      return "Erro inesperado ao cadastrar: ${e.toString()}";
+      // Trata erros de rede ou outros problemas inesperados
+      return "Erro inesperado ao se comunicar com o servidor: ${e.toString()}";
     }
   }
 
   // Precadastro novo jovem
+
   Future<String?> precadastrarjovem({
     required String nome,
     required String? dataNascimento,
@@ -322,70 +307,15 @@ class JovemService {
     required String? areaAprendizado,
   }) async {
     try {
-      final supabase = Supabase.instance.client;
-
-      // 1. Verifica se o CPF já existe
-      final existeCpf = await supabase
-          .from('jovens_aprendizes')
-          .select('id')
-          .eq('cpf', cpf)
-          .maybeSingle();
-
-      if (existeCpf != null) return "CPF já cadastrado.";
-
-      // 2. Verifica se o usuário já está na tabela 'users'
-      final userDB = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', email)
-          .maybeSingle();
-
-      String userId;
-
-      if (userDB != null) {
-        // Usuário já existe na tabela 'users'
-        userId = userDB['id'];
-      } else {
-        // 3. Tenta autenticar para ver se já está no Auth
-        try {
-          final login = await supabase.auth.signInWithPassword(
-            email: email,
-            password: senha,
-          );
-          userId = login.user?.id ?? '';
-        } catch (_) {
-          // 4. Se não está no Auth, cria novo usuário
-          final signUpResp = await supabase.auth.signUp(
-            email: email,
-            password: senha,
-          );
-          userId = signUpResp.user?.id ?? '';
-          if (userId.isEmpty) return "Erro ao criar usuário no Supabase Auth.";
-        }
-
-        // 5. Insere na tabela users se ainda não estava
-        try {
-          await supabase.from('users').insert({
-            'id': userId,
-            'nome': nome,
-            'email': email,
-            'tipo': 'jovem_aprendiz',
-          });
-        } catch (e) {
-          // Ignora erro se já existe (duplicado)
-          if (!e.toString().contains("duplicate key")) {
-            return "Erro ao salvar dados do usuário: $e";
-          }
-        }
-      }
-
-      // 6. Insere em jovens_aprendizes
-      await supabase.from('jovens_aprendizes').insert({
-        'id': userId,
+      // 1. Monta o objeto com os dados para enviar à Edge Function
+      final jovemData = {
         'nome': nome,
         'data_nascimento': dataNascimento,
+        'email': email,
+        'senha': senha,
         'nome_pai': nomePai,
         'nome_mae': nomeMae,
+        'nome_responsavel': nomeResponsavel,
         'endereco': endereco,
         'numero': numero,
         'bairro': bairro,
@@ -398,19 +328,20 @@ class JovemService {
         'empresa_id': empresa,
         'escolaridade': escolaridade,
         'cpf': cpf,
-        'remuneracao': converterParaNumero(remuneracao),
-        'horas_trabalho': horasTrabalho,
+        'cpf_mae': cpfMae,
+        'cpf_pai': cpfPai,
         'rg': rg,
+        'rg_mae': rgMae,
+        'rg_pai': rgPai,
         'cidade_estado_natal': cidadeEstadoNatal,
         'cod_carteira_trabalho': codCarteiraTrabalho,
         'estado_civil_pai': estadoCivilPai,
         'estado_civil_mae': estadoCivilMae,
-        'cpf_pai': cpfPai,
-        'cpf_mae': cpfMae,
-        'rg_pai': rgPai,
-        'rg_mae': rgMae,
+        'estado_civil': estadoCivil,
+        'estado_civil_responsavel': estadoCivilResponsavel,
+        'remuneracao': converterParaNumero(remuneracao),
+        'horas_trabalho': horasTrabalho,
         'turma_id': turma,
-        'status': 'candidato',
         'sexo_biologico': sexoBiologico,
         'orientacao_sexual': orientacaoSexual,
         'identidade_genero': identidadeGenero,
@@ -434,15 +365,30 @@ class JovemService {
         'instagram': instagram,
         'linkedin': linkedin,
         'area_aprendizado': areaAprendizado,
-      });
+      };
 
+      // 2. Invoca a nova Função de Borda 'precadastrar-jovem'
+      final response = await supabase.functions.invoke(
+        'precadastrar-jovem',
+        body: {'jovemData': jovemData},
+      );
+
+      // 3. Trata a resposta da função
+      if (response.status != 201) { // 201 significa 'Created'
+        final responseBody = response.data;
+        final errorMessage = responseBody?['error'] ?? "Erro desconhecido durante o pré-cadastro.";
+        return errorMessage;
+      }
+
+      // Sucesso
       return null;
+
     } catch (e) {
-      return "Erro inesperado ao cadastrar: ${e.toString()}";
+      return "Erro inesperado ao se comunicar com o servidor: ${e.toString()}";
     }
   }
 
-    // Atualizar escola
+    // Atualizar jovem
   Future<String?> atualizarjovem({
     required String id,
     required String nome,

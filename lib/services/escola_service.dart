@@ -17,7 +17,7 @@ class EscolaService {
     await supabase.from('escolas').update({'status': 'ativo'}).eq('id', id);
   }
 
-  // Cadastrar uma nova escola
+// Cadastrar uma nova escola
   Future<String?> cadastrarescola({
     required String nome,
     required String email,
@@ -31,60 +31,39 @@ class EscolaService {
     required String bairro,
   }) async {
     try {
-      // 1. Verifica se o CNPJ já existe
-      final existeCnpj = await supabase
-          .from('escolas')
-          .select('id')
-          .eq('cnpj', cnpj)
-          .maybeSingle();
-
-      if (existeCnpj != null) {
-        return "CNPJ já cadastrado.";
-      }
-
-      // 2. Cria o novo usuário usando o cliente admin, sem fazer login.
-      final adminUserResponse = await supabase.auth.admin.createUser(
-        AdminUserAttributes(
-          email: email,
-          password: senha,
-          emailConfirm: true, // Já cria o usuário como confirmado
-        ),
-      );
-
-      final novoUsuario = adminUserResponse.user;
-      if (novoUsuario == null) {
-        return "Erro ao criar o usuário de autenticação.";
-      }
-      final userId = novoUsuario.id;
-
-      // 3. Insere na tabela 'users'
-      await supabase.from('users').insert({
-        'id': userId,
+      // 1. Monta o objeto com os dados para enviar à Edge Function
+      final escolaData = {
         'nome': nome,
         'email': email,
-        'tipo': 'escola',
-      });
-
-      // 4. Insere na tabela 'escolas'
-      await supabase.from('escolas').insert({
-        'id': userId,
-        'nome': nome,
+        'senha': senha,
         'cnpj': cnpj,
         'endereco': endereco,
-        'cidade_estado': cidadeEstado,
+        'telefone': telefone,
         'numero': numero,
         'cep': cep,
-        'telefone': telefone,
-        'status': 'ativo',
+        'cidade_estado': cidadeEstado,
         'bairro': bairro,
-      });
+      };
 
-      return null; // Sucesso
-    } on AuthException catch (e) {
-      // Trata erros específicos de autenticação, como email já existente
-      return "Erro de autenticação: ${e.message}";
+      // 2. Invoca a Função de Borda 'cadastrar-escola'
+      final response = await supabase.functions.invoke(
+        'cadastrar-escola',
+        body: {'escolaData': escolaData},
+      );
+
+      // 3. Trata a resposta da função
+      if (response.status != 201) { // 201 significa 'Created'
+        final responseBody = response.data;
+        final errorMessage = responseBody?['error'] ?? "Erro desconhecido ao cadastrar a escola.";
+        return errorMessage;
+      }
+
+      // Sucesso
+      return null;
+
     } catch (e) {
-      return "Erro inesperado ao cadastrar: ${e.toString()}";
+      // Trata erros de rede ou outros problemas inesperados
+      return "Erro inesperado ao se comunicar com o servidor: ${e.toString()}";
     }
   }
 

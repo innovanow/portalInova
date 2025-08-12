@@ -424,107 +424,107 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                               color: Colors.black,)
                         ),
                         Text(
-                          "${widget.jovem['status']?.toUpperCase()}\nCÓD: ${widget.jovem['codigo']}",
+                          "${widget.jovem['status']?.toUpperCase()}\nCÓD: ${widget.jovem['codigo'].toString()}",
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.grey),
                         ),
                         const SizedBox(height: 20),
                         _buildSection("📋 Dados Pessoais", [
                           _info("Data de Nascimento", formatarDataParaExibicao(widget.jovem['data_nascimento'])),
-                          _info("CPF", widget.jovem['cpf']),
-                          _info("RG", widget.jovem['rg']),
-                          _info("Código PIS", widget.jovem['cod_pis']),
-                          _info("Carteira de Trabalho", widget.jovem['cod_carteira_trabalho']),
-                          _info("Cidade Natal", widget.jovem['cidade_estado_natal']),
+                          _info("CPF", widget.jovem['cpf'] ?? '-'),
+                          _info("RG", widget.jovem['rg'] ?? '-'),
+                          _info("Código PIS", widget.jovem['cod_pis'] ?? '-'),
+                          _info("Carteira de Trabalho", widget.jovem['cod_carteira_trabalho'] ?? '-'),
+                          _info("Cidade Natal", widget.jovem['cidade_estado_natal'] ?? '-'),
                         ]),
                         _buildSection("📞 Contato", [
-                          _info("Telefone Jovem", widget.jovem['telefone_jovem']),
+                          _info("Telefone Jovem", widget.jovem['telefone_jovem'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("Telefone Pai", widget.jovem['telefone_pai']),
+                          _info("Telefone Pai", widget.jovem['telefone_pai'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("Telefone Mãe", widget.jovem['telefone_mae']),
+                          _info("Telefone Mãe", widget.jovem['telefone_mae'] ?? '-'),
                           if(widget.jovem['mora_com'] == "Outro")
-                          _info("Telefone Responsável", widget.jovem['telefone_mae']),
+                          _info("Telefone Responsável", widget.jovem['telefone_mae'] ?? '-'),
                         ]),
                         _buildSection("🏠 Endereço", [
-                          _info("Endereço", widget.jovem['endereco']),
-                          _info("Número", widget.jovem['numero']),
-                          _info("Bairro", widget.jovem['bairro']),
-                          _info("Cidade", widget.jovem['cidade']),
-                          _info("Estado", widget.jovem['estado']),
-                          _info("CEP", widget.jovem['cep']),
+                          _info("Endereço", widget.jovem['endereco'] ?? '-'),
+                          _info("Número", widget.jovem['numero'] ?? '-'),
+                          _info("Bairro", widget.jovem['bairro'] ?? '-'),
+                          _info("Cidade", widget.jovem['cidade'] ?? '-'),
+                          _info("Estado", widget.jovem['estado'] ?? '-'),
+                          _info("CEP", widget.jovem['cep'] ?? '-'),
                         ]),
                         _buildSection("🎓 Educação", [
-                          _info("Escola", widget.jovem['escola']),
-                          _info("Escolaridade", widget.jovem['escolaridade']),
-                          _info("Estudando", widget.jovem['estudando']),
-                          _info("Turno da Escola", widget.jovem['turno_escola']),
-                          _info("Ano Início", widget.jovem['ano_inicio_escola'].toString()),
-                          _info("Ano Conclusão", widget.jovem['ano_conclusao_escola'].toString()),
-                          _info("Instituição", widget.jovem['instituicao_escola']),
-                          _info("Informática", widget.jovem['informatica']),
-                          _info("Habilidade em Destaque", widget.jovem['habilidade_destaque']),
+                          _info("Escola", widget.jovem['escola'] ?? '-'),
+                          _info("Escolaridade", widget.jovem['escolaridade'] ?? '-'),
+                          _info("Estudando", widget.jovem['estudando'] ?? '-'),
+                          _info("Turno da Escola", widget.jovem['turno_escola'] ?? '-'),
+                          _info("Ano Início", widget.jovem['ano_inicio_escola'].toString() == 'null' ? '-' : widget.jovem['ano_inicio_escola'].toString()),
+                          _info("Ano Conclusão", widget.jovem['ano_conclusao_escola'].toString() == 'null' ? '-' : widget.jovem['ano_conclusao_escola'].toString()),
+                          _info("Instituição", widget.jovem['instituicao_escola'] ?? '-'),
+                          _info("Informática", widget.jovem['informatica'] ?? '-'),
+                          _info("Habilidade em Destaque", widget.jovem['habilidade_destaque'] ?? '-'),
                         ]),
                         _buildSection("🧬 Identidade e Gênero", [
-                          _info("Sexo Biológico", widget.jovem['sexo_biologico']),
-                          _info("Orientação Sexual", widget.jovem['orientacao_sexual']),
-                          _info("Identidade de Gênero", widget.jovem['identidade_genero']),
-                          _info("Cor", widget.jovem['cor']),
-                          _info("PCD", widget.jovem['pcd']),
+                          _info("Sexo Biológico", widget.jovem['sexo_biologico'] ?? '-'),
+                          _info("Orientação Sexual", widget.jovem['orientacao_sexual'] ?? '-'),
+                          _info("Identidade de Gênero", widget.jovem['identidade_genero'] ?? '-'),
+                          _info("Cor", widget.jovem['cor'] ?? '-'),
+                          _info("PCD", widget.jovem['pcd'] ?? '-'),
                         ]),
           
                         _buildSection("👨‍👩‍👧 Família", [
-                          _info("Mora com", widget.jovem['mora_com']),
+                          _info("Mora com", widget.jovem['mora_com'] ?? '-'),
                           if(widget.jovem['mora_com'] == "Outro")
-                          _info("Nome do Responsável", widget.jovem['nome_responsavel']),
+                          _info("Nome do Responsável", widget.jovem['nome_responsavel'] ?? '-'),
                           if(widget.jovem['mora_com'] == "Outro")
-                          _info("Estado Civil do Responsável", widget.jovem['estado_civil_responsavel']),
+                          _info("Estado Civil do Responsável", widget.jovem['estado_civil_responsavel'] ?? '-'),
                           if(widget.jovem['mora_com'] == "Outro")
-                          _info("CPF do Responsável", widget.jovem['cpf_responsavel']),
+                          _info("CPF do Responsável", widget.jovem['cpf_responsavel'] ?? '-'),
                           if(widget.jovem['mora_com'] == "Outro")
-                          _info("RG do Responsável", widget.jovem['rg_responsavel']),
-                          _info("Email do Responsável", widget.jovem['email_responsavel']),
+                          _info("RG do Responsável", widget.jovem['rg_responsavel'] ?? '-'),
+                          _info("Email do Responsável", widget.jovem['email_responsavel'] ?? '-'),
                           const SizedBox(height: 10),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("Nome do Pai", widget.jovem['nome_pai']),
+                          _info("Nome do Pai", widget.jovem['nome_pai'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("Estado Civil do Pai", widget.jovem['estado_civil_pai']),
+                          _info("Estado Civil do Pai", widget.jovem['estado_civil_pai'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("CPF do Pai", widget.jovem['cpf_pai']),
+                          _info("CPF do Pai", widget.jovem['cpf_pai'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("RG do Pai", widget.jovem['rg_pai']),
+                          _info("RG do Pai", widget.jovem['rg_pai'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
                           const SizedBox(height: 10),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("Nome da Mãe", widget.jovem['nome_mae']),
+                          _info("Nome da Mãe", widget.jovem['nome_mae'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("Estado Civil da Mãe", widget.jovem['estado_civil_mae']),
+                          _info("Estado Civil da Mãe", widget.jovem['estado_civil_mae'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("CPF da Mãe", widget.jovem['cpf_mae']),
+                          _info("CPF da Mãe", widget.jovem['cpf_mae'] ?? '-'),
                           if(widget.jovem['mora_com'] != "Outro")
-                          _info("RG da Mãe", widget.jovem['rg_mae']),
+                          _info("RG da Mãe", widget.jovem['rg_mae'] ?? '-'),
                           const SizedBox(height: 10),
-                          _info("Possui Filhos?", widget.jovem['possui_filhos']),
-                          _info("Qtd. Membros Família", widget.jovem['qtd_membros_familia']),
-                          _info("Recebe Benefício?", widget.jovem['beneficio_assistencial']),
-                          _info("Cadastro no CRAS", widget.jovem['cadastro_cras']),
-                          _info("Cometeu Infração?", widget.jovem['infracao']),
+                          _info("Possui Filhos?", widget.jovem['possui_filhos'] ?? '-'),
+                          _info("Qtd. Membros Família", widget.jovem['qtd_membros_familia'] ?? '-'),
+                          _info("Recebe Benefício?", widget.jovem['beneficio_assistencial'] ?? '-'),
+                          _info("Cadastro no CRAS", widget.jovem['cadastro_cras'].toString()),
+                          _info("Cometeu Infração?", widget.jovem['infracao'].toString()),
                           _info("Renda Mensal", widget.jovem['renda_mensal'] != null
                               ? "R\$ ${formatarParaDuasCasas(double.parse(widget.jovem['renda_mensal'].toString()))}"
                               : "-"),
                         ]),
                         _buildSection("🏢 Empresa", [
-                          _info("Empresa", widget.jovem['empresa']),
-                          _info("Trabalhando", widget.jovem['trabalhando']),
-                          _info("Área de Aprendizado", widget.jovem['area_aprendizado']),
-                          _info("Horas de Trabalho", widget.jovem['horas_trabalho']),
+                          _info("Empresa", widget.jovem['empresa'] ?? '-'),
+                          _info("Trabalhando", widget.jovem['trabalhando'] ?? '-'),
+                          _info("Área de Aprendizado", widget.jovem['area_aprendizado'] ?? '-'),
+                          _info("Horas de Trabalho", widget.jovem['horas_trabalho'] ?? '-'),
                           _info(
                               "Remuneração",
                               "R\$ ${(double.tryParse(widget.jovem['remuneracao']?.toString() ?? '') ?? 0.0).toStringAsFixed(2)}"),
                         ]),
                         _buildSection("🌐 Redes Sociais", [
-                          _info("Instagram", widget.jovem['instagram']),
-                          _info("LinkedIn", widget.jovem['linkedin']),
+                          _info("Instagram", widget.jovem['instagram'] ?? '-'),
+                          _info("LinkedIn", widget.jovem['linkedin'] ?? '-'),
                         ]),
                       ],
                     ),
@@ -566,14 +566,30 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
   }
 
   Widget _info(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
-      child: Row(
-        children: [
-          Text("$label: ", style: const TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value ?? '-', overflow: TextOverflow.ellipsis)),
-        ],
-      ),
-    );
+    try {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6.0),
+        child: Row(
+          children: [
+            Text("$label: ", style: const TextStyle(fontWeight: FontWeight.bold)),
+            Expanded(child: Text(value ?? '-', overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+      );
+    } catch (e, stackTrace) {
+      // Você pode logar o erro ou exibir uma mensagem padrão
+      debugPrint('Erro ao construir _info: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6.0),
+        child: Row(
+          children: const [
+            Text("Erro: ", style: TextStyle(fontWeight: FontWeight.bold)),
+            Expanded(child: Text("Não foi possível carregar a informação", overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+      );
+    }
   }
 }

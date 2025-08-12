@@ -45,72 +45,49 @@ class ProfessorService {
     required String? sexo,
   }) async {
     try {
-      // 1. Verifica se o CPF já existe
-      final existeCpf = await supabase
-          .from('professores')
-          .select('id')
-          .eq('cpf', cpf)
-          .maybeSingle();
-
-      if (existeCpf != null) {
-        return "CPF já cadastrado.";
-      }
-
-      // 2. Cria o novo usuário usando o cliente admin, sem fazer login.
-      final adminUserResponse = await supabase.auth.admin.createUser(
-        AdminUserAttributes(
-          email: email,
-          password: senha,
-          emailConfirm: true, // Já cria o usuário como confirmado
-        ),
-      );
-
-      final novoUsuario = adminUserResponse.user;
-      if (novoUsuario == null) {
-        return "Erro ao criar o usuário de autenticação.";
-      }
-      final userId = novoUsuario.id;
-
-      // 3. Insere na tabela 'users'
-      await supabase.from('users').insert({
-        'id': userId,
-        'nome': nome,
-        'email': email,
-        'tipo': 'professor',
-      });
-
-      // 4. Insere na tabela 'professores'
-      await supabase.from('professores').insert({
-        'id': userId,
+      // 1. Monta o objeto com os dados para enviar à Edge Function
+      final professorData = {
         'nome': nome,
         'data_nascimento': dataNascimento,
+        'endereco': endereco,
+        'numero': numero,
+        'bairro': bairro,
+        'cidade_estado': cidadeEstado,
+        'cep': cep,
+        'telefone': telefone,
+        'formacao': formacao,
         'cpf': cpf,
         'rg': rg,
         'cod_carteira_trabalho': codCarteiraTrabalho,
         'estado_civil': estadoCivil,
-        'endereco': endereco,
-        'cidade_estado': cidadeEstado,
-        'numero': numero,
-        'bairro': bairro,
-        'cep': cep,
-        'telefone': telefone,
-        'formacao': formacao,
         'nacionalidade': nacionalidade,
         'cidade_natal': cidadeEstadoNatal,
-        'status': 'ativo',
+        'email': email,
+        'senha': senha,
         'sexo': sexo,
-      });
+      };
 
-      return null; // Sucesso
+      // 2. Invoca a Função de Borda 'cadastrar-professor'
+      final response = await supabase.functions.invoke(
+        'cadastrar-professor',
+        body: {'professorData': professorData},
+      );
 
-    } on AuthException catch (e) {
-      // Trata erros específicos de autenticação, como email já existente
-      return "Erro de autenticação: ${e.message}";
+      // 3. Trata a resposta da função
+      if (response.status != 201) { // 201 significa 'Created'
+        final responseBody = response.data;
+        final errorMessage = responseBody?['error'] ?? "Erro desconhecido ao cadastrar o professor.";
+        return errorMessage;
+      }
+
+      // Sucesso
+      return null;
+
     } catch (e) {
-      return "Erro inesperado ao cadastrar: ${e.toString()}";
+      // Trata erros de rede ou outros problemas inesperados
+      return "Erro inesperado ao se comunicar com o servidor: ${e.toString()}";
     }
   }
-
 
   // Atualizar escola
   Future<String?> atualizarprofessor({

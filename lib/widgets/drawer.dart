@@ -9,6 +9,7 @@ import '../cadastros/register_professor.dart';
 import '../cadastros/register_turma.dart';
 import '../services/auth_service.dart';
 import '../telas/calendar.dart';
+import '../telas/historico_chamada.dart';
 import '../telas/historico_freq_jovem.dart';
 import '../telas/home.dart';
 import '../telas/jovem.dart';
@@ -68,8 +69,14 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
                 MaterialPageRoute(builder: (_) => RegistrarPresencaPage(professorId: auth.idUsuario.toString(),)));
           }
           if (title == "Histórico de Presenças") {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => HistoricoFrequenciaJovemPage(jovemId: auth.idUsuario.toString(),)));
+            if (auth.tipoUsuario == "professor") {
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => HistoricoFrequenciaJovemPage(jovemId: auth.idUsuario.toString(),)));
+            }
+            if (auth.tipoUsuario == "administrador") {
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => HistoricoChamadasPage(professorId: '',)));
+            }
           }
           if (title == "Meus Módulos") {
             Navigator.of(context).pushReplacement(
@@ -174,7 +181,7 @@ class InovaDrawer extends StatelessWidget {
             buildDrawerItem(Icons.person, "Jovens", context),
           if (auth.tipoUsuario == "professor")
           buildDrawerItem(Icons.check_circle_outline, "Presenças", context),
-          if (auth.tipoUsuario == "jovem_aprendiz")
+          if (auth.tipoUsuario == "jovem_aprendiz" || auth.tipoUsuario == "administrador")
           buildDrawerItem(Icons.event_available, "Histórico de Presenças", context),
           buildDrawerItem(Icons.calendar_month, "Calendário", context),
           if (auth.tipoUsuario == "jovem_aprendiz" || auth.tipoUsuario == "professor")
