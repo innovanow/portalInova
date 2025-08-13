@@ -4,8 +4,8 @@ class EmpresaService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas as empresas
-  Future<List<Map<String, dynamic>>> buscarEmpresas(status) async {
-    final response = await supabase.from('empresas').select().eq('status', '$status').order('nome', ascending: true);
+  Future<List<Map<String, dynamic>>> buscarEmpresas(String status) async {
+    final response = await supabase.from('empresas').select().eq('status', status).order('nome', ascending: true);
     return response;
   }
 

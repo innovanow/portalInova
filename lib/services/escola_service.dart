@@ -4,8 +4,8 @@ class EscolaService {
   final supabase = Supabase.instance.client;
 
   // Buscar todas as escolas
-  Future<List<Map<String, dynamic>>> buscarescolas(status) async {
-    final response = await supabase.from('escolas').select().eq('status', '$status').order('nome', ascending: true);
+  Future<List<Map<String, dynamic>>> buscarescolas(String status) async {
+    final response = await supabase.from('escolas').select().eq('status', status).order('nome', ascending: true);
     return response;
   }
 

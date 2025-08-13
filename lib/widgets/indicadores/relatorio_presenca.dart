@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -25,30 +26,132 @@ class RelatorioService {
     required String localSala,
     required String cargaHoraria,
     required String horario,
+    required int? mes,
+    required int ano,
+    required BuildContext context,
   }) async {
     // --- Carrega a imagem do logo dos assets ---
     final ByteData imageData = await rootBundle.load('assets/sescoop.png');
     final List<int> imageBytes = imageData.buffer.asUint8List();
 
     // --- Busca os dados do Supabase ---
-    debugPrint("Buscando dados do Supabase...");
+    debugPrint("Buscando dados do Supabase... $moduloId");
     final moduloResponse = await _client
         .from('modulos')
-        .select('*, professores(nome), datas')
+        .select('*, professores(nome), datas') // 'datas' é o seu array de timestamps
         .eq('id', moduloId)
         .single();
+    // Converte para DateTime, normaliza para o início do dia, filtra pelo mês e ano, remove duplicatas e ordena
+    final List<dynamic>? datasDoModuloRaw = moduloResponse['datas'] as List<dynamic>?;
 
-    // Converte para DateTime, remove duplicatas e ordena
-    final List<DateTime> datasAula = (moduloResponse['datas'] as List<dynamic>?)
-    !.map((dataStr) => DateTime.parse(dataStr as String))
-        .toSet() // remove duplicatas
-        .toList()
+    if (datasDoModuloRaw == null || datasDoModuloRaw.isEmpty) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return StatefulBuilder(
+              builder: (context, setStateDialog) {
+                return AlertDialog(
+                  backgroundColor: const Color(0xFF0A63AC),
+                  title: Text('Atenção:',
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
+                      color: Colors.white,
+                      fontFamily: 'FuturaBold',
+                    ),),
+                  content: Text('Não há datas de aula definidas para este módulo.',),
+                  actions: [
+                    TextButton(
+                      style: ButtonStyle(
+                        overlayColor: WidgetStateProperty.all(
+                          Colors.transparent,
+                        ), // Remove o destaque ao passar o mouse
+                      ),
+                      child: const Text(
+                        "Fechar",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'FuturaBold',
+                          fontSize: 15,
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      }
+    }
+
+    final Set<DateTime> datasUnicasNormalizadas = {};
+    for (var dataStr in datasDoModuloRaw!) {
+      if (dataStr is String) {
+        try {
+          final DateTime dateTimeCompleta = DateTime.parse(dataStr);
+          // Normaliza para o início do dia (meia-noite) para ignorar o horário
+          final DateTime dataNormalizada = DateTime(dateTimeCompleta.year, dateTimeCompleta.month, dateTimeCompleta.day);
+
+          // Filtra pelo mês e ano desejados ANTES de adicionar ao Set
+          if (dataNormalizada.month == mes && dataNormalizada.year == ano) {
+            datasUnicasNormalizadas.add(dataNormalizada);
+          }
+        } catch (e) {
+          debugPrint("Erro ao parsear data: $dataStr. Erro: $e");
+          // Lide com o erro como preferir, talvez ignorando a data inválida
+        }
+      }
+    }
+
+    if (datasUnicasNormalizadas.isEmpty) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return StatefulBuilder(
+              builder: (context, setStateDialog) {
+                return AlertDialog(
+                  backgroundColor: const Color(0xFF0A63AC),
+                  title: Text('Atenção:',
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
+                      color: Colors.white,
+                      fontFamily: 'FuturaBold',
+                    ),),
+                  content: Text('Não há datas de aula definidas para este módulo no mês e ano especificados.',),
+                  actions: [
+                    TextButton(
+                      style: ButtonStyle(
+                        overlayColor: WidgetStateProperty.all(
+                          Colors.transparent,
+                        ), // Remove o destaque ao passar o mouse
+                      ),
+                      child: const Text(
+                        "Fechar",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'FuturaBold',
+                          fontSize: 15,
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      }
+    }
+
+// Converte o Set de volta para uma List e ordena
+    final List<DateTime> datasAula = datasUnicasNormalizadas.toList()
       ..sort((a, b) => a.compareTo(b)); // mantém em ordem cronológica
 
-
-    if (datasAula.isEmpty) {
-      throw Exception('Não há datas de aula definidas para este módulo.');
-    }
+    debugPrint("Datas de aula únicas para o relatório ($mes/$ano): $datasAula");
 
     final alunosResponse = await _client
         .from('jovens_aprendizes')
@@ -116,17 +219,6 @@ class RelatorioService {
     percentStyle.vAlign = VAlignType.center;
     percentStyle.hAlign = HAlignType.center;
 
-    // Estilos para as células de presença
-    final Style pCellStyle = workbook.styles.add('PCellStyle');
-    pCellStyle.backColorRgb = ui.Color.fromARGB(255, 198, 239, 206); // Verde
-    pCellStyle.borders.all.lineStyle = LineStyle.thin;
-    pCellStyle.hAlign = HAlignType.center;
-
-    final Style fCellStyle = workbook.styles.add('FCellStyle');
-    fCellStyle.backColorRgb = ui.Color.fromARGB(255, 255, 199, 206); // Vermelho
-    fCellStyle.borders.all.lineStyle = LineStyle.thin;
-    fCellStyle.hAlign = HAlignType.center;
-
     // Estilos para a legenda
     final Style legendPStyle = workbook.styles.add('LegendP');
     legendPStyle.backColorRgb = ui.Color.fromARGB(255, 198, 239, 206);
@@ -145,6 +237,7 @@ class RelatorioService {
     legendDStyle.borders.all.lineStyle = LineStyle.thin;
 
 
+
     // --- CABEÇALHO SUPERIOR ---
     const int labelCol1 = 3;
     const int valueCol1Start = 4;
@@ -159,6 +252,10 @@ class RelatorioService {
     final int lastHeaderCol = valueCol2End;
     final int lastColIndex = lastDateCol > lastHeaderCol ? lastDateCol : lastHeaderCol;
 
+
+    Style presensaStyle = workbook.styles.add('style');
+    presensaStyle.fontColor = '#C67878';
+    presensaStyle.bold = true;
 
     // Linha 1: Título
     sheet.getRangeByIndex(1, 1, 1, lastColIndex).merge();
@@ -198,7 +295,7 @@ class RelatorioService {
     sheet.getRangeByName('A2:${String.fromCharCode(64 + lastColIndex)}4').cellStyle = infoStyle;
 
     // --- CABEÇALHO DA TABELA ---
-    final monthName = DateFormat.MMMM('pt_BR').format(datasAula.first).toUpperCase();
+    final monthName = DateFormat.MMMM('pt_BR').format(DateTime(ano, mes!)).toUpperCase();
 
     // Linha 5
     sheet.getRangeByName('A5').setText('Nº');
@@ -225,6 +322,7 @@ class RelatorioService {
 
     sheet.getRangeByName('A5:${String.fromCharCode(64 + lastColIndex)}6').cellStyle = headerStyle;
 
+
     // --- DADOS DOS ALUNOS ---
     for (int i = 0; i < alunos.length; i++) {
       final aluno = alunos[i];
@@ -235,14 +333,44 @@ class RelatorioService {
       sheet.getRangeByIndex(currentRow, 1).setNumber(i + 1);
       sheet.getRangeByIndex(currentRow, 2).setText(aluno['nome']);
 
+// ALTERAÇÃO SUGERIDA
       for (int j = 0; j < datasAula.length; j++) {
         final dataFormatada = DateFormat('yyyy-MM-dd').format(datasAula[j]);
-        final presente = presencasMap[aluno['id']]?[dataFormatada] ?? false;
-        if (presente) totalPresentes++;
-
         final Range cell = sheet.getRangeByIndex(currentRow, 4 + j);
-        cell.setText(presente ? 'P' : 'F');
-        cell.cellStyle = presente ? pCellStyle : fCellStyle;
+
+        final Object? statusPresencaRaw = presencasMap[aluno['id']]?[dataFormatada];
+        String statusPresenca;
+
+        if (statusPresencaRaw is String) {
+          statusPresenca = statusPresencaRaw;
+        } else if (statusPresencaRaw is bool) {
+          statusPresenca = statusPresencaRaw ? 'P' : 'F';
+        } else {
+          statusPresenca = 'F';
+        }
+
+        // 1. Define o texto da célula
+        cell.setText(statusPresenca);
+
+        // 2. ADICIONE ESTA LÓGICA PARA APLICAR O ESTILO
+        switch (statusPresenca) {
+          case 'P':
+            cell.cellStyle = legendPStyle; // Aplica o estilo de presença (verde)
+            break;
+          case 'F':
+            cell.cellStyle = legendFStyle; // Aplica o estilo de falta (vermelho)
+            break;
+          case 'A':
+            cell.cellStyle = legendAStyle; // Exemplo para Atestado
+            break;
+          case 'D':
+            cell.cellStyle = legendDStyle; // Exemplo para Desligado
+            break;
+          default:
+          // Aplica um estilo padrão caso não seja nenhum dos acima
+            cell.cellStyle = borderStyle;
+            break;
+        }
       }
 
       int totalFaltas = datasAula.length - totalPresentes - totalAtestados;
@@ -306,24 +434,25 @@ class RelatorioService {
 
 // Itens da Legenda
     sheet.getRangeByIndex(coordRow + 1, legendCol).setText('P');
-    sheet.getRangeByIndex(coordRow + 1, legendCol).cellStyle = legendPStyle;
+    sheet.getRangeByIndex(coordRow + 1, legendCol).cellStyle = borderStyle;
     sheet.getRangeByIndex(coordRow + 1, legendCol + 1).setText('Presença');
     sheet.getRangeByIndex(coordRow + 1, legendCol + 1).cellStyle = borderStyle;
 
     sheet.getRangeByIndex(coordRow + 2, legendCol).setText('F');
-    sheet.getRangeByIndex(coordRow + 2, legendCol).cellStyle = legendFStyle;
+    sheet.getRangeByIndex(coordRow + 2, legendCol).cellStyle = borderStyle;
     sheet.getRangeByIndex(coordRow + 2, legendCol + 1).setText('Falta');
     sheet.getRangeByIndex(coordRow + 2, legendCol + 1).cellStyle = borderStyle;
 
     sheet.getRangeByIndex(coordRow + 3, legendCol).setText('A');
-    sheet.getRangeByIndex(coordRow + 3, legendCol).cellStyle = legendAStyle;
+    sheet.getRangeByIndex(coordRow + 3, legendCol).cellStyle = borderStyle;
     sheet.getRangeByIndex(coordRow + 3, legendCol + 1).setText('Atestado');
     sheet.getRangeByIndex(coordRow + 3, legendCol + 1).cellStyle = borderStyle;
 
     sheet.getRangeByIndex(coordRow + 4, legendCol).setText('D');
-    sheet.getRangeByIndex(coordRow + 4, legendCol).cellStyle = legendDStyle;
+    sheet.getRangeByIndex(coordRow + 4, legendCol).cellStyle = borderStyle;
     sheet.getRangeByIndex(coordRow + 4, legendCol + 1).setText('Desligado');
     sheet.getRangeByIndex(coordRow + 4, legendCol + 1).cellStyle = borderStyle;
+
 
     // --- AJUSTE FINAL DAS COLUNAS ---
     sheet.autoFitColumn(1);

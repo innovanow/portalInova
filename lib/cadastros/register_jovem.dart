@@ -1514,7 +1514,6 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                                           ),
                                                           onPressed:
                                                               () {
-                                                            print(jovem);
                                                                 Navigator.of(
                                                                   context,
                                                                 ).pushReplacement(

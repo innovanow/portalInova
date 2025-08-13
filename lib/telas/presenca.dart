@@ -6,7 +6,7 @@ import '../services/presenca_service.dart';
 import 'package:intl/intl.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
-import 'historico_chamada.dart' hide auth;
+import 'historico_chamada.dart';
 
 class RegistrarPresencaPage extends StatefulWidget {
   final String professorId;
