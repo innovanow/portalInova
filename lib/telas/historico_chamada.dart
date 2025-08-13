@@ -195,11 +195,32 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Gerar Relatório de Frequência'),
-              content: // ... seu conteúdo do diálogo ...
-              DropdownButton<Map<String, dynamic>>(
+              backgroundColor: Color(0xFF0A63AC),
+              title: Text('Gerar Relatório',
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
+                  color: Colors.white,
+                  fontFamily: 'FuturaBold',
+                ),),
+              content:
+              DropdownButtonFormField<Map<String, dynamic>>(
                 isExpanded: true,
                 value: _moduloSelecionadoParaRelatorio,
+                decoration: InputDecoration(
+                  labelText: "Selecione o Módulo",
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                      color: Colors.white,
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 onChanged: (newValue) {
                   setDialogState(() {
                     _moduloSelecionadoParaRelatorio = newValue;
@@ -208,6 +229,9 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                     _moduloSelecionadoParaRelatorio = newValue;
                   });
                 },
+                dropdownColor: const Color(0xFF0A63AC),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                style: const TextStyle(color: Colors.white),
                 items: moduleList.map((module) {
                   return DropdownMenuItem<Map<String, dynamic>>(
                     value: module,
@@ -220,10 +244,27 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancelar'),
+                  style: ButtonStyle(
+                    overlayColor: WidgetStateProperty.all(
+                      Colors.transparent,
+                    ), // Remove o destaque ao passar o mouse
+                  ),
+                  child: const Text(
+                    "Fechar",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'FuturaBold',
+                      fontSize: 15,
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-                FilledButton(
+                TextButton(
+                  style: ButtonStyle(
+                    overlayColor: WidgetStateProperty.all(
+                      Colors.transparent,
+                    ), // Remove o destaque ao passar o mouse
+                  ),
                   onPressed: _moduloSelecionadoParaRelatorio == null
                       ? null
                       : () async {
@@ -231,14 +272,21 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                     Navigator.pop(ctx);
 
                     await RelatorioService.gerarRelatorioPresenca(
-                      context: context,
                       moduloId: _moduloSelecionadoParaRelatorio!['modulo_id'],
                       turmaId: _moduloSelecionadoParaRelatorio!['turma_id'],
                       moduloNome: _moduloSelecionadoParaRelatorio!['modulo_nome'],
                       codigoTurma: _moduloSelecionadoParaRelatorio!['codigo_turma'].toString(),
+                      instituicao: 'INOVA DE PALOTINA - IIP', projeto: '1348/0038', localSala: '00', cargaHoraria: '0000', horario: '0000',
                     );
                   },
-                  child: const Text('Gerar'),
+                  child: const Text(
+                    "Gerar Relatório",
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontFamily: 'FuturaBold',
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ],
             );
