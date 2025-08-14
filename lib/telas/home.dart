@@ -1399,6 +1399,33 @@ class _HomeState extends State<Home> {
                             ),
                           ),
                         if (auth.tipoUsuario == "professor")
+                          SizedBox(
+                            width: 600,
+                            height: 150,
+                            child: Card(
+                              margin: const EdgeInsets.all(16),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.photo_camera_rounded, color: Color(0xFF0A63AC), size: 30),
+                                    Text(
+                                      "Lembre-se de enviar as fotos das turmas\nno menu Meus Módulos",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Colors.black
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (auth.tipoUsuario == "professor")
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(

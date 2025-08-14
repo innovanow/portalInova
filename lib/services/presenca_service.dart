@@ -40,6 +40,7 @@ class PresencaService {
     final jovem = await _client
         .from('jovens_aprendizes')
         .select('turma_id')
+        .eq('status', 'ativo')
         .eq('id', userId)
         .single();
 
@@ -50,6 +51,7 @@ class PresencaService {
     final modulosResponse = await _client
         .from('modulos')
         .select('datas')
+        .eq('status', 'ativo')
         .eq('turma_id', turmaId);
 
     final diasComAula = <DateTime>{};
@@ -100,16 +102,6 @@ class PresencaService {
     }).toList();
   }
 
-  Future<String?> buscarTurmaIdPorModulo(String moduloId) async {
-    final response = await _client
-        .from('modulos_turmas')
-        .select('turma_id')
-        .eq('modulo_id', moduloId)
-        .maybeSingle();
-
-    return response?['turma_id'] as String?;
-  }
-
   Future<List<Map<String, dynamic>>> listarModulosDoProfessor(String professorId) async {
     // 1. Pega todos os módulos do professor
     final modulos = await _client
@@ -145,6 +137,7 @@ class PresencaService {
     final modulos = await _client
         .from('modulos')
         .select('id')
+        .eq('status', 'ativo')
         .eq('professor_id', professorId);
 
     final moduloIds = modulos.map((m) => m['id']).toList();
@@ -172,6 +165,7 @@ class PresencaService {
     final jovens = await _client
         .from('jovens_aprendizes')
         .select('id, nome')
+        .eq('status', 'ativo')
         .inFilter('id', ids);
 
     final Map<String, String> nomes = {
@@ -189,7 +183,7 @@ class PresencaService {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     // 7. Retornar top 5
-    return Map.fromEntries(sorted.take(5));
+    return Map.fromEntries(sorted.take(3));
   }
 
   Future<Map<String, int>> buscarPresencaMediaPorEmpresa() async {
@@ -200,6 +194,7 @@ class PresencaService {
     final jovens = await _client
         .from('jovens_aprendizes')
         .select('id')
+        .eq('status', 'ativo')
         .eq('empresa_id', empresaId);
 
     if (jovens.isEmpty) return {'Presentes': 0, 'Faltas': 0};
@@ -237,6 +232,7 @@ class PresencaService {
     final jovens = await _client
         .from('jovens_aprendizes')
         .select('id')
+        .eq('status', 'ativo')
         .eq('empresa_id', empresaId);
 
     if (jovens.isEmpty) return {};
@@ -265,6 +261,7 @@ class PresencaService {
     final jovensNomes = await _client
         .from('jovens_aprendizes')
         .select('id, nome')
+        .eq('status', 'ativo')
         .inFilter('id', faltas.keys.toList());
 
     final nomes = {
@@ -294,6 +291,7 @@ class PresencaService {
     final jovens = await _client
         .from('jovens_aprendizes')
         .select('id')
+        .eq('status', 'ativo')
         .eq('escola_id', escolaId);
 
     if (jovens.isEmpty) return {'Presentes': 0, 'Faltas': 0};

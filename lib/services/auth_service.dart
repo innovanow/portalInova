@@ -31,11 +31,15 @@ class AuthService {
             ? DateTime.fromMillisecondsSinceEpoch(session.expiresAt! * 1000)
             : 'desconhecido'}");
         }
-        if (kDebugMode) {
-          print("🔑 Access Token: ${session.accessToken.substring(0, 16)}...");
+        if (session.refreshToken != null) {
+          if (kDebugMode) {
+            print("🔑 Access Token: ${session.accessToken.substring(0, 10)}...");
+          }
         }
-        if (kDebugMode) {
-          print("🔁 Refresh Token: ${session.refreshToken?.substring(0, 16)}...");
+        if (session.refreshToken != null) {
+          if (kDebugMode) {
+            print("🔁 Refresh Token: ${session.refreshToken?.substring(0, 10)}...");
+          }
         }
 
         await _saveSession(session);

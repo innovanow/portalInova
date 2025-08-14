@@ -59,7 +59,10 @@ class RelatorioService {
                       color: Colors.white,
                       fontFamily: 'FuturaBold',
                     ),),
-                  content: Text('Não há datas de aula definidas para este módulo.',),
+                  content: Text('Não há datas de aula definidas para este módulo.',
+                    style: TextStyle(
+                      color: Colors.white,),
+                    ),
                   actions: [
                     TextButton(
                       style: ButtonStyle(
@@ -120,7 +123,9 @@ class RelatorioService {
                       color: Colors.white,
                       fontFamily: 'FuturaBold',
                     ),),
-                  content: Text('Não há datas de aula definidas para este módulo no mês e ano especificados.',),
+                  content: Text('Não há datas de aula definidas para este módulo no mês e ano especificados.',style: TextStyle(
+                    color: Colors.white,),
+                  ),
                   actions: [
                     TextButton(
                       style: ButtonStyle(

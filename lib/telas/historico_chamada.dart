@@ -222,7 +222,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
     List<Map<String, dynamic>> modulos = [];
     final moduloResponse = await client
         .from('modulos')
-        .select('id, nome, professores(nome), datas, turmas(id, codigo_turma)')
+        .select('id, nome, sala, professores(nome), datas, turmas(id, codigo_turma)')
     .order('nome', ascending: true);
 
     modulos = List<Map<String, dynamic>>.from(moduloResponse);
@@ -324,7 +324,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                           );
                         }).toList(),
                         onChanged: (String? novoMes) {
-                          setState(() {
+                          setDialogState(() {
                             mesSelecionado = novoMes;
                             numeroMes = meses.indexOf(novoMes!) + 1;
                           });
@@ -361,7 +361,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                           );
                         }).toList(),
                         onChanged: (int? novoAno) {
-                          setState(() {
+                          setDialogState(() {
                             anoSelecionado = novoAno;
                           });
                         },
@@ -392,7 +392,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                         Colors.transparent,
                       ), // Remove o destaque ao passar o mouse
                     ),
-                    onPressed: _moduloSelecionadoParaRelatorio == null
+                    onPressed: _moduloSelecionadoParaRelatorio == null || mesSelecionado == null || anoSelecionado == null
                         ? null
                         : () async {
                       // 1. Fecha o diálogo de seleção
@@ -409,7 +409,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                         codigoTurma: _moduloSelecionadoParaRelatorio!['turmas']['codigo_turma'] ?? '',
                         instituicao: 'INOVA DE PALOTINA - IIP',
                         projeto: _moduloSelecionadoParaRelatorio!['turmas']['codigo_turma'] ?? '',
-                        localSala: 'N/A',
+                        localSala: _moduloSelecionadoParaRelatorio!['sala'] ?? 'N/A',
                         cargaHoraria: cargaHoraria,
                         horario: '${_moduloSelecionadoParaRelatorio!['datas'][0].split('T')[1]} - ${_moduloSelecionadoParaRelatorio!['datas'][1].split('T')[1]}',
                         mes: numeroMes,
@@ -775,7 +775,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                 ),
               ),
             ),
-            floatingActionButton:
+            floatingActionButton: auth.tipoUsuario == "administrador" ?
             FloatingActionButton(
               tooltip: "Gerar Relatório",
               focusColor: Colors.transparent,
@@ -787,7 +787,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
               },
               backgroundColor: Color(0xFF0A63AC),
               child: const Icon(Icons.picture_as_pdf, color: Colors.white),
-            )
+            ) : null,
         ),
       ),
     );

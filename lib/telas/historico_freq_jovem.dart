@@ -311,6 +311,7 @@ class _HistoricoFrequenciaJovemPageState extends State<HistoricoFrequenciaJovemP
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        if (auth.tipoUsuario == "administrador")
                                         Text("Jovem: ${item['jovem_nome']}"),
                                         Text("Módulo: ${item['modulo_nome']}"),
                                         Text('Professor: ${item['professor_nome']}'),

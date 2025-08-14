@@ -15,6 +15,7 @@ class JovemService {
     final modulos = await supabase
         .from('modulos')
         .select('turma_id')
+        .eq('status', 'ativo')
         .eq('professor_id', professorId)
     // Pede para o banco não trazer linhas onde turma_id é nulo
         .not('turma_id', 'is', null);
@@ -541,7 +542,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoPCD() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('pcd');
+        .select('pcd')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) {
       return {
@@ -601,7 +603,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoEstudando() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('estudando');
+        .select('estudando')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) {
       return {
@@ -631,7 +634,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoBeneficioAssistencial() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('beneficio_assistencial');
+        .select('beneficio_assistencial')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) {
       return {
@@ -661,7 +665,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoTurnoEscola() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('turno_escola');
+        .select('turno_escola')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) {
       return {
@@ -701,7 +706,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoNacionalidade() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('nacionalidade');
+        .select('nacionalidade')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) {
       return {'Brasileira': 0, 'Outra': 0};
@@ -728,7 +734,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoMoraCom() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('mora_com');
+        .select('mora_com')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -746,7 +753,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoQuantidadeFilhos() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('possui_filhos');
+        .select('possui_filhos')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) {
       return {
@@ -796,7 +804,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoCorRaca() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('cor');
+        .select('cor')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -814,7 +823,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoIdentidadeGenero() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('identidade_genero');
+        .select('identidade_genero')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -832,7 +842,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoOrientacaoSexual() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('orientacao_sexual');
+        .select('orientacao_sexual')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -850,7 +861,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoPorEscola() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('escola');
+        .select('escola')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -868,7 +880,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoPorEmpresa() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('empresa');
+        .select('empresa')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -886,7 +899,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoPorTurma() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('cod_turma');
+        .select('cod_turma')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -904,7 +918,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoTrabalhando() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('trabalhando');
+        .select('trabalhando')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) {
       return {
@@ -939,6 +954,7 @@ class JovemService {
     final jovens = await supabase
         .from('jovens_aprendizes')
         .select('cod_turma')
+        .eq('status', 'ativo')
         .eq('empresa_id', empresaId);
 
     if (jovens.isEmpty) return {};
@@ -962,6 +978,7 @@ class JovemService {
     final jovens = await supabase
         .from('jovens_aprendizes')
         .select('cod_turma')
+        .eq('status', 'ativo')
         .eq('escola_id', escolaId);
 
     if (jovens.isEmpty) return {};
@@ -980,7 +997,8 @@ class JovemService {
   Future<Map<String, int>> buscarResumoHabilidadesDestaque() async {
     final response = await supabase
         .from('jovens_aprendizes')
-        .select('habilidade_destaque');
+        .select('habilidade_destaque')
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 
@@ -1009,7 +1027,8 @@ class JovemService {
     final response = await supabase
         .from('jovens_aprendizes')
         .select('habilidade_destaque')
-        .eq('empresa_id', empresaId);
+        .eq('empresa_id', empresaId)
+        .eq('status', 'ativo');
 
     if (response.isEmpty) return {};
 

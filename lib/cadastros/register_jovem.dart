@@ -540,8 +540,6 @@ class _CadastroJovemState extends State<CadastroJovem> {
     }
   }
 
-
-
   void _abrirFormulario({Map<String, dynamic>? jovem}) {
     showDialog(
       context: context,

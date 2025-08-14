@@ -43,6 +43,7 @@ class ProfessorService {
     required String email,
     required String senha,
     required String? sexo,
+    required String horaAula,
   }) async {
     try {
       // 1. Monta o objeto com os dados para enviar à Edge Function
@@ -65,6 +66,7 @@ class ProfessorService {
         'email': email,
         'senha': senha,
         'sexo': sexo,
+        'valor_hora_aula': converterParaNumero(horaAula),
       };
 
       // 2. Invoca a Função de Borda 'cadastrar-professor'
@@ -108,6 +110,7 @@ class ProfessorService {
     required String? cidadeEstadoNatal,
     required String id,
     required String? sexo,
+    required String horaAula,
   }) async {
     try {
       await supabase.from('professores').update({
@@ -127,6 +130,7 @@ class ProfessorService {
         'nacionalidade': nacionalidade,
         'cidade_natal': cidadeEstadoNatal,
         'sexo': sexo,
+        'valor_hora_aula': converterParaNumero(horaAula),
       }).match({'id': id});
       return null;
     } catch (e) {

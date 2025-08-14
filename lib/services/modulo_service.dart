@@ -98,6 +98,7 @@ class ModuloService {
     final modulos = await supabase
         .from('modulos')
         .select('id, nome, turma_id')
+        .eq('status', 'ativo')
         .eq('professor_id', professorId);
 
     if (modulos.isEmpty) return {};
@@ -132,6 +133,7 @@ class ModuloService {
     required String professorId,
     required String? turmaId,
     required List<Map<String, dynamic>> datasComHorarios,
+    required String sala,
   }) async {
     try {
       // Converte para lista de strings ISO: cada item = 'inicio' e 'fim' como DateTime
@@ -149,6 +151,7 @@ class ModuloService {
         'professor_id': professorId,
         'datas': datasParaSalvar,
         'turma_id': turmaId,
+        'sala': sala,
       });
 
       return null;
@@ -165,6 +168,7 @@ class ModuloService {
     required String professorId,
     required String? turmaId,
     required List<Map<String, dynamic>> datasComHorarios,
+    required String sala,
   }) async {
     try {
       // Converte para lista de strings ISO
@@ -181,6 +185,7 @@ class ModuloService {
         'professor_id': professorId,
         'datas': datasParaSalvar,
         'turma_id': turmaId,
+        'sala': sala,
       }).match({'id': id});
 
       return null;

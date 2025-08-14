@@ -69,7 +69,7 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
                 MaterialPageRoute(builder: (_) => RegistrarPresencaPage(professorId: auth.idUsuario.toString(),)));
           }
           if (title == "Histórico de Presenças") {
-            if (auth.tipoUsuario == "professor") {
+            if (auth.tipoUsuario == "jovem_aprendiz") {
               Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => HistoricoFrequenciaJovemPage(jovemId: auth.idUsuario.toString(),)));
             }
@@ -153,11 +153,18 @@ class InovaDrawer extends StatelessWidget {
                 Text(
                   'Usuário:\n${auth.nomeUsuario ?? "Carregando..."}',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF0A63AC)),
+                  style: TextStyle(
+                      fontSize: auth.nomeUsuario!.length > 15 ? 10 : 12,
+                      color: const Color(0xFF0A63AC)
+                  ),
                 ),
                 Text(
                   'Email: ${auth.emailUsuario ?? "Carregando..."}',
-                  style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: const Color(0xFF0A63AC),
+                      fontSize: auth.emailUsuario!.length > 15 ? 10 : 12
+                  ),
                 ),
                 Text(
                   'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").replaceAll("escola", "Colégio").toUpperCase() ?? "Carregando..."}',

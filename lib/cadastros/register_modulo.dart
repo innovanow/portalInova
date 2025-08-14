@@ -206,7 +206,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
     return DateFormat('dd/MM/yyyy').format(dataConvertida); // Retorna formatado
   }
 
-  void _abrirDocumentos(BuildContext context, String userId) {
+  void _abrirDocumentos(BuildContext context, String moduloId) {
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(
@@ -260,7 +260,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                             final nomeSanitizado = sanitizeFileName(file.name);
                             final bytes = await _controller!.getFileData(file);
 
-                            final resultado = await _docsService.uploadDocumento(userId, nomeSanitizado, bytes);
+                            final resultado = await _docsService.uploadDocumento(moduloId, nomeSanitizado, bytes);
                             setState(() {
                               _uploadStatus = resultado?.startsWith("Erro") == true
                                   ? resultado
@@ -300,7 +300,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                 Expanded(
                   flex: 2,
                   child: FutureBuilder<List<Map<String, dynamic>>>(
-                    future: _docsService.listarDocumentos(userId),
+                    future: _docsService.listarDocumentos(moduloId),
                     builder: (_, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -340,6 +340,9 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                       enableFeedback: false,
                                       icon: const Icon(Icons.close, color: Colors.black),
                                       onPressed: () async {
+                                        if (kDebugMode) {
+                                          print(doc["path"]);
+                                        }
                                         final confirm = await showDialog<bool>(
                                           context: context,
                                           builder: (_) => AlertDialog(
@@ -460,7 +463,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                     }
 
                     if (nome != null && bytes != null) {
-                      final result = await _docsService.uploadDocumento(userId, nome, bytes);
+                      final result = await _docsService.uploadDocumento(moduloId, nome, bytes);
                       setState(() {
                         _uploadStatus = result?.startsWith("Erro") == true
                             ? result
@@ -824,6 +827,7 @@ class _FormModulo extends StatefulWidget {
 class _FormModuloState extends State<_FormModulo> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
+  final _salaController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
   bool _editando = false;
@@ -850,6 +854,7 @@ class _FormModuloState extends State<_FormModulo> {
       _editando = true;
       _moduloId = widget.modulo!['id'].toString();
       _nomeController.text = widget.modulo!['nome'] ?? "";
+      _salaController.text = widget.modulo!['sala'] ?? "";
       _turnoSelecionado = widget.modulo!['turno'] ?? "";
       selectedColor = Color(int.parse(widget.modulo!['cor']));
       _professorSelecionado = widget.modulo?['professor_id']?.toString();
@@ -891,6 +896,7 @@ class _FormModuloState extends State<_FormModulo> {
           professorId: _professorSelecionado!,
           datasComHorarios: _datasComHorarios,
           turmaId: _turmaSelecionada,
+          sala: _salaController.text.trim(),
         );
       } else {
         error = await _moduloservice.cadastrarModulos(
@@ -900,6 +906,7 @@ class _FormModuloState extends State<_FormModulo> {
           professorId: _professorSelecionado!,
           datasComHorarios: _datasComHorarios,
           turmaId: _turmaSelecionada,
+          sala: _salaController.text.trim(),
         );
       }
 
@@ -983,9 +990,7 @@ class _FormModuloState extends State<_FormModulo> {
                 dropdownColor: const Color(0xFF0A63AC),
                 style: const TextStyle(color: Colors.white),
               ),
-
               const SizedBox(height: 10),
-
               InkWell(
                 onTap: () async {
                   final DateTime? dataSelecionada = await showDatePicker(
@@ -1159,7 +1164,7 @@ class _FormModuloState extends State<_FormModulo> {
               ),
 
               const SizedBox(height: 10),
-
+              buildTextField(_salaController, true, "Sala"),
               ColorWheelPicker(
                 onColorSelected: (Color color) {
                   if (kDebugMode) print("Cor selecionada: $color");
