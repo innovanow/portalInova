@@ -253,7 +253,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                     children: [
                       DropdownButtonFormField<Map<String, dynamic>>(
                         isExpanded: true,
-                        value: _moduloSelecionadoParaRelatorio,
+                        initialValue: _moduloSelecionadoParaRelatorio,
                         decoration: InputDecoration(
                           labelText: "Selecione o Módulo",
                           labelStyle: const TextStyle(color: Colors.white),
@@ -313,7 +313,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                         hint: Text('Selecione o mês',
                           style: TextStyle(
                             color: Colors.white,)),
-                        value: mesSelecionado,
+                        initialValue: mesSelecionado,
                         dropdownColor: const Color(0xFF0A63AC),
                         icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                         style: const TextStyle(color: Colors.white),
@@ -353,7 +353,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                         hint: Text('Selecione o ano',
                           style: TextStyle(
                             color: Colors.white,),),
-                        value: anoSelecionado,
+                        initialValue: anoSelecionado,
                         items: anos.map((int ano) {
                           return DropdownMenuItem<int>(
                             value: ano,

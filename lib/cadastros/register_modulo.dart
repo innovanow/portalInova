@@ -679,7 +679,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                           });
                                           _carregarModulos(statusModulo);
                                         },
-                                        activeColor: Color(0xFF0A63AC),
+                                        activeThumbColor: Color(0xFF0A63AC),
                                       ),
                                     ),
                                   ],
@@ -932,7 +932,7 @@ class _FormModuloState extends State<_FormModulo> {
             children: [
               buildTextField(_nomeController, true, "Nome"),
               DropdownButtonFormField<String>(
-                value: _turmas.any((t) => t['id'].toString() == _turmaSelecionada)
+                initialValue: _turmas.any((t) => t['id'].toString() == _turmaSelecionada)
                     ? _turmaSelecionada
                     : null,
                 items: _turmas.map((turma) {
@@ -963,7 +963,7 @@ class _FormModuloState extends State<_FormModulo> {
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                value: _turnoSelecionado,
+                initialValue: _turnoSelecionado,
                 items: ['Matutino', 'Vespertino', 'Noturno']
                     .map((String turno) => DropdownMenuItem(
                   value: turno,
@@ -1134,7 +1134,7 @@ class _FormModuloState extends State<_FormModulo> {
               const SizedBox(height: 10),
 
               DropdownButtonFormField<String>(
-                value: _professores.any((p) => p['id'].toString() == _professorSelecionado)
+                initialValue: _professores.any((p) => p['id'].toString() == _professorSelecionado)
                     ? _professorSelecionado
                     : null,
                 items: _professores.map((professor) {

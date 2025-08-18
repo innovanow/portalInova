@@ -671,7 +671,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                                           });
                                           _carregarescolas(statusEscola);
                                         },
-                                        activeColor: Color(0xFF0A63AC),
+                                        activeThumbColor: Color(0xFF0A63AC),
                                       ),
                                     ),
                                   ],

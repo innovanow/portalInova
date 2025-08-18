@@ -638,7 +638,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text("Limpar Dados",
                                       style: TextStyle(color: Color(0xFF0A63AC)),)
                                 ),
-                                Text("Versão: 0.41",
+                                Text("Versão: 0.42",
                                   style: TextStyle(color: Color(0xFF0A63AC)),),
                                 SizedBox(height: 10),
                                 Column(
@@ -935,7 +935,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _estadoCivilSelecionado,
+                initialValue: _estadoCivilSelecionado,
                 decoration: InputDecoration(
                   labelText: "Estado Civil",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -981,7 +981,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _sexoSelecionado,
+                initialValue: _sexoSelecionado,
                 decoration: InputDecoration(
                   labelText: "Sexo Biologico",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1025,7 +1025,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _orientacaoSelecionado,
+                initialValue: _orientacaoSelecionado,
                 decoration: InputDecoration(
                   labelText: "Orientação de Sexual",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1081,7 +1081,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _identidadeSelecionado,
+                initialValue: _identidadeSelecionado,
                 decoration: InputDecoration(
                   labelText: "Identidade de gênero",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1137,7 +1137,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _corSelecionado,
+                initialValue: _corSelecionado,
                 decoration: InputDecoration(
                   labelText: "Cor",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1180,7 +1180,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _pcdSelecionado,
+                initialValue: _pcdSelecionado,
                 decoration: InputDecoration(
                   labelText: "PCD",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1437,7 +1437,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _moraComSelecionado,
+                initialValue: _moraComSelecionado,
                 decoration: InputDecoration(
                   labelText: "Mora com quem",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1487,7 +1487,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value: _estadoCivilPaiSelecionado,
+                  initialValue: _estadoCivilPaiSelecionado,
                   decoration: InputDecoration(
                     labelText: "Estado Civil Pai",
                     labelStyle: const TextStyle(color: Colors.white),
@@ -1565,7 +1565,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value: _estadoCivilMaeSelecionado,
+                  initialValue: _estadoCivilMaeSelecionado,
                   decoration: InputDecoration(
                     labelText: "Estado Civil Mãe",
                     labelStyle: const TextStyle(color: Colors.white),
@@ -1643,7 +1643,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value: _estadoCivilResponsavelSelecionado,
+                  initialValue: _estadoCivilResponsavelSelecionado,
                   decoration: InputDecoration(
                     labelText: "Estado Civil Responsável",
                     labelStyle: const TextStyle(color: Colors.white),
@@ -1721,7 +1721,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _filhosSelecionado,
+                initialValue: _filhosSelecionado,
                 decoration: InputDecoration(
                   labelText: "Possui filhos",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1761,7 +1761,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _membrosSelecionado,
+                initialValue: _membrosSelecionado,
                 decoration: InputDecoration(
                   labelText: "Quantidade de Membros na Família",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1801,7 +1801,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _beneficioSelecionado,
+                initialValue: _beneficioSelecionado,
                 decoration: InputDecoration(
                   labelText: "Sua família recebe algum benefício assistencial?",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1838,7 +1838,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _cadastroCrasSelecionado,
+                initialValue: _cadastroCrasSelecionado,
                 decoration: InputDecoration(
                   labelText: "Possui cadastro no CRAS, CREAS ou Acolhimento?",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1875,7 +1875,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _atoInfracionalSelecionado,
+                initialValue: _atoInfracionalSelecionado,
                 decoration: InputDecoration(
                   labelText: "Já cumpriu ou cumpre medidas socioeducativas por ato infracional?",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -2054,7 +2054,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _estaEstudandoSelecionado,
+                initialValue: _estaEstudandoSelecionado,
                 decoration: InputDecoration(
                   labelText: "Estudando?",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -2093,7 +2093,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value: _escolaridadeSelecionado,
+                  initialValue: _escolaridadeSelecionado,
                   decoration: InputDecoration(
                     labelText: "Escolaridade",
                     labelStyle: const TextStyle(color: Colors.white),
@@ -2154,7 +2154,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value:
+                  initialValue:
                   (_escolaSelecionada != null &&
                       _escolas.any(
                             (e) => e['id'].toString() == _escolaSelecionada,
@@ -2219,7 +2219,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value: _turnoColegioSelecionado,
+                  initialValue: _turnoColegioSelecionado,
                   decoration: InputDecoration(
                     labelText: "Turno Colégio",
                     labelStyle: const TextStyle(color: Colors.white),
@@ -2274,7 +2274,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value: _instituicaoSelecionado,
+                  initialValue: _instituicaoSelecionado,
                   decoration: InputDecoration(
                     labelText: "Instituição de Ensino",
                     labelStyle: const TextStyle(color: Colors.white),
@@ -2311,7 +2311,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _informaticaSelecionado,
+                initialValue: _informaticaSelecionado,
                 decoration: InputDecoration(
                   labelText: "Conhecimento básico em informática?",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -2348,7 +2348,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _habilidadeSelecionado,
+                initialValue: _habilidadeSelecionado,
                 decoration: InputDecoration(
                   labelText: "Habilidade que mais se destaca:",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -2388,7 +2388,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _estaTrabalhandoSelecionado,
+                initialValue: _estaTrabalhandoSelecionado,
                 decoration: InputDecoration(
                   labelText: "Trabalhando?",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -2426,7 +2426,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value:
+                  initialValue:
                   (_empresaSelecionada != null &&
                       _empresas.any(
                             (e) =>
@@ -2506,7 +2506,7 @@ class _FormjovemState extends State<_Formjovem> {
                     }
                     return null;
                   },
-                  value: _areaAprendizado,
+                  initialValue: _areaAprendizado,
                   decoration: InputDecoration(
                     labelText: "Área de Aprendizado",
                     labelStyle: const TextStyle(color: Colors.white),

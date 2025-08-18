@@ -313,7 +313,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                     spacing: 10,
                     children: [
                       DropdownButtonFormField<Map<String, dynamic>>(
-                        value: _moduloSelecionado,
+                        initialValue: _moduloSelecionado,
                         decoration: const InputDecoration(
                           labelText: 'Selecione o Módulo',
                           border: OutlineInputBorder(),

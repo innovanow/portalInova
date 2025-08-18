@@ -1,13 +1,21 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:inova/widgets/filter.dart';
 import 'package:inova/widgets/wave.dart';
 import 'package:inova/widgets/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'package:universal_html/html.dart' as html;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'dart:io';
 import '../services/turma_service.dart';
 import '../services/uploud_docs.dart';
 import '../widgets/drawer.dart';
@@ -474,6 +482,332 @@ class _TurmaScreenState extends State<TurmaScreen> {
     );
   }
 
+  /// Abre o diálogo para selecionar o mês e ano e iniciar a geração do relatório.
+  void _abrirDialogoRelatorio() {
+    final meses = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    // Gera uma lista de anos, por exemplo, dos últimos 5 anos até o próximo.
+    final anos =
+    List.generate(6, (index) => DateTime.now().year - 5 + index + 1);
+    String? mesSelecionado = meses[DateTime.now().month - 1];
+    int? anoSelecionado = DateTime.now().year;
+    bool isLoading = false;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF0A63AC),
+              title: Text('Gerar Relatório Pagamento',
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
+                  color: Colors.white,
+                  fontFamily: 'FuturaBold',
+                ),),
+              content: SizedBox(
+                width: 400,
+                height: 150,
+                child: isLoading
+                    ? const Center(
+                    child:
+                    SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 5,
+                            color: Colors.white
+                        )))
+                    : SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Dropdown para Mês
+                      DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                          labelText: "Mês",
+                          labelStyle: const TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide:
+                              const BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 2.0)),
+                        ),
+                        initialValue: mesSelecionado,
+                        dropdownColor: const Color(0xFF0A63AC),
+                        icon: const Icon(Icons.arrow_drop_down,
+                            color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
+                        items: meses.map((String mes) {
+                          return DropdownMenuItem<String>(
+                              value: mes, child: Text(mes));
+                        }).toList(),
+                        onChanged: (String? novoValor) {
+                          setStateDialog(() {
+                            mesSelecionado = novoValor;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      // Dropdown para Ano
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: "Ano",
+                          labelStyle: const TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide:
+                              const BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 2.0)),
+                        ),
+                        initialValue: anoSelecionado,
+                        dropdownColor: const Color(0xFF0A63AC),
+                        icon: const Icon(Icons.arrow_drop_down,
+                            color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
+                        items: anos.map((int ano) {
+                          return DropdownMenuItem<int>(
+                              value: ano, child: Text(ano.toString()));
+                        }).toList(),
+                        onChanged: (int? novoValor) {
+                          setStateDialog(() {
+                            anoSelecionado = novoValor;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Fechar",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'FuturaBold',
+                      fontSize: 15,
+                    ),),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                    if (mesSelecionado == null || anoSelecionado == null) {
+                      return;
+                    }
+
+                    setStateDialog(() {
+                      isLoading = true;
+                    });
+
+                    try {
+                      // Converte o nome do mês para número (1-12)
+                      final numeroMes = meses.indexOf(mesSelecionado!) + 1;
+
+                      // Busca os dados da view no Supabase
+                      final response = await Supabase.instance.client
+                          .from('relatorio_gastos_cantina')
+                          .select()
+                          .eq('mes', numeroMes)
+                          .eq('ano', '$anoSelecionado');
+
+                      // O Supabase retorna uma lista de mapas
+                      final dados = response;
+
+                      // Fecha o diálogo antes de gerar o PDF
+                      if (context.mounted){
+                        Navigator.of(context).pop();
+                      }
+                      await _gerarPdfRelatorio(
+                          dados, numeroMes, anoSelecionado!);
+                    } catch (e) {
+                      debugPrint('Erro ao buscar dados: $e');
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Erro ao buscar dados: $e'),
+                              backgroundColor: Colors.red),
+                        );
+                      }
+                    } finally {
+                      // Garante que o estado de loading seja resetado
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    }
+                  },
+                  child: const Text("Gerar PDF",
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontFamily: 'FuturaBold',
+                      fontSize: 15,
+                    ),),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatCurrency(double? value) {
+    if (value == null) return 'R\$ 0,00';
+    final format =
+    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$', decimalDigits: 2);
+    return format.format(value);
+  }
+
+  /// Gera o PDF com base nos dados do relatório de pagamento dos professores.
+  Future<void> _gerarPdfRelatorio(List<Map<String, dynamic>> dadosRelatorio,
+      int mes, int ano) async {
+    if (dadosRelatorio.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Nenhum dado encontrado para o período selecionado.'),
+            backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    final doc = pw.Document();
+    final logoSvg = await rootBundle.loadString('assets/logoInova.svg');
+
+    // Cabeçalhos da tabela do PDF
+    const headers = [
+      'Turma',
+      'Lanches no Mês',
+      'Valor Lanche',
+      'Total a Gasto'
+    ];
+
+    // Mapeia os dados recebidos do Supabase para o formato da tabela
+    final data = dadosRelatorio.map((row) {
+      return [
+        row['turma'] ?? 'N/A',
+        row['total_lanches_no_mes']?.toString() ?? '0',
+        _formatCurrency(3.50),
+        _formatCurrency(row['valor_total_gasto']?.toDouble()),
+      ];
+    }).toList();
+
+    // Calcula o valor total para o rodapé
+    final double valorTotalGeral = dadosRelatorio.fold(
+        0.0,
+            (sum, item) =>
+        sum + (item['valor_total_gasto']?.toDouble() ?? 0.0));
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        header: (pw.Context context) {
+          return pw.Column(children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                    'Relatório de Pagamento Lanche - ${mes.toString().padLeft(
+                        2, '0')}/$ano',
+                    style: pw.TextStyle(
+                        fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                pw.SvgImage(svg: logoSvg, width: 60),
+              ],
+            ),
+            pw.Divider(thickness: 2),
+            pw.SizedBox(height: 10),
+          ]);
+        },
+        build: (pw.Context context) =>
+        [
+          pw.TableHelper.fromTextArray(
+            headers: headers,
+            data: data,
+            border: pw.TableBorder.all(color: PdfColors.grey600),
+            headerStyle:
+            pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+            cellStyle: const pw.TextStyle(fontSize: 9),
+            cellAlignments: {
+              0: pw.Alignment.centerLeft,
+              1: pw.Alignment.center,
+              2: pw.Alignment.centerRight,
+              3: pw.Alignment.centerRight,
+            },
+            columnWidths: {
+              0: const pw.FlexColumnWidth(3), // Professor
+              1: const pw.FlexColumnWidth(1.5), // Aulas no Mês
+              2: const pw.FlexColumnWidth(1.5), // Valor Hora/Aula
+              3: const pw.FlexColumnWidth(2), // Total a Receber
+            },
+          ),
+        ],
+        footer: (pw.Context context) {
+          return pw.Container(
+            alignment: pw.Alignment.centerRight,
+            margin: const pw.EdgeInsets.only(top: 10.0),
+            child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  pw.Divider(color: PdfColors.grey),
+                  pw.SizedBox(height: 5),
+                  pw.Text(
+                    'Valor Total do Mês: ${_formatCurrency(valorTotalGeral)}',
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold, fontSize: 12),
+                  ),
+                ]),
+          );
+        },
+      ),
+    );
+
+    // Bloco para salvar e compartilhar o PDF
+    try {
+      final bytes = await doc.save();
+      final fileName = 'Relatorio_Pagamento_${mes}_${ano}_Cantina.pdf';
+      if (kIsWeb) {
+        final blob = html.Blob([bytes], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..style.display = 'none'
+          ..setAttribute("download", fileName);
+        html.document.body!.append(anchor);
+        anchor.click();
+        anchor.remove();
+        html.Url.revokeObjectUrl(url);
+      } else {
+        final output = await getTemporaryDirectory();
+        final file = File("${output.path}/$fileName");
+        await file.writeAsBytes(bytes);
+        final files = [XFile(file.path, name: fileName)];
+        await SharePlus.instance.share(ShareParams(
+          files: files,
+          text: 'Relatório de Pagamento de Cantina',
+          subject: 'Relatório de Pagamento Cantina',
+        ));
+      }
+    } catch (e) {
+      debugPrint('Erro ao gerar ou abrir o PDF: $e');
+      if (mounted){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Erro ao gerar PDF: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isAtivo = statusTurma.toLowerCase() == 'ativo';
@@ -655,23 +989,46 @@ class _TurmaScreenState extends State<TurmaScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    Text(
-                                      "Turmas: ${isAtivo ? "Ativas" : "Inativas"}",
-                                      textAlign: TextAlign.end,
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    Tooltip(
-                                      message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
-                                      child: Switch(
-                                        value: isAtivo,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            statusTurma = value ? "ativo" : "inativo";
-                                          });
-                                          _carregarTurmas(statusTurma);
-                                        },
-                                        activeColor: Color(0xFF0A63AC),
-                                      ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(5.0),
+                                          child: Align(
+                                            alignment: Alignment.topRight,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  "Turmas: ${isAtivo ? "Ativas" : "Inativas"}",
+                                                  textAlign: TextAlign.end,
+                                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                                ),
+                                                Tooltip(
+                                                  message: isAtivo ? "Exibir Inativos" : "Exibir Ativos",
+                                                  child: Switch(
+                                                    value: isAtivo,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        statusTurma = value ? "ativo" : "inativo";
+                                                      });
+                                                      _carregarTurmas(statusTurma);
+                                                    },
+                                                    activeThumbColor: Color(0xFF0A63AC),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          tooltip: "Gerar Relatório PDF",
+                                          onPressed: _abrirDialogoRelatorio,
+                                          icon: Icon(Icons.picture_as_pdf, color: Colors.red),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),

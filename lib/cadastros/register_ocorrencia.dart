@@ -100,7 +100,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<String>(
-                      value: tipoSelecionado,
+                      initialValue: tipoSelecionado,
                       decoration: InputDecoration(
                         labelText: "Tipo",
                         labelStyle: const TextStyle(color: Colors.white),

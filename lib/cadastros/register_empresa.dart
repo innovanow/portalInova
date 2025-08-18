@@ -672,7 +672,7 @@ class _EmpresaScreenState extends State<EmpresaScreen> {
                                           });
                                           _carregarEmpresas();
                                         },
-                                        activeColor: Color(0xFF0A63AC),
+                                        activeThumbColor: Color(0xFF0A63AC),
                                       ),
                                     ),
                                   ],

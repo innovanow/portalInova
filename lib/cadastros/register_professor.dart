@@ -593,7 +593,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
     // Bloco para salvar e compartilhar o PDF
     try {
       final bytes = await doc.save();
-      final fileName = 'Relatorio_Pagamento_${mes}_$ano.pdf';
+      final fileName = 'Relatorio_Pagamento_${mes}_${ano}_Cantina.pdf';
       if (kIsWeb) {
         final blob = html.Blob([bytes], 'application/pdf');
         final url = html.Url.createObjectUrlFromBlob(blob);
@@ -611,8 +611,8 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
         final files = [XFile(file.path, name: fileName)];
         await SharePlus.instance.share(ShareParams(
           files: files,
-          text: 'Relatório de Pagamento de Professores',
-          subject: 'Relatório de Pagamento',
+          text: 'Relatório de Pagamento de Cantina',
+          subject: 'Relatório de Pagamento Cantina',
         ));
       }
     } catch (e) {
@@ -681,7 +681,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                               borderSide: const BorderSide(
                                   color: Colors.white, width: 2.0)),
                         ),
-                        value: mesSelecionado,
+                        initialValue: mesSelecionado,
                         dropdownColor: const Color(0xFF0A63AC),
                         icon: const Icon(Icons.arrow_drop_down,
                             color: Colors.white),
@@ -709,7 +709,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                               borderSide: const BorderSide(
                                   color: Colors.white, width: 2.0)),
                         ),
-                        value: anoSelecionado,
+                        initialValue: anoSelecionado,
                         dropdownColor: const Color(0xFF0A63AC),
                         icon: const Icon(Icons.arrow_drop_down,
                             color: Colors.white),
@@ -1005,7 +1005,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                                               });
                                               _carregarprofessores(statusProfessor);
                                             },
-                                            activeColor: Color(0xFF0A63AC),
+                                            activeThumbColor: Color(0xFF0A63AC),
                                           ),
                                         ),
                                       ],
@@ -1297,7 +1297,7 @@ class _FormjovemState extends State<_Formjovem> {
               ],
               buildTextField(_dataNascimentoController, true, "Data de Nascimento", isData: true, onChangedState: () => setState(() {})),
               DropdownButtonFormField<String>(
-                value: _sexoSelecionado,
+                initialValue: _sexoSelecionado,
                 decoration: InputDecoration(
                   labelText: "Sexo",
                   labelStyle: const TextStyle(color: Colors.white),
@@ -1535,7 +1535,7 @@ class _FormjovemState extends State<_Formjovem> {
                   }
                   return null;
                 },
-                value: _estadoCivilSelecionado,
+                initialValue: _estadoCivilSelecionado,
                 decoration: InputDecoration(
                   labelText: "Estado Civil",
                   labelStyle: const TextStyle(color: Colors.white),
