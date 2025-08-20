@@ -107,7 +107,7 @@ class _HomeState extends State<Home> {
       _dadosFaltasJovensEmpresa = _presencaService.buscarTopFaltasPorJovensEmpresa();
       _dadosHabilidadesEmpresa = _jovemService.buscarResumoHabilidadesDestaqueEmpresa();
     }
-    if (auth.tipoUsuario == "escola"){
+    if (auth.tipoUsuario == "escola" || auth.tipoUsuario == "professor_externo") {
       _dadosJovensPorTurmaEscola = _jovemService.buscarResumoJovensPorTurmaEscola();
       _dadosPresencaMediaEscola = _presencaService.buscarPresencaMediaPorEscola();
       _dadosOcorrenciasEscola = _ocorrenciaService.buscarOcorrenciasPorStatusEscola();
@@ -1728,7 +1728,7 @@ class _HomeState extends State<Home> {
                               ],
                             ),
                           ),
-                        if (auth.tipoUsuario == "escola")
+                        if (auth.tipoUsuario == "escola" || auth.tipoUsuario == "professor_externo")
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(

@@ -23,6 +23,9 @@ void filtrarLista({
     List<Map<String, dynamic>> listaFiltrada = listaOriginal.where((item) {
       final nome = item["nome"]?.toString().toLowerCase() ?? '';
       final jovemNome = item["jovem_nome"]?.toString().toLowerCase() ?? '';
+      final descricao = item["descricao"]?.toString().toLowerCase() ?? '';
+      final dataOcorrencia = item["data_ocorrencia"]?.toString().toLowerCase() ?? '';
+      final nomeJovemOcorrencia = item['jovens_aprendizes']['nome']?.toString().toLowerCase() ?? '';
       final professorNome = item["professor_nome"]?.toString().toLowerCase() ?? '';
       final moduloNome = item["modulo_nome"]?.toString().toLowerCase() ?? '';
       final codigoTurma = item["codigo_turma"]?.toString().toLowerCase() ?? '';
@@ -33,6 +36,9 @@ void filtrarLista({
           professorNome.contains(queryFormatada) ||
           moduloNome.contains(queryFormatada) ||
           codigoTurma.contains(queryFormatada) ||
+          descricao.contains(queryFormatada) ||
+          dataOcorrencia.contains(queryFormatada) ||
+          nomeJovemOcorrencia.contains(queryFormatada) ||
           dataItem.contains(queryFormatada);
     }).toList();
 

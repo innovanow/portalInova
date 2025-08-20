@@ -707,7 +707,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                           "Módulo: ${modulo['nome']}",
                                           style: TextStyle(color: Colors.black),
                                         ),
-                                        leading: const Icon(Icons.view_module, color: Colors.black,),
+                                        leading: Icon(Icons.view_module, color: Color(int.parse(modulo['cor'])),),
                                         subtitle: Column(
                                           mainAxisAlignment: MainAxisAlignment.start,
                                           crossAxisAlignment: CrossAxisAlignment.start,

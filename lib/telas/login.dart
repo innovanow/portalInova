@@ -150,6 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
   /// Metodo para abrir o pop-up de redefinição de senha
   void _showResetPasswordDialog() {
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (dialogContext) {
         bool localTokenEnviado = false;
@@ -645,7 +646,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text("Limpar Dados",
                                       style: TextStyle(color: Color(0xFF0A63AC)),)
                                 ),
-                                Text("Versão: 0.43",
+                                Text("Versão: 0.44",
                                   style: TextStyle(color: Color(0xFF0A63AC)),),
                                 SizedBox(height: 10),
                                 Column(
@@ -1470,6 +1471,14 @@ class _FormjovemState extends State<_Formjovem> {
                     value: 'Mãe e Pai',
                     child: Text('Mãe e Pai'),
                   ),
+                  DropdownMenuItem(
+                    value: 'Mãe e Padrasto',
+                    child: Text('Mãe e Padrasto'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Pai e Madrasta',
+                    child: Text('Pai e Madrasta'),
+                  ),
                   DropdownMenuItem(value: 'Sozinho', child: Text('Sozinho')),
                   DropdownMenuItem(value: 'Outro', child: Text('Outro')),
                 ],
@@ -1480,13 +1489,13 @@ class _FormjovemState extends State<_Formjovem> {
                 },
               ),
               const SizedBox(height: 10),
-              if (_moraComSelecionado.toString().contains('Pai'))
+              if (_moraComSelecionado.toString().contains('Pai') || _moraComSelecionado.toString().contains('Padrasto'))
                 buildTextField(
                   _nomePaiController, false,
-                  "Nome do Pai",
+                  _moraComSelecionado.toString().contains('Pai') ? "Nome do Pai" : "Nome do Padrasto",
                   onChangedState: () => setState(() {}),
                 ),
-              if (_moraComSelecionado.toString().contains('Pai'))
+              if (_moraComSelecionado.toString().contains('Pai') || _moraComSelecionado.toString().contains('Padrasto'))
                 DropdownButtonFormField<String>(
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -1496,7 +1505,7 @@ class _FormjovemState extends State<_Formjovem> {
                   },
                   initialValue: _estadoCivilPaiSelecionado,
                   decoration: InputDecoration(
-                    labelText: "Estado Civil Pai",
+                    labelText: _moraComSelecionado.toString().contains('Pai') ? "Estado Civil Pai" : _moraComSelecionado.toString().contains('Padrasto') ? "Estado Civil Padrasto" : "",
                     labelStyle: const TextStyle(color: Colors.white),
                     enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(color: Colors.white),
@@ -1535,36 +1544,36 @@ class _FormjovemState extends State<_Formjovem> {
                     });
                   },
                 ),
-              if (_moraComSelecionado.toString().contains('Pai'))
+              if (_moraComSelecionado.toString().contains('Pai') || _moraComSelecionado.toString().contains('Padrasto'))
                 const SizedBox(height: 10),
-              if (_moraComSelecionado.toString().contains('Pai'))
+              if (_moraComSelecionado.toString().contains('Pai') || _moraComSelecionado.toString().contains('Padrasto'))
                 buildTextField(
                   _cpfPaiController, false,
-                  "CPF do Pai",
+                  _moraComSelecionado.toString().contains('Pai') ? "CPF do Pai" : _moraComSelecionado.toString().contains('Padrasto') ? "CPF do Padrasto" : "",
                   isCpf: true,
                   onChangedState: () => setState(() {}),
                 ),
-              if (_moraComSelecionado.toString().contains('Pai'))
+              if (_moraComSelecionado.toString().contains('Pai') || _moraComSelecionado.toString().contains('Padrasto'))
                 buildTextField(
                   _rgPaiController, false,
-                  "RG do Pai",
+                  _moraComSelecionado.toString().contains('Pai') ? "RG do Pai" : _moraComSelecionado.toString().contains('Padrasto') ? "RG do Padrasto" : "",
                   isRg: true,
                   onChangedState: () => setState(() {}),
                 ),
-              if (_moraComSelecionado.toString().contains('Pai'))
+              if (_moraComSelecionado.toString().contains('Pai') || _moraComSelecionado.toString().contains('Padrasto'))
                 buildTextField(
                   _telefonePaiController, false,
-                  "Telefone do Pai",
+                  _moraComSelecionado.toString().contains('Pai') ? "Telefone do Pai" : _moraComSelecionado.toString().contains('Padrasto') ? "Telefone do Padrasto" : "",
                   isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),
-              if (_moraComSelecionado.toString().contains('Mãe'))
+              if (_moraComSelecionado.toString().contains('Mãe') || _moraComSelecionado.toString().contains('Madrasta'))
                 buildTextField(
                   _nomeMaeController, false,
-                  "Nome da Mãe",
+                  _moraComSelecionado.toString().contains('Mãe') ? "Nome da Mãe" : _moraComSelecionado.toString().contains('Madrasta') ? "Nome da Madrasta" : "",
                   onChangedState: () => setState(() {}),
                 ),
-              if (_moraComSelecionado.toString().contains('Mãe'))
+              if (_moraComSelecionado.toString().contains('Mãe') || _moraComSelecionado.toString().contains('Madrasta'))
                 DropdownButtonFormField<String>(
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -1574,7 +1583,7 @@ class _FormjovemState extends State<_Formjovem> {
                   },
                   initialValue: _estadoCivilMaeSelecionado,
                   decoration: InputDecoration(
-                    labelText: "Estado Civil Mãe",
+                    labelText: _moraComSelecionado.toString().contains('Mãe') ? "Estado Civil Mãe" : _moraComSelecionado.toString().contains('Madrasta') ? "Estado Civil Madrasta" : "",
                     labelStyle: const TextStyle(color: Colors.white),
                     enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(color: Colors.white),
@@ -1613,26 +1622,26 @@ class _FormjovemState extends State<_Formjovem> {
                     });
                   },
                 ),
-              if (_moraComSelecionado.toString().contains('Mãe'))
+              if (_moraComSelecionado.toString().contains('Mãe') || _moraComSelecionado.toString().contains('Madrasta'))
                 const SizedBox(height: 10),
-              if (_moraComSelecionado.toString().contains('Mãe'))
+              if (_moraComSelecionado.toString().contains('Mãe') || _moraComSelecionado.toString().contains('Madrasta'))
                 buildTextField(
                   _cpfMaeController, false,
-                  "CPF da Mãe",
+                  _moraComSelecionado.toString().contains('Mãe') ? "CPF da Mãe" : _moraComSelecionado.toString().contains('Madrasta') ?  "CPF da Madrasta" : "",
                   isCpf: true,
                   onChangedState: () => setState(() {}),
                 ),
-              if (_moraComSelecionado.toString().contains('Mãe'))
+              if (_moraComSelecionado.toString().contains('Mãe') || _moraComSelecionado.toString().contains('Madrasta'))
                 buildTextField(
                   _rgMaeController, false,
-                  "RG da Mãe",
+                  _moraComSelecionado.toString().contains('Mãe') ? "RG da Mãe" : _moraComSelecionado.toString().contains('Madrasta') ?  "RG da Madrasta" : "",
                   isRg: true,
                   onChangedState: () => setState(() {}),
                 ),
-              if (_moraComSelecionado.toString().contains('Mãe'))
+              if (_moraComSelecionado.toString().contains('Mãe') || _moraComSelecionado.toString().contains('Madrasta'))
                 buildTextField(
                   _telefoneMaeController, false,
-                  "Telefone da Mãe",
+                  _moraComSelecionado.toString().contains('Mãe') ? "Telefone da Mãe" : _moraComSelecionado.toString().contains('Madrasta') ?  "Telefone da Madrasta" : "",
                   isTelefone: true,
                   onChangedState: () => setState(() {}),
                 ),

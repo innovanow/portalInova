@@ -16,6 +16,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:url_launcher/url_launcher.dart';
+import '../services/jovem_service.dart';
 import '../services/professor_service.dart';
 import '../services/uploud_docs.dart';
 import '../widgets/drawer.dart';
@@ -44,10 +45,10 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
   @override
   void initState() {
     super.initState();
-    _carregarprofessores(statusProfessor);
+    _carregarProfessores(statusProfessor);
   }
 
-  void _carregarprofessores(String statusProfessor) async {
+  void _carregarProfessores(String statusProfessor) async {
     final professores = await _professorService.buscarprofessor(statusProfessor);
     setState(() {
       _professores = professores;
@@ -88,7 +89,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
           content: _Formjovem(
             jovem: jovem,
             onjovemSalva: () {
-              _carregarprofessores(statusProfessor); // Atualiza lista ao fechar modal
+              _carregarProfessores(statusProfessor); // Atualiza lista ao fechar modal
               Navigator.pop(context);
             },
           ),
@@ -129,7 +130,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
               onPressed: () async {
                 await _professorService
                     .inativarProfessor(id);
-                _carregarprofessores(statusProfessor);
+                _carregarProfessores(statusProfessor);
                 if (context.mounted){
                   Navigator.of(context).pop(); // Fecha o alerta
                 }
@@ -178,7 +179,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
               onPressed: () async {
                 await _professorService
                     .ativarProfessor(id);
-                _carregarprofessores(statusProfessor);
+                _carregarProfessores(statusProfessor);
                 if (context.mounted){
                   Navigator.of(context).pop(); // Fecha o alerta
                 }
@@ -1003,7 +1004,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                                               setState(() {
                                                 statusProfessor = value ? "ativo" : "inativo";
                                               });
-                                              _carregarprofessores(statusProfessor);
+                                              _carregarProfessores(statusProfessor);
                                             },
                                             activeThumbColor: Color(0xFF0A63AC),
                                           ),
@@ -1159,6 +1160,7 @@ class _FormjovemState extends State<_Formjovem> {
   final _bairroController = TextEditingController();
   final _formacaoController = TextEditingController();
   final _valorHoraAulaController = TextEditingController();
+  final _valorHoraAula2Controller = TextEditingController();
   final _codCarteiraTrabalhoController = TextEditingController();
   final _rgController = TextEditingController();
   final _cepController = TextEditingController();
@@ -1170,11 +1172,16 @@ class _FormjovemState extends State<_Formjovem> {
   String? _cidadeNatalSelecionada;
   String? _nacionalidadeSelecionada;
   String? _estadoCivilSelecionado;
+  String? _internoSelecionado;
   bool _isLoading = false;
   String? _errorMessage;
   bool _editando = false;
   String? _jovemId;
   String? _sexoSelecionado;
+  String? _escolaSelecionada;
+  final JovemService _jovemService = JovemService();
+  List<Map<String, dynamic>> _escolas = [];
+  final List<Map<String, dynamic>> escolas = [];
   // Criando um formatador de data no formato "yyyy-MM-dd"
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
   String formatarDataParaExibicao(String data) {
@@ -1191,6 +1198,7 @@ class _FormjovemState extends State<_Formjovem> {
   @override
   void initState() {
     super.initState();
+    _carregarEscolas();
     if (widget.jovem != null) {
       _editando = true;
       _jovemId = widget.jovem!['id'] ?? "";
@@ -1199,9 +1207,9 @@ class _FormjovemState extends State<_Formjovem> {
       _enderecoController.text = widget.jovem!['endereco'] ?? "";
       _numeroController.text = widget.jovem!['numero'] ?? "";
       _bairroController.text = widget.jovem!['bairro'] ?? "";
-      _cidadeSelecionada = widget.jovem!['cidade_estado'] ?? "";
-      _cidadeNatalSelecionada = widget.jovem!['cidade_natal'] ?? "";
-      _nacionalidadeSelecionada = widget.jovem!['nacionalidade'] ?? "";
+      _cidadeSelecionada = widget.jovem!['cidade_estado'] ?? "Palotina-PR";
+      _cidadeNatalSelecionada = widget.jovem!['cidade_natal'] ?? "Palotina-PR";
+      _nacionalidadeSelecionada = widget.jovem!['nacionalidade'] ?? "Brasileira";
       _codCarteiraTrabalhoController.text = widget.jovem!['cod_carteira_trabalho'] ?? "";
       _rgController.text = widget.jovem!['rg'] ?? "";
       _cepController.text = widget.jovem!['cep'] ?? "";
@@ -1211,9 +1219,21 @@ class _FormjovemState extends State<_Formjovem> {
       _valorHoraAulaController.text = formatarDinheiro(
         double.tryParse(widget.jovem?['valor_hora_aula']?.toString() ?? '0.0') ?? 0.0,
       );
+      _valorHoraAula2Controller.text = formatarDinheiro(
+        double.tryParse(widget.jovem?['valor_hora_aula2']?.toString() ?? '0.0') ?? 0.0,
+      );
       _estadoCivilSelecionado = widget.jovem!['estado_civil'] ?? "";
       _sexoSelecionado= widget.jovem!['sexo'] ?? "";
+      _internoSelecionado = widget.jovem!['interno'] == true ? 'interno' : 'externo';
+      _escolaSelecionada = widget.jovem!['id_colegio'] ?? "";
     }
+  }
+
+  void _carregarEscolas() async {
+    final escolas = await _jovemService.buscarEscolas();
+    setState(() {
+      _escolas = escolas;
+    });
   }
 
   void _salvar() async {
@@ -1243,6 +1263,9 @@ class _FormjovemState extends State<_Formjovem> {
           estadoCivil: _estadoCivilSelecionado,
           sexo: _sexoSelecionado,
           horaAula: _valorHoraAulaController.text.trim(),
+          interno: _internoSelecionado == 'interno' ? true : false,
+          idColegio: _escolaSelecionada,
+          horaAula2: _valorHoraAula2Controller.text.trim(),
         );
       } else {
         error = await _professorService.cadastrarprofessor(
@@ -1267,6 +1290,9 @@ class _FormjovemState extends State<_Formjovem> {
           estadoCivil: _estadoCivilSelecionado,
           sexo: _sexoSelecionado,
           horaAula: _valorHoraAulaController.text.trim(),
+          interno: _internoSelecionado == 'interno' ? true : false,
+          idColegio: _escolaSelecionada,
+          horaAula2: _valorHoraAula2Controller.text.trim(),
         );
       }
 
@@ -1295,7 +1321,7 @@ class _FormjovemState extends State<_Formjovem> {
                 buildTextField(_emailController, true, "E-mail", isEmail: true, onChangedState: () => setState(() {})),
                 buildTextField(_senhaController, true, "Senha", isPassword: true, onChangedState: () => setState(() {})),
               ],
-              buildTextField(_dataNascimentoController, true, "Data de Nascimento", isData: true, onChangedState: () => setState(() {})),
+              buildTextField(_dataNascimentoController, false, "Data de Nascimento", isData: true, onChangedState: () => setState(() {})),
               DropdownButtonFormField<String>(
                 initialValue: _sexoSelecionado,
                 decoration: InputDecoration(
@@ -1574,12 +1600,12 @@ class _FormjovemState extends State<_Formjovem> {
                 },
               ),
               const SizedBox(height: 10),
-              buildTextField(_cpfController, true, "CPF", isCpf: true, onChangedState: () => setState(() {})),
-              buildTextField(_rgController, false, "RG", isRg: true, onChangedState: () => setState(() {})),
+              buildTextField(_cpfController, false, "CPF", isCpf: true, onChangedState: () => setState(() {})),
+              buildTextField(_rgController, false, "RG", isRg: false, onChangedState: () => setState(() {})),
               buildTextField(_codCarteiraTrabalhoController, false, "Carteira de Trabalho", onChangedState: () => setState(() {})),
-              buildTextField(_enderecoController, true, "Endereço", onChangedState: () => setState(() {})),
-              buildTextField(_numeroController, true, "Número", onChangedState: () => setState(() {})),
-              buildTextField(_bairroController, true, "Bairro", onChangedState: () => setState(() {})),
+              buildTextField(_enderecoController, false, "Endereço", onChangedState: () => setState(() {})),
+              buildTextField(_numeroController, false, "Número", onChangedState: () => setState(() {})),
+              buildTextField(_bairroController, false, "Bairro", onChangedState: () => setState(() {})),
               DropdownSearch<String>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -1683,15 +1709,117 @@ class _FormjovemState extends State<_Formjovem> {
                 },
               ),
               const SizedBox(height: 10),
-              buildTextField(_cepController, true, "CEP", isCep: true, onChangedState: () => setState(() {})),
-              buildTextField(_telefoneController, true, "Telefone", onChangedState: () => setState(() {})),
-              buildTextField(_formacaoController, true, "Formação", onChangedState: () => setState(() {})),
+              buildTextField(_cepController, false, "CEP", isCep: true, onChangedState: () => setState(() {})),
+              buildTextField(_telefoneController, false, "Telefone", onChangedState: () => setState(() {})),
+              buildTextField(_formacaoController, false, "Formação", onChangedState: () => setState(() {})),
+              DropdownButtonFormField<String>(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, selecione uma opção';
+                  }
+                  return null;
+                },
+                initialValue: _internoSelecionado,
+                decoration: InputDecoration(
+                  labelText: "Tipo",
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                      color: Colors.white,
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                dropdownColor: const Color(0xFF0A63AC),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                style: const TextStyle(color: Colors.white),
+                items: const [
+                  DropdownMenuItem(value: 'interno', child: Text('Interno')),
+                  DropdownMenuItem(value: 'externo', child: Text('Externo')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _internoSelecionado = value!;
+                  });
+                },
+              ),
+              if (_internoSelecionado == 'interno')
+              const SizedBox(height: 10),
+              if (_internoSelecionado == 'interno')
               buildTextField(
                 _valorHoraAulaController, true,
                 "Valor Hora Aula",
                 isDinheiro: true,
                 onChangedState: () => setState(() {}),
               ),
+              if (_internoSelecionado == 'interno')
+                buildTextField(
+                  _valorHoraAula2Controller, true,
+                  "Valor Hora Aula Sescoop",
+                  isDinheiro: true,
+                  onChangedState: () => setState(() {}),
+                ),
+              const SizedBox(height: 10),
+              if (_internoSelecionado == 'externo')
+                DropdownButtonFormField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, selecione uma opção';
+                    }
+                    return null;
+                  },
+                  initialValue:
+                  (_escolaSelecionada != null &&
+                      _escolas.any(
+                            (e) => e['id'].toString() == _escolaSelecionada,
+                      ))
+                      ? _escolaSelecionada
+                      : null,
+
+                  // Evita erro caso o valor não esteja na lista
+                  items:
+                  _escolas
+                      .map(
+                        (e) => DropdownMenuItem(
+                      value: e['id'].toString(),
+                      child: Text(
+                        e['nome'],
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ), // Cor do texto no menu
+                      ),
+                    ),
+                  )
+                      .toList(),
+
+                  onChanged:
+                      (value) =>
+                      setState(() => _escolaSelecionada = value as String),
+
+                  decoration: InputDecoration(
+                    labelText: "Colégio",
+                    labelStyle: const TextStyle(color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  dropdownColor: const Color(0xFF0A63AC),
+                  style: const TextStyle(color: Colors.white),
+                ),
               const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()

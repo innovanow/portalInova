@@ -75,7 +75,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
   }
 
   void _abrirCadastroOcorrencia() {
-    String tipoSelecionado = auth.tipoUsuario == 'escola'
+    String tipoSelecionado = auth.tipoUsuario == 'escola' || auth.tipoUsuario == 'professor_externo'
         ? 'escola'
         : auth.tipoUsuario == 'empresa'
         ? 'empresa'
@@ -117,7 +117,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                       icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                       style: const TextStyle(color: Colors.white),
                       items: [
-                        if (auth.tipoUsuario == 'escola')
+                        if (auth.tipoUsuario == 'escola' || auth.tipoUsuario == 'professor_externo')
                           const DropdownMenuItem(value: 'escola', child: Text('Colégio')),
                         if (auth.tipoUsuario == 'administrador' || auth.tipoUsuario == 'professor')
                           const DropdownMenuItem(value: 'instituto', child: Text('Instituto')),
@@ -246,7 +246,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    title: Text("Ocorrência $index:\n${oc['descricao']}", style: const TextStyle(color: Colors.black)),
+                    title: Text("Ocorrência ${index + 1}:\n${oc['descricao']}", style: const TextStyle(color: Colors.black)),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -329,7 +329,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                               ),
                                             ),
                                             content: SizedBox(
-                                              width: MediaQuery.of(context).size.width,
+                                              width: MediaQuery.of(context).size.width / 2,
                                               child: TextField(
                                                 controller: obsController,
                                                 style: const TextStyle(color: Colors.white),
@@ -372,7 +372,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                                   "Cancelar",
                                                     style: TextStyle(color: Colors.orange,
                                                       fontFamily: 'LeagueSpartan',
-                                                      fontSize: 15,
+                                                      fontSize: 20,
                                                     )
                                                 ),
                                               ),
@@ -397,7 +397,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                                   style: TextStyle(
                                                     color: Colors.green,
                                                     fontFamily: 'LeagueSpartan',
-                                                    fontSize: 15,
+                                                    fontSize: 20,
                                                   ),
                                                 ),
                                               ),

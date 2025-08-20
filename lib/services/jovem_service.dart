@@ -2,6 +2,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../widgets/drawer.dart';
+
 class JovemService {
   final supabase = Supabase.instance.client;
 
@@ -63,14 +65,61 @@ class JovemService {
     return jovensComModulo;
   }
 
-  Future<List<Map<String, dynamic>>> buscarJovensDaEscola(String escolaId, String status) async {
-    final response = await supabase
-        .from('jovens_aprendizes')
-        .select('*, turmas(codigo_turma)')
-        .eq('escola_id', escolaId)
-        .eq('status', status)
-        .order('nome', ascending: true);
-    return response;
+  Future<List<Map<String, dynamic>>> buscarJovensDaEscola(String status) async {
+    final currentUser = supabase.auth.currentUser;
+    if (currentUser == null) {
+      // Retorna uma lista vazia se não houver usuário logado
+      return [];
+    }
+
+    String? escolaId;
+
+    // 1. Determinar o ID da escola com base no tipo de usuário
+    if (auth.tipoUsuario == "escola") {
+      escolaId = currentUser.id;
+    } else if (auth.tipoUsuario == "professor_externo") {
+      try {
+        final professorData = await supabase
+            .from('professores')
+            .select('id_colegio')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+        if (professorData != null && professorData['id_colegio'] != null) {
+          escolaId = professorData['id_colegio'].toString();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Erro ao buscar escola do professor: $e");
+        }
+        return [];
+      }
+    }
+
+    // 2. Se não foi possível determinar o ID da escola, retorna uma lista vazia
+    if (escolaId == null) {
+      if (kDebugMode) {
+        print("Não foi possível determinar a escola para o usuário: ${currentUser.id}");
+      }
+      return [];
+    }
+
+    // 3. Executar a busca usando o 'escolaId' determinado
+    try {
+      final response = await supabase
+          .from('jovens_aprendizes')
+          .select('*, turmas(codigo_turma)')
+          .eq('escola_id', escolaId) // <- ID agora é determinado internamente
+          .eq('status', status)
+          .order('nome', ascending: true);
+
+      return response;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Erro ao buscar jovens da escola: $e");
+      }
+      return [];
+    }
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDaEmpresa(String empresaId, String status) async {
@@ -160,6 +209,7 @@ class JovemService {
     required String? instagram,
     required String? linkedin,
     required String? areaAprendizado,
+    required String? emailResponsavel,
   }) async {
     try {
       // 1. Monta o objeto com todos os dados do jovem.
@@ -221,6 +271,7 @@ class JovemService {
         'instagram': instagram,
         'linkedin': linkedin,
         'area_aprendizado': areaAprendizado,
+        'email_responsavel': emailResponsavel,
         'status': 'ativo', // Define o status inicial
       };
 
@@ -308,12 +359,13 @@ class JovemService {
     required String? areaAprendizado,
   }) async {
     try {
-      // 1. Monta o objeto com os dados para enviar à Edge Function
+      // 1. Monta o objeto com os dados para enviar à Edge Function.
+      // A estrutura está correta, com chaves que correspondem ao esperado no backend.
       final jovemData = {
         'nome': nome,
         'data_nascimento': dataNascimento,
         'email': email,
-        'senha': senha,
+        'senha': senha, // A senha será usada pela Edge Function e não será salva no banco
         'nome_pai': nomePai,
         'nome_mae': nomeMae,
         'nome_responsavel': nomeResponsavel,
@@ -368,23 +420,33 @@ class JovemService {
         'area_aprendizado': areaAprendizado,
       };
 
-      // 2. Invoca a nova Função de Borda 'precadastrar-jovem'
+      // 2. Invoca a Edge Function 'precadastrar-jovem'.
+      // O corpo da requisição `{'jovemData': jovemData}` corresponde exatamente
+      // ao que a sua Edge Function espera (`const { jovemData } = await req.json();`).
       final response = await supabase.functions.invoke(
         'precadastrar-jovem',
         body: {'jovemData': jovemData},
       );
 
-      // 3. Trata a resposta da função
-      if (response.status != 201) { // 201 significa 'Created'
+      // 3. Trata a resposta da função.
+      // Sua Edge Function retorna status 201 em caso de sucesso.
+      // Esta verificação é a maneira correta de identificar se a operação falhou.
+      if (response.status != 201) {
         final responseBody = response.data;
-        final errorMessage = responseBody?['error'] ?? "Erro desconhecido durante o pré-cadastro.";
+        // Pega a mensagem de erro específica retornada pela sua função de borda.
+        // A Edge Function retorna um JSON com a chave 'error' (ex: { "error": "CPF já cadastrado." }),
+        // então esta linha extrai essa mensagem corretamente.
+        final errorMessage = responseBody?['error'] ?? "Erro desconhecido ao pré-cadastrar o jovem.";
         return errorMessage;
       }
 
-      // Sucesso
+      // Se o status for 201, a função retorna null, indicando sucesso.
+      // Este é um padrão limpo e eficaz.
       return null;
 
     } catch (e) {
+      // Captura qualquer erro inesperado (ex: problema de rede, erro de programação)
+      // e retorna uma mensagem clara.
       return "Erro inesperado ao se comunicar com o servidor: ${e.toString()}";
     }
   }
@@ -446,13 +508,18 @@ class JovemService {
     required String? instagram,
     required String? linkedin,
     required String? areaAprendizado,
+    required String? emailResponsavel,
   }) async {
     try {
-      await supabase.from('jovens_aprendizes').update({
+      final jovemData = {
+        'id': id, // Envia o ID se for uma atualização
         'nome': nome,
+        'cpf': cpf,
         'data_nascimento': dataNascimento,
         'nome_pai': nomePai,
         'nome_mae': nomeMae,
+        'nome_responsavel': nomeResponsavel,
+        'email_responsavel': emailResponsavel,
         'endereco': endereco,
         'numero': numero,
         'bairro': bairro,
@@ -464,18 +531,19 @@ class JovemService {
         'escola_id': escola,
         'empresa_id': empresa,
         'escolaridade': escolaridade,
-        'cpf': cpf,
-        'remuneracao': converterParaNumero(remuneracao),
-        'horas_trabalho': horasTrabalho,
+        'cpf_pai': cpfPai,
+        'cpf_mae': cpfMae,
         'rg': rg,
+        'rg_pai': rgPai,
+        'rg_mae': rgMae,
         'cidade_estado_natal': cidadeEstadoNatal,
         'cod_carteira_trabalho': codCarteiraTrabalho,
         'estado_civil_pai': estadoCivilPai,
         'estado_civil_mae': estadoCivilMae,
-        'cpf_pai': cpfPai,
-        'cpf_mae': cpfMae,
-        'rg_pai': rgPai,
-        'rg_mae': rgMae,
+        'estado_civil': estadoCivil,
+        'estado_civil_responsavel': estadoCivilResponsavel,
+        'remuneracao': converterParaNumero(remuneracao),
+        'horas_trabalho': horasTrabalho,
         'turma_id': turma,
         'sexo_biologico': sexoBiologico,
         'orientacao_sexual': orientacaoSexual,
@@ -500,7 +568,17 @@ class JovemService {
         'instagram': instagram,
         'linkedin': linkedin,
         'area_aprendizado': areaAprendizado,
-      }).match({'id': id});
+      };
+
+      // Remove chaves com valores nulos para não enviar dados desnecessários,
+      // especialmente importante na atualização para não sobrescrever campos com null.
+      jovemData.removeWhere((key, value) => value == null);
+
+      // Chama a Edge Function unificada
+      await supabase.functions.invoke(
+        'cadastrar-jovem', // O nome da sua Edge Function
+        body: {'jovemData': jovemData},
+      );
       return null;
     } catch (e) {
       return e.toString();
@@ -971,27 +1049,63 @@ class JovemService {
   }
 
   Future<Map<String, int>> buscarResumoJovensPorTurmaEscola() async {
-    final escolaId = supabase.auth.currentUser?.id;
-    if (escolaId == null) return {};
+    final id = supabase.auth.currentUser?.id;
+    if (id == null) return {};
 
     // 1. Buscar jovens da escola logada
-    final jovens = await supabase
-        .from('jovens_aprendizes')
-        .select('cod_turma')
-        .eq('status', 'ativo')
-        .eq('escola_id', escolaId);
+    if (auth.tipoUsuario == "escola") {
+      final jovens = await supabase
+          .from('jovens_aprendizes')
+          .select('cod_turma')
+          .eq('status', 'ativo')
+          .eq('escola_id', id);
+      if (jovens.isEmpty) return {};
 
-    if (jovens.isEmpty) return {};
+      final Map<String, int> porTurma = {};
 
-    final Map<String, int> porTurma = {};
+      for (final jovem in jovens) {
+        final turma = (jovem['cod_turma'] ?? 'Não informado').toString().trim();
+        final chave = turma.isEmpty ? 'Não informado' : turma;
+        porTurma[chave] = (porTurma[chave] ?? 0) + 1;
+      }
 
-    for (final jovem in jovens) {
-      final turma = (jovem['cod_turma'] ?? 'Não informado').toString().trim();
-      final chave = turma.isEmpty ? 'Não informado' : turma;
-      porTurma[chave] = (porTurma[chave] ?? 0) + 1;
+      return porTurma;
     }
 
-    return porTurma;
+    if (auth.tipoUsuario == "professor_externo") {
+      // ATENÇÃO: A lógica original aqui pode causar um erro.
+      // O ideal seria extrair o valor do mapa, como 'idEscola['id_colegio']'.
+      // Mantendo como estava, mas ciente do potencial problema.
+      final idEscolaData = await supabase.from('professores').select('id_colegio').eq('id', id).maybeSingle();
+
+      // É importante verificar se idEscolaData não é nulo antes de usá-lo.
+      if (idEscolaData == null || idEscolaData['id_colegio'] == null) {
+        return {}; // Retorna vazio se o professor não tiver uma escola associada
+      }
+
+      final idEscola = idEscolaData['id_colegio'];
+
+      final jovens = await supabase
+          .from('jovens_aprendizes')
+          .select('cod_turma')
+          .eq('status', 'ativo')
+          .eq('escola_id', idEscola); // Usando a variável corrigida
+
+      if (jovens.isEmpty) return {};
+
+      final Map<String, int> porTurma = {};
+
+      for (final jovem in jovens) {
+        final turma = (jovem['cod_turma'] ?? 'Não informado').toString().trim();
+        final chave = turma.isEmpty ? 'Não informado' : turma;
+        porTurma[chave] = (porTurma[chave] ?? 0) + 1;
+      }
+
+      return porTurma;
+    }
+
+    // Adicionado para garantir que a função sempre retorne um valor.
+    return {};
   }
 
   Future<Map<String, int>> buscarResumoHabilidadesDestaque() async {

@@ -600,6 +600,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                   mainAxisSpacing: 2,
                 ),
                 itemCount: diasComEspacos.length,
+                // INÍCIO DA MODIFICAÇÃO: Lógica de construção do dia do calendário
                 itemBuilder: (context, index) {
                   final DateTime? dia = diasComEspacos[index];
                   if (dia == null) {
@@ -612,11 +613,41 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
 
                   final List<Map<String, dynamic>>? modulosDoDia = diasModulos[dia];
 
-                  Color corFundo = Colors.transparent;
+                  Widget backgroundWidget = const SizedBox.shrink();
+                  Color textColor = Colors.black; // Cor padrão do texto
+                  bool hasBackground = false;
+
                   if (isHoje) {
-                    corFundo = Colors.orange;
+                    // Se for o dia atual, o fundo é laranja
+                    backgroundWidget = Container(color: Colors.orange);
+                    hasBackground = true;
                   } else if (modulosDoDia != null && modulosDoDia.isNotEmpty) {
-                    corFundo = coresModulos[modulosDoDia.first['nome']] ?? Colors.transparent;
+                    // Coleta as cores dos módulos do dia, evitando duplicatas
+                    final List<Color> moduleColors = modulosDoDia
+                        .map((modulo) => coresModulos[modulo['nome']] ?? Colors.transparent)
+                        .where((c) => c != Colors.transparent)
+                        .toSet()
+                        .toList();
+
+                    if (moduleColors.isNotEmpty) {
+                      hasBackground = true;
+                      if (moduleColors.length == 1) {
+                        // Se houver apenas uma cor, usa um Container simples
+                        backgroundWidget = Container(color: moduleColors.first);
+                      } else {
+                        // NOVO: Se houver várias cores, cria uma Row para dividi-las
+                        backgroundWidget = Row(
+                          children: moduleColors.map((color) {
+                            return Expanded(child: Container(color: color));
+                          }).toList(),
+                        );
+                      }
+                    }
+                  }
+
+                  // Se houver qualquer cor de fundo, o texto do dia fica branco
+                  if (hasBackground) {
+                    textColor = Colors.white;
                   }
 
                   return GestureDetector(
@@ -625,22 +656,25 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                         _mostrarDialogoModulos(context, dia, modulosDoDia);
                       }
                     },
-                    child: Container(
+                    // Usamos um Stack para colocar o número sobre o fundo colorido
+                    child: Stack(
                       alignment: Alignment.center,
-                      decoration:
-                      BoxDecoration(color: corFundo, shape: BoxShape.rectangle),
-                      child: Text(
-                        "${dia.day}",
-                        style: TextStyle(
-                          color: corFundo != Colors.transparent
-                              ? Colors.white
-                              : Colors.black,
-                          fontWeight: FontWeight.bold,
+                      children: [
+                        // O widget de fundo (pode ser um Container ou uma Row)
+                        backgroundWidget,
+                        // O texto com o número do dia
+                        Text(
+                          "${dia.day}",
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   );
                 },
+                // FIM DA MODIFICAÇÃO
               ),
             ),
           ],

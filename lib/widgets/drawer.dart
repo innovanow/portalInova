@@ -15,6 +15,7 @@ import '../telas/home.dart';
 import '../telas/jovem.dart';
 import '../telas/login.dart';
 import '../telas/modulos_jovens.dart';
+import '../telas/ocorrencias.dart';
 import '../telas/presenca.dart';
 
 final auth = AuthService();
@@ -81,6 +82,10 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
           if (title == "Meus Módulos") {
             Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => TelaModulosDoJovem(jovemId: auth.idUsuario.toString(),)));
+          }
+          if (title == "Ocorrências") {
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => OcorrenciasPage()));
           }
           if (title == "Meu Perfil") {
             final response = await Supabase.instance.client
@@ -168,7 +173,7 @@ class InovaDrawer extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").replaceAll("escola", "Colégio").toUpperCase() ?? "Carregando..."}',
+                  'Perfil: ${auth.tipoUsuario?.replaceAll("jovem_aprendiz", "Jovem Aprendiz").replaceAll("escola", "Colégio").replaceAll("professor_externo", "Prof. Externo").toUpperCase() ?? "Carregando..."}',
                   style: const TextStyle(color: Color(0xFF0A63AC), fontSize: 12),
                 ),
               ],
@@ -185,12 +190,14 @@ class InovaDrawer extends StatelessWidget {
             buildDrawerItem(Icons.groups, "Cadastro de Turma", context),
             buildDrawerItem(Icons.person, "Cadastro de Jovem", context),
           ],
-          if (auth.tipoUsuario == "professor" || auth.tipoUsuario == "escola" || auth.tipoUsuario == "empresa")
+          if (auth.tipoUsuario == "professor" || auth.tipoUsuario == "escola" || auth.tipoUsuario == "empresa" || auth.tipoUsuario == "professor_externo")
             buildDrawerItem(Icons.person, "Jovens", context),
           if (auth.tipoUsuario == "professor")
           buildDrawerItem(Icons.check_circle_outline, "Presenças", context),
           if (auth.tipoUsuario == "jovem_aprendiz" || auth.tipoUsuario == "administrador")
           buildDrawerItem(Icons.event_available, "Histórico de Presenças", context),
+          if (auth.tipoUsuario == "administrador")
+            buildDrawerItem(Icons.pending_actions, "Ocorrências", context),
           buildDrawerItem(Icons.calendar_month, "Calendário", context),
           if (auth.tipoUsuario == "jovem_aprendiz" || auth.tipoUsuario == "professor")
           buildDrawerItem(Icons.book, "Meus Módulos", context),

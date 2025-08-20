@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../widgets/drawer.dart';
 
 class OcorrenciaService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -19,6 +22,16 @@ class OcorrenciaService {
         .select()
         .eq('jovem_id', jovemId)
         .eq('tipo', tipoConsulta)
+        .order('data_ocorrencia', ascending: false);
+
+    return response.map((item) => Map<String, dynamic>.from(item)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> buscarOcorrenciasGeral() async {
+
+    final response = await _client
+        .from('ocorrencias_jovem')
+        .select('*, jovens_aprendizes(nome)')
         .order('data_ocorrencia', ascending: false);
 
     return response.map((item) => Map<String, dynamic>.from(item)).toList();
@@ -189,41 +202,86 @@ class OcorrenciaService {
   }
 
   Future<Map<String, int>> buscarOcorrenciasPorStatusEscola() async {
-    final escolaId = _client.auth.currentUser?.id;
-    if (escolaId == null) return {'Resolvidas': 0, 'Pendentes': 0};
+    final currentUser = _client.auth.currentUser;
+    if (currentUser == null) {
+      // Retorna o valor padrão se não houver usuário logado
+      return {'Resolvidas': 0, 'Pendentes': 0};
+    }
 
-    // 1. Buscar ids dos jovens da escola
-    final jovens = await _client
-        .from('jovens_aprendizes')
-        .select('id')
-        .eq('escola_id', escolaId);
+    String? escolaId;
 
-    if (jovens.isEmpty) return {'Resolvidas': 0, 'Pendentes': 0};
+    // 1. Determinar o ID da escola com base no tipo de usuário
+    if (auth.tipoUsuario == "escola") {
+      escolaId = currentUser.id;
+    } else if (auth.tipoUsuario == "professor_externo") {
+      try {
+        final professorData = await _client
+            .from('professores')
+            .select('id_colegio')
+            .eq('id', currentUser.id)
+            .maybeSingle();
 
-    final ids = jovens.map((j) => j['id']).toList();
-
-    // 2. Buscar ocorrências do tipo 'escola' desses jovens
-    final ocorrencias = await _client
-        .from('ocorrencias_jovem')
-        .select('resolvido')
-        .eq('tipo', 'escola')
-        .inFilter('jovem_id', ids);
-
-    int resolvidas = 0;
-    int pendentes = 0;
-
-    for (final o in ocorrencias) {
-      if (o['resolvido'] == true) {
-        resolvidas++;
-      } else {
-        pendentes++;
+        if (professorData != null && professorData['id_colegio'] != null) {
+          escolaId = professorData['id_colegio'].toString();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Erro ao buscar escola do professor: $e");
+        }
+        return {'Resolvidas': 0, 'Pendentes': 0};
       }
     }
 
-    return {
-      'Resolvidas': resolvidas,
-      'Pendentes': pendentes,
-    };
+    // 2. Se não foi possível determinar o ID da escola, retorna o valor padrão
+    if (escolaId == null) {
+      if (kDebugMode) {
+        print("Não foi possível determinar a escola para o usuário: ${currentUser.id}");
+      }
+      return {'Resolvidas': 0, 'Pendentes': 0};
+    }
+
+    // 3. Buscar e processar as ocorrências usando o 'escolaId' determinado
+    try {
+      // Buscar ids dos jovens da escola correta
+      final jovens = await _client
+          .from('jovens_aprendizes')
+          .select('id')
+          .eq('escola_id', escolaId); // <- AQUI está a mudança principal
+
+      if (jovens.isEmpty) {
+        return {'Resolvidas': 0, 'Pendentes': 0};
+      }
+
+      final ids = jovens.map((j) => j['id']).toList();
+
+      // Buscar ocorrências do tipo 'escola' desses jovens
+      final ocorrencias = await _client
+          .from('ocorrencias_jovem')
+          .select('resolvido')
+          .eq('tipo', 'escola')
+          .inFilter('jovem_id', ids);
+
+      int resolvidas = 0;
+      int pendentes = 0;
+
+      for (final o in ocorrencias) {
+        if (o['resolvido'] == true) {
+          resolvidas++;
+        } else {
+          pendentes++;
+        }
+      }
+
+      return {
+        'Resolvidas': resolvidas,
+        'Pendentes': pendentes,
+      };
+    } catch (e) {
+      if (kDebugMode) {
+        print("Erro ao buscar dados de ocorrências: $e");
+      }
+      return {'Resolvidas': 0, 'Pendentes': 0};
+    }
   }
 
   Future<String?> cadastrarOcorrencia({

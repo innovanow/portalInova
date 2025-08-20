@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../widgets/drawer.dart';
+
 class PresencaService {
   final _client = Supabase.instance.client;
 
@@ -284,41 +286,86 @@ class PresencaService {
   }
 
   Future<Map<String, int>> buscarPresencaMediaPorEscola() async {
-    final escolaId = _client.auth.currentUser?.id;
-    if (escolaId == null) return {'Presentes': 0, 'Faltas': 0};
+    final currentUser = _client.auth.currentUser;
+    if (currentUser == null) {
+      // Retorna o valor padrão se não houver usuário logado
+      return {'Presentes': 0, 'Faltas': 0};
+    }
 
-    // 1. Buscar ids dos jovens da escola
-    final jovens = await _client
-        .from('jovens_aprendizes')
-        .select('id')
-        .eq('status', 'ativo')
-        .eq('escola_id', escolaId);
+    String? escolaId;
 
-    if (jovens.isEmpty) return {'Presentes': 0, 'Faltas': 0};
+    // 1. Determinar o ID da escola com base no tipo de usuário
+    if (auth.tipoUsuario == "escola") {
+      escolaId = currentUser.id;
+    } else if (auth.tipoUsuario == "professor_externo") {
+      try {
+        final professorData = await _client
+            .from('professores')
+            .select('id_colegio')
+            .eq('id', currentUser.id)
+            .maybeSingle();
 
-    final ids = jovens.map((j) => j['id']).toList();
-
-    // 2. Buscar presenças desses jovens
-    final presencas = await _client
-        .from('presencas')
-        .select('presente')
-        .inFilter('jovem_id', ids);
-
-    int presentes = 0;
-    int faltas = 0;
-
-    for (final p in presencas) {
-      if (p['presente'] == true) {
-        presentes++;
-      } else {
-        faltas++;
+        if (professorData != null && professorData['id_colegio'] != null) {
+          escolaId = professorData['id_colegio'].toString();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Erro ao buscar escola do professor: $e");
+        }
+        return {'Presentes': 0, 'Faltas': 0};
       }
     }
 
-    return {
-      'Presentes': presentes,
-      'Faltas': faltas,
-    };
+    // 2. Se não foi possível determinar o ID da escola, retorna o valor padrão
+    if (escolaId == null) {
+      if (kDebugMode) {
+        print("Não foi possível determinar a escola para o usuário: ${currentUser.id}");
+      }
+      return {'Presentes': 0, 'Faltas': 0};
+    }
+
+    // 3. Buscar e processar os dados de presença usando o 'escolaId' determinado
+    try {
+      // Buscar ids dos jovens da escola correta
+      final jovens = await _client
+          .from('jovens_aprendizes')
+          .select('id')
+          .eq('status', 'ativo')
+          .eq('escola_id', escolaId); // <- AQUI está a mudança principal
+
+      if (jovens.isEmpty) {
+        return {'Presentes': 0, 'Faltas': 0};
+      }
+
+      final ids = jovens.map((j) => j['id']).toList();
+
+      // Buscar presenças desses jovens
+      final presencas = await _client
+          .from('presencas')
+          .select('presente')
+          .inFilter('jovem_id', ids);
+
+      int presentes = 0;
+      int faltas = 0;
+
+      for (final p in presencas) {
+        if (p['presente'] == true) {
+          presentes++;
+        } else {
+          faltas++;
+        }
+      }
+
+      return {
+        'Presentes': presentes,
+        'Faltas': faltas,
+      };
+    } catch (e) {
+      if (kDebugMode) {
+        print("Erro ao buscar dados de presença: $e");
+      }
+      return {'Presentes': 0, 'Faltas': 0};
+    }
   }
 
   Future<void> salvarPresencas({
