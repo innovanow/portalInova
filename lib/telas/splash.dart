@@ -124,9 +124,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       _textoExibido,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontFamily: 'FuturaBold',
+                        fontFamily: 'LeagueSpartan',
                         fontWeight: FontWeight.bold,
-                        fontSize: 25,
+                        fontSize: 30,
                         color: Color(0xFF0A63AC),
                       ),
                     ),

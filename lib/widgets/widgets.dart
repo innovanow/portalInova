@@ -278,7 +278,7 @@ class _ColorWheelPickerState extends State<ColorWheelPicker> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           content: SingleChildScrollView(
             child: ColorPicker(
@@ -302,7 +302,7 @@ class _ColorWheelPickerState extends State<ColorWheelPicker> {
               child: const Text(
                 "Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -313,7 +313,7 @@ class _ColorWheelPickerState extends State<ColorWheelPicker> {
               ),
               child: const Text("Selecionar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )),
               onPressed: () {

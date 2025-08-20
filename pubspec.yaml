@@ -132,9 +132,9 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
   fonts:
-    - family: FuturaBold
+    - family: LeagueSpartan
       fonts:
-        - asset: assets/fonts/futura-bold.ttf
+        - asset: assets/fonts/LeagueSpartan-ExtraBold.ttf
 
 flutter_icons:
   android: true

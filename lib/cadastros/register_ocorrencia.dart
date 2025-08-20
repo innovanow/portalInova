@@ -92,7 +92,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
               backgroundColor: const Color(0xFF0A63AC),
               title: const Text(
                 "Nova Ocorrência",
-                style: TextStyle(fontSize: 20, color: Colors.white, fontFamily: 'FuturaBold'),
+                style: TextStyle(fontSize: 20, color: Colors.white, fontFamily: 'LeagueSpartan'),
               ),
               content: SizedBox(
                 width: MediaQuery.of(context).size.width,
@@ -175,8 +175,8 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                     "Cancelar",
                     style: TextStyle(
                       color: Colors.orange,
-                      fontFamily: 'FuturaBold',
-                      fontSize: 15,
+                      fontFamily: 'LeagueSpartan',
+                      fontSize: 18,
                     ),
                   ),
                 ),
@@ -202,8 +202,8 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                     "Salvar",
                     style: TextStyle(
                       color: Colors.green,
-                      fontFamily: 'FuturaBold',
-                      fontSize: 15,
+                      fontFamily: 'LeagueSpartan',
+                      fontSize: 18,
                     ),
                   ),
                 )
@@ -325,7 +325,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                               style: TextStyle(
                                                 fontSize: 20,
                                                 color: Colors.white,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                               ),
                                             ),
                                             content: SizedBox(
@@ -371,7 +371,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                                 child: const Text(
                                                   "Cancelar",
                                                     style: TextStyle(color: Colors.orange,
-                                                      fontFamily: 'FuturaBold',
+                                                      fontFamily: 'LeagueSpartan',
                                                       fontSize: 15,
                                                     )
                                                 ),
@@ -396,7 +396,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                                   "Salvar",
                                                   style: TextStyle(
                                                     color: Colors.green,
-                                                    fontFamily: 'FuturaBold',
+                                                    fontFamily: 'LeagueSpartan',
                                                     fontSize: 15,
                                                   ),
                                                 ),
@@ -431,7 +431,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                         style: TextStyle(
                                           fontSize: 20,
                                           color: Colors.white,
-                                          fontFamily: 'FuturaBold',
+                                          fontFamily: 'LeagueSpartan',
                                         ),),
                                       actions: [
                                         TextButton(
@@ -441,7 +441,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                           onPressed: () => Navigator.pop(context, false),
                                           child: const Text("Cancelar",
                                               style: TextStyle(color: Colors.orange,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                                 fontSize: 15,
                                               )
                                           ),
@@ -450,7 +450,7 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                                           onPressed: () => Navigator.pop(context, true),
                                           child: const Text("Excluir",
                                               style: TextStyle(color: Colors.red,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                                 fontSize: 15,
                                               )),
                                         ),
@@ -507,9 +507,9 @@ class _OcorrenciasScreenState extends State<OcorrenciasScreen> {
                       children: [
                         Text("Ocorrências: ${widget.nomeJovem.split(" ")[0]}",
                           style: TextStyle(
-                            fontFamily: 'FuturaBold',
+                            fontFamily: 'LeagueSpartan',
                             fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                            fontSize: 25,
                             color: Colors.white,
                           ),
                         ),

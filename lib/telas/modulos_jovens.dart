@@ -137,9 +137,9 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                       children: [
                         Text("Meus Módulos",
                           style: TextStyle(
-                            fontFamily: 'FuturaBold',
+                            fontFamily: 'LeagueSpartan',
                             fontWeight: FontWeight.bold,
-                            fontSize: constraints.maxWidth > 800 ? 20 : 15,
+                            fontSize: 25,
                             color: Colors.white,
                           ),
                         ),
@@ -264,7 +264,7 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                           style: TextStyle(
                                             fontSize: 20,
                                             color: Colors.white,
-                                            fontFamily: 'FuturaBold',
+                                            fontFamily: 'LeagueSpartan',
                                           ),),
                                         content: Text("Deseja excluir \"${doc["nome"]}\"?",
                                           style: TextStyle(
@@ -277,7 +277,7 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                               ),
                                               onPressed: () => Navigator.pop(context),
                                               child: const Text("Cancelar",style: TextStyle(color: Colors.orange,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                                 fontSize: 15,
                                               ))),
                                           TextButton(
@@ -316,7 +316,7 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                                 }
                                               },
                                               child: const Text("Excluir",style: TextStyle(color: Colors.red,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                                 fontSize: 15,
                                               )
                                               )),
@@ -447,7 +447,7 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                     child: Text('Nenhum módulo encontrado.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Colors.black,)),

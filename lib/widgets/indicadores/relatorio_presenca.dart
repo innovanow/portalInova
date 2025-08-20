@@ -57,7 +57,7 @@ class RelatorioService {
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
                       color: Colors.white,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                     ),),
                   content: Text('Não há datas de aula definidas para este módulo.',
                     style: TextStyle(
@@ -74,7 +74,7 @@ class RelatorioService {
                         "Fechar",
                         style: TextStyle(
                           color: Colors.white,
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontSize: 15,
                         ),
                       ),
@@ -121,7 +121,7 @@ class RelatorioService {
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
                       color: Colors.white,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                     ),),
                   content: Text('Não há datas de aula definidas para este módulo no mês e ano especificados.',style: TextStyle(
                     color: Colors.white,),
@@ -137,7 +137,7 @@ class RelatorioService {
                         "Fechar",
                         style: TextStyle(
                           color: Colors.white,
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontSize: 15,
                         ),
                       ),

@@ -90,7 +90,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
           style: TextStyle(
             fontSize: 20,
             color: Colors.white,
-            fontFamily: 'FuturaBold',
+            fontFamily: 'LeagueSpartan',
           ),
         ),
         actions: [
@@ -103,7 +103,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
               'Cancelar',
               style: TextStyle(
                 color: Colors.orange,
-                fontFamily: 'FuturaBold',
+                fontFamily: 'LeagueSpartan',
                 fontSize: 15,
               ),
             ),
@@ -117,7 +117,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
               'Refazer',
               style: TextStyle(
                 color: Colors.red,
-                fontFamily: 'FuturaBold',
+                fontFamily: 'LeagueSpartan',
                 fontSize: 15,
               ),
             ),
@@ -243,7 +243,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
                     color: Colors.white,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                   ),),
                 content:
                 SizedBox(
@@ -380,8 +380,8 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                       "Fechar",
                       style: TextStyle(
                         color: Colors.white,
-                        fontFamily: 'FuturaBold',
-                        fontSize: 15,
+                        fontFamily: 'LeagueSpartan',
+                        fontSize: 18,
                       ),
                     ),
                     onPressed: () => Navigator.of(context).pop(),
@@ -418,11 +418,11 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                       );
                     },
                     child: const Text(
-                      "Gerar Relatório",
+                      "Gerar",
                       style: TextStyle(
                         color: Colors.orange,
-                        fontFamily: 'FuturaBold',
-                        fontSize: 15,
+                        fontFamily: 'LeagueSpartan',
+                        fontSize: 18,
                       ),
                     ),
                   ),
@@ -481,9 +481,9 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                     : Text(
                   'Histórico',
                   style: TextStyle(
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: 25,
                     color: Colors.white,
                   ),
                 ),
@@ -699,7 +699,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                                                       child: Text(
                                                         '${DateFormat('dd/MM/yyyy').format(data)} - ${item['modulo_nome']} (Turma ${item['codigo_turma']})',
                                                         style: const TextStyle(
-                                                          fontFamily: 'FuturaBold',
+                                                          fontFamily: 'LeagueSpartan',
                                                           fontSize: 15,
                                                           fontWeight: FontWeight.bold,
                                                         ),

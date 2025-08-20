@@ -82,7 +82,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -119,7 +119,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           actions: [
             TextButton(
@@ -129,7 +129,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -148,7 +148,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
               },
               child: const Text("Inativar",
                   style: TextStyle(color: Colors.red,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )),
             ),
@@ -168,7 +168,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           actions: [
             TextButton(
@@ -178,7 +178,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -197,7 +197,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
               },
               child: const Text("Ativar",
                   style: TextStyle(color: Colors.green,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -222,7 +222,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -350,7 +350,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                                               style: TextStyle(
                                                 fontSize: 20,
                                                 color: Colors.white,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                               ),),
                                             content: Text("Deseja excluir \"${doc["name"]}\"?",
                                               style: TextStyle(
@@ -363,7 +363,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                                                   ),
                                                   onPressed: () => Navigator.pop(context, false),
                                                   child: const Text("Cancelar",style: TextStyle(color: Colors.orange,
-                                                    fontFamily: 'FuturaBold',
+                                                    fontFamily: 'LeagueSpartan',
                                                     fontSize: 15,
                                                   ))),
                                               TextButton(
@@ -372,7 +372,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                                                   ),
                                                   onPressed: () => Navigator.pop(context, true),
                                                   child: const Text("Excluir",style: TextStyle(color: Colors.red,
-                                                    fontFamily: 'FuturaBold',
+                                                    fontFamily: 'LeagueSpartan',
                                                     fontSize: 15,
                                                   )
                                                   )),
@@ -418,7 +418,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                 ),
                 child: const Text("Fechar",
                     style: TextStyle(color: Colors.orange,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     )),
                 onPressed: () {
@@ -432,7 +432,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                 ),
                 child: const Text("Incluir",
                     style: TextStyle(color: Colors.green,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     )),
                 onPressed: ()  async {
@@ -505,7 +505,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                 style: TextStyle(
                   fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),),
               content: SizedBox(
                 width: 400,
@@ -588,7 +588,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                   child: const Text("Fechar",
                     style: TextStyle(
                       color: Colors.white,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     ),),
                   onPressed: () => Navigator.of(context).pop(),
@@ -649,7 +649,7 @@ class _TurmaScreenState extends State<TurmaScreen> {
                   child: const Text("Gerar PDF",
                     style: TextStyle(
                       color: Colors.orange,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     ),),
                 ),
@@ -854,9 +854,9 @@ class _TurmaScreenState extends State<TurmaScreen> {
                   : const Text(
                 'Turmas',
                 style: TextStyle(
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 25,
                   color: Colors.white,
                 ),
               ),

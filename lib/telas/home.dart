@@ -150,9 +150,9 @@ class _HomeState extends State<Home> {
                               const Text(
                                 'Portal Instituto Inova',
                                 style: TextStyle(
-                                  fontFamily: 'FuturaBold',
+                                  fontFamily: 'LeagueSpartan',
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 20,
+                                  fontSize: 25,
                                   color: Colors.white,
                                 ),
                               ),
@@ -192,9 +192,9 @@ class _HomeState extends State<Home> {
                       const Text(
                         'Inova',
                         style: TextStyle(
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize: 25,
                           color: Colors.white,
                         ),
                       ),

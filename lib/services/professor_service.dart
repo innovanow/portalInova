@@ -5,7 +5,12 @@ class ProfessorService {
 
   // Buscar todas os professores
   Future<List<Map<String, dynamic>>> buscarprofessor(String statusProfessor) async {
-    final response = await supabase.from('professores').select().eq('status', statusProfessor).order('nome', ascending: true);
+    final response = await supabase
+        .from('professores')
+        .select()
+        .eq('status', statusProfessor)
+        .not('nome', 'eq', 'Não Definido')
+        .order('nome', ascending: true);
     return response;
   }
 

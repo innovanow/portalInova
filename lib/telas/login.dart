@@ -31,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   final AuthService _authService = AuthService();
   bool lembrarDados = false;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -66,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -261,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () => Navigator.pop(dialogContext),
                   child: const Text("Cancelar",
                       style: TextStyle(color: Colors.orange,
-                        fontFamily: 'FuturaBold',
+                        fontFamily: 'LeagueSpartan',
                         fontSize: 15,
                       )
                   ),
@@ -306,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: const Text("Enviar código",
                         style: TextStyle(color: Colors.orange,
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontSize: 15,
                         )),
                   ),
@@ -383,7 +384,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: const Text("Redefinir senha",
                         style: TextStyle(color: Colors.orange,
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontSize: 15,
                         )
                     ),
@@ -401,7 +402,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return PopScope(
       canPop: kIsWeb ? false : true, // impede voltar
       child: Scaffold(
-        backgroundColor: Colors.white,
         body: SafeArea(
           child: Container(
             decoration: const BoxDecoration(
@@ -428,7 +428,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         "Login",
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontWeight: FontWeight.bold,
                           fontSize: 25,
                           color: Color(0xFF0A63AC),
@@ -501,11 +501,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   borderSide: const BorderSide(color: Colors.red, width: 2.0),
                                                   borderRadius: BorderRadius.circular(8),
                                                 ),
+                                                suffixIcon: IconButton(
+                                                  icon: Icon(
+                                                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                                    color: Colors.white,
+                                                  ),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _isPasswordVisible = !_isPasswordVisible;
+                                                    });
+                                                  },
+                                                ),
                                               ),
                                               onFieldSubmitted: (value) {
                                                 _login();
                                               },
-                                              obscureText: true,
+                                              obscureText: !_isPasswordVisible,
                                               style: const TextStyle(color: Colors.white), // Texto branco
                                               validator: (value) => value!.isEmpty ? "Digite sua senha" : null,
                                             ),
@@ -532,12 +543,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                                               setState(() {
                                                                 lembrarDados = value ?? false; // Atualiza o estado ao clicar no checkbox
                                                               });
-          
-                                                              // Usa 'value' em vez de 'lembrarDados' para garantir que o novo valor seja considerado
-                                                              if (value == false) {
-                                                                _emailController.clear();
-                                                                _passwordController.clear();
-                                                              }
                                                             },
                                                             splashRadius: 0, // Remove o efeito de splash ao clicar
                                                             overlayColor: WidgetStateProperty.all(Colors.transparent),
@@ -594,8 +599,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 "Inscreva-se aqui 🖐️",
                                                 style: TextStyle(
                                                     color: Colors.orange,
-                                                    fontFamily: 'FuturaBold',
-                                                    fontSize: 15,
+                                                    fontFamily: 'LeagueSpartan',
+                                                    fontSize: 18,
                                                 ),
                                               ),
                                             ),

@@ -63,7 +63,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -100,7 +100,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           actions: [
             TextButton(
@@ -110,7 +110,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -129,7 +129,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
               },
               child: const Text("Inativar",
                   style: TextStyle(color: Colors.red,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )),
             ),
@@ -149,7 +149,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           actions: [
             TextButton(
@@ -159,7 +159,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -178,7 +178,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
               },
               child: const Text("Ativar",
                   style: TextStyle(color: Colors.green,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -215,7 +215,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -343,7 +343,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                                               style: TextStyle(
                                                 fontSize: 20,
                                                 color: Colors.white,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                               ),),
                                             content: Text("Deseja excluir \"${doc["name"]}\"?",
                                               style: TextStyle(
@@ -356,7 +356,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                                                   ),
                                                   onPressed: () => Navigator.pop(context, false),
                                                   child: const Text("Cancelar",style: TextStyle(color: Colors.orange,
-                                                    fontFamily: 'FuturaBold',
+                                                    fontFamily: 'LeagueSpartan',
                                                     fontSize: 15,
                                                   ))),
                                               TextButton(
@@ -365,7 +365,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                                                   ),
                                                   onPressed: () => Navigator.pop(context, true),
                                                   child: const Text("Excluir",style: TextStyle(color: Colors.red,
-                                                    fontFamily: 'FuturaBold',
+                                                    fontFamily: 'LeagueSpartan',
                                                     fontSize: 15,
                                                   )
                                                   )),
@@ -411,7 +411,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                 ),
                 child: const Text("Fechar",
                     style: TextStyle(color: Colors.orange,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     )),
                 onPressed: () {
@@ -425,7 +425,7 @@ class _EscolaScreenState extends State<EscolaScreen> {
                 ),
                 child: const Text("Incluir",
                     style: TextStyle(color: Colors.green,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     )),
                 onPressed: ()  async {
@@ -521,9 +521,9 @@ class _EscolaScreenState extends State<EscolaScreen> {
                   : const Text(
                 'Colégios',
                 style: TextStyle(
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 25,
                   color: Colors.white,
                 ),
               ),

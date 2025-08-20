@@ -61,7 +61,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -98,7 +98,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           actions: [
             TextButton(
@@ -108,7 +108,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -127,7 +127,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
               },
               child: const Text("Inativar",
                   style: TextStyle(color: Colors.red,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )),
             ),
@@ -147,7 +147,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           actions: [
             TextButton(
@@ -157,7 +157,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -176,7 +176,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
               },
               child: const Text("Ativar",
                   style: TextStyle(color: Colors.green,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -220,7 +220,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -351,7 +351,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                               style: TextStyle(
                                                 fontSize: 20,
                                                 color: Colors.white,
-                                                fontFamily: 'FuturaBold',
+                                                fontFamily: 'LeagueSpartan',
                                               ),),
                                             content: Text("Deseja excluir \"${doc["name"]}\"?",
                                               style: TextStyle(
@@ -364,7 +364,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                                   ),
                                                   onPressed: () => Navigator.pop(context, false),
                                                   child: const Text("Cancelar",style: TextStyle(color: Colors.orange,
-                                                    fontFamily: 'FuturaBold',
+                                                    fontFamily: 'LeagueSpartan',
                                                     fontSize: 15,
                                                   ))),
                                               TextButton(
@@ -373,7 +373,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                                                   ),
                                                   onPressed: () => Navigator.pop(context, true),
                                                   child: const Text("Excluir",style: TextStyle(color: Colors.red,
-                                                    fontFamily: 'FuturaBold',
+                                                    fontFamily: 'LeagueSpartan',
                                                     fontSize: 15,
                                                   )
                                                   )),
@@ -419,7 +419,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                 ),
                 child: const Text("Fechar",
                     style: TextStyle(color: Colors.orange,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     )),
                 onPressed: () {
@@ -433,7 +433,7 @@ class _ModuloScreenState extends State<ModuloScreen> {
                 ),
                 child: const Text("Incluir",
                     style: TextStyle(color: Colors.green,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     )),
                 onPressed: ()  async {
@@ -529,9 +529,9 @@ class _ModuloScreenState extends State<ModuloScreen> {
                   : const Text(
                 'Módulos',
                 style: TextStyle(
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 25,
                   color: Colors.white,
                 ),
               ),

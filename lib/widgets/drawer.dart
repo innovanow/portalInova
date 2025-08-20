@@ -119,7 +119,8 @@ Widget buildDrawerItem(IconData icon, String title, BuildContext context) {
         title: Text(
           title,
           style: const TextStyle(
-            fontFamily: 'FuturaBold',
+            fontFamily: 'LeagueSpartan',
+            fontSize: 20,
             color: Color(0xFF0A63AC),
           ),
         ),

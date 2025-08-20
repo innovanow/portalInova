@@ -181,7 +181,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                 style: TextStyle(
                   fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),),
               content: SingleChildScrollView( // Garante que o conteúdo não estoure em telas menores
                 child: Column(
@@ -334,7 +334,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                     "Fechar",
                     style: TextStyle(
                       color: Colors.white,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     ),
                   ),
@@ -350,7 +350,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                     "Gerar PDF",
                     style: TextStyle(
                       color: Colors.orange,
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontSize: 15,
                     ),
                   ),
@@ -554,7 +554,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
               IconButton(
@@ -592,7 +592,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),
           ),
           actions: [
@@ -607,7 +607,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                 "Cancelar",
                 style: TextStyle(
                   color: Colors.orange,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontSize: 15,
                 ),
               ),
@@ -629,7 +629,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                 "Inativar",
                 style: TextStyle(
                   color: Colors.red,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontSize: 15,
                 ),
               ),
@@ -651,7 +651,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),
           ),
           actions: [
@@ -666,7 +666,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                 "Cancelar",
                 style: TextStyle(
                   color: Colors.orange,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontSize: 15,
                 ),
               ),
@@ -688,7 +688,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                 "Ativar",
                 style: TextStyle(
                   color: Colors.green,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontSize: 15,
                 ),
               ),
@@ -738,7 +738,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.white,
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                         ),
                       ),
                       IconButton(
@@ -911,7 +911,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                                             fontSize: 20,
                                                             color: Colors.white,
                                                             fontFamily:
-                                                                'FuturaBold',
+                                                                'LeagueSpartan',
                                                           ),
                                                         ),
                                                         content: Text(
@@ -942,7 +942,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                                                     Colors
                                                                         .orange,
                                                                 fontFamily:
-                                                                    'FuturaBold',
+                                                                    'LeagueSpartan',
                                                                 fontSize: 15,
                                                               ),
                                                             ),
@@ -967,7 +967,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                                                 color:
                                                                     Colors.red,
                                                                 fontFamily:
-                                                                    'FuturaBold',
+                                                                    'LeagueSpartan',
                                                                 fontSize: 15,
                                                               ),
                                                             ),
@@ -1028,7 +1028,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                         "Fechar",
                         style: TextStyle(
                           color: Colors.orange,
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontSize: 15,
                         ),
                       ),
@@ -1047,7 +1047,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                         "Incluir",
                         style: TextStyle(
                           color: Colors.green,
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontSize: 15,
                         ),
                       ),
@@ -1159,9 +1159,9 @@ class _CadastroJovemState extends State<CadastroJovem> {
                       : Text(
                         'Jovens ${statusJovem.toLowerCase()}',
                         style: TextStyle(
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize: 25,
                           color: Colors.white,
                         ),
                       ),

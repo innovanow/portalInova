@@ -195,7 +195,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
                     color: Colors.white,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                   ),
                 ),
               ),
@@ -297,9 +297,9 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                         ? 'Calendário Inova $anoAtual'
                         : '$anoAtual',
                     style: const TextStyle(
-                      fontFamily: 'FuturaBold',
+                      fontFamily: 'LeagueSpartan',
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 25,
                       color: Colors.white,
                     ),
                   ),
@@ -556,7 +556,7 @@ class _ModulosCalendarScreenState extends State<ModulosCalendarScreen> {
                   color: Colors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                 ),
               ),
             ),

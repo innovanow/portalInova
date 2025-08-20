@@ -131,11 +131,11 @@ class _HistoricoFrequenciaJovemPageState extends State<HistoricoFrequenciaJovemP
                 },
               )
                   : Text(
-                'Histórico de Presenças',
+                'Histórico',
                 style: TextStyle(
-                  fontFamily: 'FuturaBold',
+                  fontFamily: 'LeagueSpartan',
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 25,
                   color: Colors.white,
                 ),
               ),
@@ -306,7 +306,7 @@ class _HistoricoFrequenciaJovemPageState extends State<HistoricoFrequenciaJovemP
                                     title: Text(
                                         DateFormat('dd/MM/yyyy').format(DateTime.parse(item['data'])),
                                         style: const TextStyle(
-                                          fontFamily: 'FuturaBold',
+                                          fontFamily: 'LeagueSpartan',
                                         )),
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,

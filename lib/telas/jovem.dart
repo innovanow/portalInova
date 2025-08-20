@@ -68,7 +68,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),),
           actions: [
             TextButton(
@@ -78,7 +78,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
               onPressed: () => Navigator.of(context).pop(), // Fecha o alerta
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -140,7 +140,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
               },
               child: const Text("Sim",
                   style: TextStyle(color: Colors.red,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )),
             ),
@@ -176,9 +176,9 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                       children: [
                         Text(widget.jovem['nome'].split(" ")[0] ?? 'Perfil',
                           style: TextStyle(
-                            fontFamily: 'FuturaBold',
+                            fontFamily: 'LeagueSpartan',
                             fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                            fontSize: 25,
                             color: Colors.white,
                           ),
                         ),
@@ -419,7 +419,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                           widget.jovem['nome'] ?? 'Nome não disponível',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontFamily: 'FuturaBold',
+                              fontFamily: 'LeagueSpartan',
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                               color: Colors.black,)
@@ -553,7 +553,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
               Text(title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: Colors.black,)),

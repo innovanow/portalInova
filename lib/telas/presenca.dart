@@ -72,7 +72,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
             style: TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontFamily: 'FuturaBold',
+              fontFamily: 'LeagueSpartan',
             ),
           ),
           actions: [
@@ -83,7 +83,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
               onPressed: () => Navigator.pop(context),
               child: const Text("Cancelar",
                   style: TextStyle(color: Colors.orange,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -144,7 +144,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
               },
               child: const Text("Confirmar",
                   style: TextStyle(color: Colors.green,
-                    fontFamily: 'FuturaBold',
+                    fontFamily: 'LeagueSpartan',
                     fontSize: 15,
                   )
               ),
@@ -210,9 +210,9 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                     children: [
                       Text("Presenças",
                         style: TextStyle(
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontWeight: FontWeight.bold,
-                          fontSize: constraints.maxWidth > 800 ? 20 : 15,
+                          fontSize: 25,
                           color: Colors.white,
                         ),
                       ),
@@ -358,7 +358,7 @@ class _RegistrarPresencaPageState extends State<RegistrarPresencaPage> {
                       Text( _moduloSelecionado == null ? "Selecione um módulo para registrar as presenças." : "Desmarque os jovens que não estiveram presentes:",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: 'FuturaBold',
+                          fontFamily: 'LeagueSpartan',
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Colors.black,)),
