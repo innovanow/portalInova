@@ -328,7 +328,8 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                                     bytes = await picked.readAsBytes();
                                     ext = picked.name.split('.').last.toLowerCase();
                                   }
-                                } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+                                }
+                                else if (defaultTargetPlatform == TargetPlatform.iOS) {
                                   // ✅ iOS — usa image_picker (sem permission_handler)
                                   final picker = ImagePicker();
                                   final picked = await picker.pickImage(source: ImageSource.gallery);
@@ -338,7 +339,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                                   }
                                 } else {
                                   // ✅ Android — mantém file_picker com permissões
-                                  final status = await Permission.storage.request();
+                                  final status = await Permission.photos.request();
                                   if (!status.isGranted) {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,10 +1,11 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import '../services/uploud_docs.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
@@ -340,33 +341,68 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                           splashColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           enableFeedback: false,
-                          tooltip: "Enviar documento",
+                          tooltip: "Enviar fotos",
                           icon: const Icon(Icons.upload_file_outlined,
                               color: Color(0xFF0A63AC)),
                             onPressed: ()  async {
                             if (m['id'] != null) {
                               try {
                                 Uint8List? bytes;
-                                String? nome;
+                                String fileName = 'documento.jpg';
 
-                                final result = await FilePicker.platform.pickFiles(
-                                  type: FileType.custom,
-                                  allowedExtensions: ['pdf', 'jpg', 'png', 'doc', 'docx'],
-                                  allowMultiple: false,
-                                  withData: true,
-                                );
+                                if (kIsWeb) {
+                                  // ✅ Web
+                                  final picker = ImagePicker();
+                                  final picked = await picker.pickImage(source: ImageSource.gallery);
+                                  if (picked != null) {
+                                    bytes = await picked.readAsBytes();
+                                    fileName = sanitizeFileName(picked.name);
+                                  }
+                                }
+                                else if (defaultTargetPlatform == TargetPlatform.iOS) {
+                                  // ✅ iOS — usa image_picker (sem permission_handler)
+                                  final picker = ImagePicker();
+                                  final picked = await picker.pickImage(source: ImageSource.gallery);
+                                  if (picked != null) {
+                                    bytes = await picked.readAsBytes();
+                                  }
+                                } else {
+                                  // ✅ Android — mantém file_picker com permissões
+                                  final status = await Permission.photos.request();
+                                  if (kDebugMode) {
+                                    print(status);
+                                  }
+                                  if (!status.isGranted) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          backgroundColor: Color(0xFF0A63AC),
+                                          content: Text('Permissão negada para acessar arquivos',
+                                              style: TextStyle(color: Colors.white)),
+                                        ),
+                                      );
+                                    }
+                                    return;
+                                  }
 
-                                if (result != null && result.files.single.bytes != null) {
-                                  nome = sanitizeFileName(result.files.single.name);
-                                  bytes = result.files.single.bytes;
+                                  final result = await FilePicker.platform.pickFiles(
+                                    type: FileType.image,
+                                    allowMultiple: false,
+                                    withData: true,
+                                  );
+
+                                  if (result != null && result.files.single.bytes != null) {
+                                    bytes = result.files.single.bytes;
+                                    fileName = sanitizeFileName(result.files.single.name);
+                                  }
                                 }
 
-                                if (nome != null && bytes != null) {
-                                  final result = await _docsService.uploadDocumento(m['id'], nome, bytes);
+                                if (bytes != null) {
+                                  final result = await _docsService.uploadDocumento(m['id'], fileName, bytes);
                                   setState(() {
                                     _uploadStatus = result?.startsWith("Erro") == true
                                         ? result
-                                        : "Arquivo \"$nome\" enviado com sucesso!";
+                                        : "Arquivo \"$fileName\" enviado com sucesso!";
                                   });
                                   if (kDebugMode) {
                                     print(_uploadStatus);
@@ -385,9 +421,15 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                   }
                                 }
                               } catch (e) {
-                                setState(() {
-                                  _uploadStatus = "Erro ao enviar: $e";
-                                });
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: Color(0xFF0A63AC),
+                                      content: Text('Erro ao fazer upload da imagem: $e',
+                                          style: TextStyle(color: Colors.white)),
+                                    ),
+                                  );
+                                }
                               }
                             } else {
                               if (kDebugMode) {

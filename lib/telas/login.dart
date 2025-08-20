@@ -638,7 +638,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text("Limpar Dados",
                                       style: TextStyle(color: Color(0xFF0A63AC)),)
                                 ),
-                                Text("Versão: 0.42",
+                                Text("Versão: 0.43",
                                   style: TextStyle(color: Color(0xFF0A63AC)),),
                                 SizedBox(height: 10),
                                 Column(
