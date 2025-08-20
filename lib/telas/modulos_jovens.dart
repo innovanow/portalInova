@@ -356,7 +356,8 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                   final picked = await picker.pickImage(source: ImageSource.gallery);
                                   if (picked != null) {
                                     bytes = await picked.readAsBytes();
-                                    fileName = sanitizeFileName(picked.name);
+                                    String fullName = picked.name;
+                                    fileName = fullName.substring(fullName.lastIndexOf('-') + 1);
                                   }
                                 }
                                 else if (defaultTargetPlatform == TargetPlatform.iOS) {
@@ -365,6 +366,8 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                   final picked = await picker.pickImage(source: ImageSource.gallery);
                                   if (picked != null) {
                                     bytes = await picked.readAsBytes();
+                                    String fullName = picked.name;
+                                    fileName = fullName.substring(fullName.lastIndexOf('-') + 1);
                                   }
                                 } else {
                                   // ✅ Android — mantém file_picker com permissões
