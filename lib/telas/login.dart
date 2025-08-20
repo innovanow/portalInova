@@ -501,6 +501,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   borderSide: const BorderSide(color: Colors.red, width: 2.0),
                                                   borderRadius: BorderRadius.circular(8),
                                                 ),
+                                                focusColor: Colors.transparent,
+                                                hoverColor: Colors.transparent,
                                                 suffixIcon: IconButton(
                                                   icon: Icon(
                                                     _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
