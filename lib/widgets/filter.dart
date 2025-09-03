@@ -8,7 +8,8 @@ void filtrarLista({
 }) {
   if (query.isEmpty) {
     atualizarListaFiltrada(listaOriginal);
-  } else {
+  }
+  else {
     // Normaliza a query: se for data, extrai yyyy-MM-dd; senão, usa como texto
     String queryFormatada;
     DateTime? dataQuery = DateTime.tryParse(query);
@@ -25,7 +26,7 @@ void filtrarLista({
       final jovemNome = item["jovem_nome"]?.toString().toLowerCase() ?? '';
       final descricao = item["descricao"]?.toString().toLowerCase() ?? '';
       final dataOcorrencia = item["data_ocorrencia"]?.toString().toLowerCase() ?? '';
-      final nomeJovemOcorrencia = item['jovens_aprendizes']['nome']?.toString().toLowerCase() ?? '';
+      final nomeJovemOcorrencia = item['jovens_aprendizes']?['nome']?.toString().toLowerCase() ?? '';
       final professorNome = item["professor_nome"]?.toString().toLowerCase() ?? '';
       final moduloNome = item["modulo_nome"]?.toString().toLowerCase() ?? '';
       final codigoTurma = item["codigo_turma"]?.toString().toLowerCase() ?? '';
