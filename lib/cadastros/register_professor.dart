@@ -628,6 +628,212 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
     }
   }
 
+  Future<void> gerarPdfRelatorioSescoop(
+      List<Map<String, dynamic>> dadosRelatorio, int mes, int ano) async {
+    if (dadosRelatorio.isEmpty) {
+      // Presumo que 'context' está disponível no escopo desta função
+      // Se não estiver, você precisará passá-lo como parâmetro
+      // ou usar um GlobalKey<ScaffoldMessengerState>
+      // Exemplo: final scaffoldMessenger = ScaffoldMessenger.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Nenhum dado encontrado para o período selecionado.'),
+            backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    final doc = pw.Document();
+    final logoSvg = await rootBundle.loadString('assets/logoInova.svg');
+
+    final double valorTotalGeral = dadosRelatorio.fold(
+        0.0,
+            (sum, item) =>
+        sum + (item['valor_total_nota']?.toDouble() ?? 0.0));
+
+    // Agrupar os dados em chunks de 5
+    List<List<Map<String, dynamic>>> chunks = [];
+    for (var i = 0; i < dadosRelatorio.length; i += 5) {
+      chunks.add(dadosRelatorio.sublist(
+          i, i + 5 > dadosRelatorio.length ? dadosRelatorio.length : i + 5));
+    }
+
+    for (var chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      final chunk = chunks[chunkIndex];
+      doc.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          header: (pw.Context context) {
+            // Mostrar o header apenas na primeira página de todas ou na primeira página de cada chunk
+            // Para mostrar em todas as páginas do MultiPage, este header é adequado.
+            // Se quisesse um header global apenas na primeira página do documento,
+            // teria que adicioná-lo fora do loop de chunks, antes de adicionar a primeira página.
+            return pw.Column(children: [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                      'Relatório para Emissão de Notas - ${mes.toString().padLeft(2, '0')}/$ano',
+                      style: pw.TextStyle(
+                          fontSize: 22, fontWeight: pw.FontWeight.bold)),
+                  pw.SvgImage(svg: logoSvg, width: 60),
+                ],
+              ),
+              pw.Divider(thickness: 2),
+              pw.SizedBox(height: 20),
+            ]);
+          },
+          build: (pw.Context context) {
+            List<pw.Widget> widgets = [];
+            for (var row in chunk) {
+              widgets.add(
+                pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 20),
+                  padding: const pw.EdgeInsets.all(12),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.grey400, width: 1.5),
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.RichText(
+                        text: pw.TextSpan(
+                          style: pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                          children: [
+                            pw.TextSpan(text: 'Instrutora:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                            pw.TextSpan(text: ' ${row['instrutora'] ?? 'N/A'}'),
+                          ],
+                        ),
+                      ),
+                      pw.SizedBox(height: 6),
+                      pw.RichText(
+                        text: pw.TextSpan(
+                          style: pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                          children: [
+                            pw.TextSpan(text: 'Módulo:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                            pw.TextSpan(text: ' ${row['nome_modulo'] ?? 'N/A'}'),
+                          ],
+                        ),
+                      ),
+                      pw.SizedBox(height: 6),
+                      pw.RichText(
+                        text: pw.TextSpan(
+                          style: pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                          children: [
+                            pw.TextSpan(text: 'Datas:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                            pw.TextSpan(text: ' ${row['datas'] ?? 'N/A'}'),
+                          ],
+                        ),
+                      ),
+                      pw.Divider(height: 20, color: PdfColors.grey300),
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.RichText(
+                            text: pw.TextSpan(
+                              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                              children: [
+                                pw.TextSpan(text: 'Duração:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                                pw.TextSpan(text: ' ${(row['duracao'] as num?)?.toStringAsFixed(0) ?? '0.0'} horas'),
+                              ],
+                            ),
+                          ),
+                          pw.RichText(
+                            text: pw.TextSpan(
+                              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                              children: [
+                                pw.TextSpan(text: 'Valor da hora/aula:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                                pw.TextSpan(text: ' ${_formatCurrency(row['valor_hora_aula']?.toDouble())}'),
+                              ],
+                            ),
+                          ),
+                          pw.RichText(
+                            text: pw.TextSpan(
+                              style: pw.TextStyle(fontSize: 11, color: PdfColors.black),
+                              children: [
+                                pw.TextSpan(text: 'Valor Total da Nota:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                                pw.TextSpan(text: ' ${_formatCurrency(row['valor_total_nota']?.toDouble())}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+              // Adicionar espaçamento extra entre os cards, exceto para o último do chunk
+              if (row != chunk.last) {
+                widgets.add(pw.SizedBox(height: 10)); // ou outro valor de espaçamento
+              }
+            }
+            return widgets;
+          },
+          footer: (pw.Context context) {
+            // Mostrar o footer apenas na última página do documento
+            if (chunkIndex == chunks.length - 1) {
+              return pw.Container(
+                alignment: pw.Alignment.centerRight,
+                margin: const pw.EdgeInsets.only(top: 20.0),
+                child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Divider(color: PdfColors.grey),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                        'Valor Total Geral: ${_formatCurrency(valorTotalGeral)}',
+                        style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold, fontSize: 12),
+                      ),
+                    ]),
+              );
+            }
+            return pw.Container(); // Footer vazio para páginas intermediárias
+          },
+        ),
+      );
+    }
+
+    // Bloco para salvar e compartilhar o PDF (mantido como no seu original)
+    try {
+      final bytes = await doc.save();
+      final fileName = 'Relatorio_Sescoop_${mes}_$ano.pdf';
+      if (kIsWeb) {
+        final blob = html.Blob([bytes], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..style.display = 'none'
+          ..setAttribute("download", fileName);
+        html.document.body!.append(anchor);
+        anchor.click();
+        anchor.remove();
+        html.Url.revokeObjectUrl(url);
+      } else {
+        final output = await getTemporaryDirectory();
+        final file = File("${output.path}/$fileName");
+        await file.writeAsBytes(bytes);
+        final files = [XFile(file.path, name: fileName)];
+        // Adapte o ShareParams conforme necessário
+        await SharePlus.instance.share(ShareParams(
+          files: files,
+          text: 'Relatório de Atividades Sescoop',
+          subject: 'Relatório de Atividades Sescoop',
+        ));
+      }
+    } catch (e) {
+      debugPrint('Erro ao gerar ou abrir o PDF Sescoop: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Erro ao gerar PDF Sescoop: $e'),
+            backgroundColor: Colors.red),
+      );
+      }
+    }
+  }
+
   /// Abre o diálogo para selecionar o mês e ano e iniciar a geração do relatório.
   void _abrirDialogoRelatorio() {
     final meses = [
@@ -735,7 +941,7 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                     style: TextStyle(
                       color: Colors.white,
                       fontFamily: 'LeagueSpartan',
-                      fontSize: 15,
+                      fontSize: 18,
                     ),),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
@@ -796,8 +1002,147 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                     style: TextStyle(
                       color: Colors.orange,
                       fontFamily: 'LeagueSpartan',
-                      fontSize: 15,
+                      fontSize: 18,
                     ),),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _abrirDialogoRelatorioSescoop(BuildContext context) {
+    final meses = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    final anos =
+    List.generate(6, (index) => DateTime.now().year - 5 + index + 1);
+    String? mesSelecionado = meses[DateTime.now().month - 1];
+    int? anoSelecionado = DateTime.now().year;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        bool isLoading = false;
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF0A63AC),
+              title: Text('Gerar Relatório Sescoop',
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width > 800 ? 20 : 15,
+                  color: Colors.white,
+                  fontFamily: 'LeagueSpartan',
+                ),),
+              content: SizedBox(
+                width: 400,
+                height: 150,
+                child: isLoading
+                    ? const Center(
+                    child:
+                    SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 5,
+                            color: Colors.white
+                        )))
+                    : SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                          labelText: "Mês",
+                          labelStyle: const TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide:
+                              const BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 2.0)),
+                        ),
+                        initialValue: mesSelecionado,
+                        dropdownColor: const Color(0xFF0A63AC),
+                        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
+                        items: meses.map((String mes) {
+                          return DropdownMenuItem<String>(
+                              value: mes, child: Text(mes));
+                        }).toList(),
+                        onChanged: (String? novoValor) {
+                          setStateDialog(() => mesSelecionado = novoValor);
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: "Ano",
+                          labelStyle: const TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide:
+                              const BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 2.0)),
+                        ),
+                        initialValue: anoSelecionado,
+                        dropdownColor: const Color(0xFF0A63AC),
+                        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
+                        items: anos.map((int ano) {
+                          return DropdownMenuItem<int>(
+                              value: ano, child: Text(ano.toString()));
+                        }).toList(),
+                        onChanged: (int? novoValor) {
+                          setStateDialog(() => anoSelecionado = novoValor);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Fechar", style: TextStyle(color: Colors.white, fontFamily: 'LeagueSpartan', fontSize: 18)),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                ),
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                    if (mesSelecionado == null || anoSelecionado == null) return;
+
+                    setStateDialog(() => isLoading = true);
+
+                    try {
+                      final numeroMes = meses.indexOf(mesSelecionado!) + 1;
+
+                      // Busca os dados da view no Supabase
+                      final dados = await Supabase.instance.client
+                          .from('relatorio_instrutor_modulos')
+                          .select()
+                          .eq('mes', numeroMes)
+                          .eq('ano', anoSelecionado!);
+
+                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+
+                      // Chama o serviço para gerar o PDF com os dados
+                      await gerarPdfRelatorioSescoop(dados, numeroMes, anoSelecionado!);
+                    } catch (e) {
+                      debugPrint('Erro ao buscar dados ou gerar PDF: $e');
+                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text("Gerar PDF", style: TextStyle(color: Colors.orange, fontFamily: 'LeagueSpartan', fontSize: 18)),
                 ),
               ],
             );
@@ -1014,8 +1359,13 @@ class _CadastroProfessorState extends State<CadastroProfessor> {
                                   ),
                                 ),
                                 IconButton(
-                                  tooltip: "Gerar Relatório PDF",
+                                  tooltip: "Gerar Relatório Pagamento",
                                   onPressed: _abrirDialogoRelatorio,
+                                  icon: Icon(Icons.picture_as_pdf, color: Colors.red),
+                                ),
+                                IconButton(
+                                  tooltip: "Gerar Relatório Sescoop",
+                                  onPressed: () => _abrirDialogoRelatorioSescoop(context),
                                   icon: Icon(Icons.picture_as_pdf, color: Colors.red),
                                 ),
                               ],
