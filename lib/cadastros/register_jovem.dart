@@ -82,7 +82,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
         status,
       );
     } else {
-      // AJUSTE: Lógica para administrador buscar jovens com seus módulos
+      // Lógica ajustada para administrador
       final jovensResponse = await supabase
           .from('jovens_aprendizes')
           .select('*, turmas(codigo_turma)')
@@ -93,34 +93,44 @@ class _CadastroJovemState extends State<CadastroJovem> {
           .select('id, nome, turma_id')
           .eq('status', 'ativo');
 
+      // Mapeia turmas para seus respectivos módulos, como antes
       final turmaModulosMap = <String, List<String>>{};
       for (final modulo in modulosResponse) {
         final turmaId = modulo['turma_id'];
         if (turmaId != null) {
-          turmaModulosMap.putIfAbsent(turmaId, () => []).add(modulo['nome']);
+          turmaModulosMap.putIfAbsent(turmaId.toString(), () => []).add(modulo['nome']);
         }
       }
 
-      final List<Map<String, dynamic>> flattenedJovens = [];
+      // NOVA LÓGICA: Processa a lista de jovens para evitar duplicatas
+      final List<Map<String, dynamic>> jovensProcessados = [];
       for (final jovem in jovensResponse) {
-        final turmaId = jovem['turma_id'];
-        final List<String>? modulosDaTurma = turmaModulosMap[turmaId];
+        // Cria uma cópia do mapa do jovem para poder modificá-la
+        final novoJovem = Map<String, dynamic>.from(jovem);
 
+        final turmaId = novoJovem['turma_id'];
+
+        // Busca a lista de módulos para a turma do jovem
+        final List<String>? modulosDaTurma = turmaModulosMap[turmaId?.toString()];
+
+        // Adiciona o código da turma
+        novoJovem['cod_turma'] = jovem['turmas']?['codigo_turma'];
+
+        // Adiciona campos separados para nomes e quantidade de módulos
         if (modulosDaTurma != null && modulosDaTurma.isNotEmpty) {
-          for (final nomeModulo in modulosDaTurma) {
-            final newJovemEntry = Map<String, dynamic>.from(jovem);
-            newJovemEntry['cod_turma'] = jovem['turmas']?['codigo_turma'];
-            newJovemEntry['nome_modulo'] = nomeModulo;
-            flattenedJovens.add(newJovemEntry);
-          }
+          novoJovem['nomes_modulos'] = modulosDaTurma.join(', ');
+          novoJovem['qtd_modulos'] = modulosDaTurma.length;
         } else {
-          final newJovemEntry = Map<String, dynamic>.from(jovem);
-          newJovemEntry['cod_turma'] = jovem['turmas']?['codigo_turma'];
-          newJovemEntry['nome_modulo'] = null;
-          flattenedJovens.add(newJovemEntry);
+          // Se não houver módulos
+          novoJovem['nomes_modulos'] = 'Nenhum módulo';
+          novoJovem['qtd_modulos'] = 0;
         }
+
+        jovensProcessados.add(novoJovem);
       }
-      jovens = flattenedJovens;
+
+      // Atribui a lista processada e sem duplicatas
+      jovens = jovensProcessados;
 
       jovens.sort((a, b) => (a['nome'] as String? ?? '').compareTo(b['nome'] as String? ?? ''));
     }
@@ -131,6 +141,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
       _isFetching = false;
     });
   }
+  
 
   void _abrirDialogoRelatorio() {
     // Pega listas únicas de turmas, módulos, escolas e empresas da lista já filtrada na tela
@@ -143,7 +154,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
     final modulos = {
       'Todos',
       ..._jovensFiltrados
-          .map((j) => j['nome_modulo']?.toString())
+          .map((j) => j['nomes_modulos']?.toString())
           .where((m) => m != null && m.isNotEmpty)
     }.toList();
     // AJUSTE: Adicionada a lista de escolas
@@ -366,7 +377,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                     // Em seguida, aplica o filtro de módulo, se não for 'Todos'
                     if (moduloSelecionado != 'Todos') {
                       jovensParaPdf = jovensParaPdf.where((jovem) {
-                        return jovem['nome_modulo'] == moduloSelecionado;
+                        return jovem['nomes_modulos'] == moduloSelecionado;
                       }).toList();
                     }
 
@@ -428,7 +439,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
       return [
         jovem['nome'] ?? 'N/A',
         jovem['cod_turma'] ?? 'N/A',
-        jovem['nome_modulo'] ?? 'N/A',
+        jovem['nomes_modulos'] ?? 'N/A',
         jovem['escola'] ?? 'N/A',
         jovem['empresa'] ?? 'N/A',
       ];
@@ -1154,7 +1165,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                         },
                       )
                       : Text(
-                        'Jovens ${statusJovem.toLowerCase()}',
+                        'Jovens ${statusJovem.toLowerCase()} (${_jovens.length})',
                         style: TextStyle(
                           fontFamily: 'LeagueSpartan',
                           fontWeight: FontWeight.bold,
@@ -1465,21 +1476,31 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                                                   "professor")
                                                                 SizedBox(height: 5),
                                                               Text(
-                                                                auth.tipoUsuario == "professor" ||
-                                                                    auth.tipoUsuario == "empresa" ||
-                                                                    auth.tipoUsuario == "escola" || auth.tipoUsuario == "administrador" || auth.tipoUsuario == "professor_externo"
-                                                                    ? "Turma: ${jovem['cod_turma'] ?? ''}\n${jovem['nome_modulo'] != null
-                                                                            ? "Módulo: ${jovem['nome_modulo']}"
-                                                                            : auth.tipoUsuario == "escola" || auth.tipoUsuario == "professor_externo"
-                                                                            ? "Empresa: ${jovem['empresa'] ?? ''}"
-                                                                            : auth.tipoUsuario == "empresa"
-                                                                            ? "Colégio: ${jovem['escola'] ?? ''}"
-                                                                            : ""}"
-                                                                    : "",
+                                                                "Turma: ${jovem['cod_turma'] ?? ''}\n${() { // Usando uma função anônima para simplificar a lógica
+                                                                      if (auth.tipoUsuario == "professor") {
+                                                                        // Para o professor, sempre exibe os nomes dos módulos
+                                                                        return "Módulos: ${jovem['nomes_modulos'] ?? 'Nenhum módulo'}";
+                                                                      }
+
+                                                                      // Para os outros usuários, verifica se há módulos
+                                                                      else if (jovem['qtd_modulos'] != null && jovem['qtd_modulos'] > 0) {
+                                                                        return "Módulo(s): ${jovem['qtd_modulos']}";
+                                                                      }
+
+                                                                      // Lógica de fallback se não houver módulos
+                                                                      else {
+                                                                        if (auth.tipoUsuario == "escola" || auth.tipoUsuario == "professor_externo") {
+                                                                          return "Empresa: ${jovem['empresa'] ?? ''}";
+                                                                        } else if (auth.tipoUsuario == "empresa") {
+                                                                          return "Colégio: ${jovem['escola'] ?? ''}";
+                                                                        }
+                                                                        return ""; // Para admin e outros casos, não mostra linha adicional
+                                                                      }
+                                                                    }()}",
                                                                 style: const TextStyle(
                                                                   color: Colors.black,
                                                                 ),
-                                                              ),
+                                                              )
                                                             ],
                                                           ),
                                                         ),

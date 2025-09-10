@@ -481,10 +481,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_android
-      sha256: "28f3987ca0ec702d346eae1d90eda59603a2101b52f1e234ded62cff1d5cfa6e"
+      sha256: a45bef33deb24839a51fb85a4d9e504ead2b1ad1c4779d02d09bf6a8857cdd52
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.13+1"
+    version: "0.8.13+2"
   image_picker_for_web:
     dependency: "direct main"
     description:
@@ -998,26 +998,26 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: bfd026c0f9822b49ff26fed11cd3334519acb6a6ad4b0c81d9cd18df6af1c4c0
+      sha256: "243693c38eb8a39d93cb1442d89faeb58ba12c05c1ab495977ba09fd44160cec"
       url: "https://pub.dev"
     source: hosted
-    version: "30.2.7"
+    version: "31.1.18"
   syncfusion_flutter_xlsio:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_xlsio
-      sha256: d6d34acd4d4e4ca504f110be6076fa5bde2e5a447762f84b613d628a7ffa5b98
+      sha256: d45129881d0093c85eee0d118881d079c1c571c445b6aa4f9404eadbb410a85c
       url: "https://pub.dev"
     source: hosted
-    version: "30.2.7"
+    version: "31.1.18"
   syncfusion_officecore:
     dependency: transitive
     description:
       name: syncfusion_officecore
-      sha256: b940ba8e4400df7f8d1e80309b558bfa88551396248f015db66b3323a09ff36d
+      sha256: fec0c98c9f29cb0850cc3b1acdafa2a04c1467f6668afec790b3a5202f845ae4
       url: "https://pub.dev"
     source: hosted
-    version: "30.2.7"
+    version: "31.1.18"
   term_glyph:
     dependency: transitive
     description:
@@ -1070,10 +1070,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_android
-      sha256: "69ee86740f2847b9a4ba6cffa74ed12ce500bbe2b07f3dc1e643439da60637b7"
+      sha256: "07cffecb7d68cbc6437cd803d5f11a86fe06736735c3dfe46ff73bcb0f958eed"
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.18"
+    version: "6.3.21"
   url_launcher_ios:
     dependency: transitive
     description:
@@ -1243,5 +1243,5 @@ packages:
     source: hosted
     version: "2.1.0"
 sdks:
-  dart: ">=3.8.0 <4.0.0"
-  flutter: ">=3.29.0"
+  dart: ">=3.9.0 <4.0.0"
+  flutter: ">=3.35.0"

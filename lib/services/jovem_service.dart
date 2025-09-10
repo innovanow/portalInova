@@ -31,7 +31,7 @@ class JovemService {
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDoProfessor(String professorId, String status) async {
-    // 1. Executa a chamada RPC sem o .order()
+    // 1. Executa a chamada RPC como antes
     final response = await supabase.rpc(
       'buscar_jovens_do_professor_com_modulo',
       params: {
@@ -44,37 +44,68 @@ class JovemService {
       print(response);
     }
 
-    // A resposta do RPC é uma lista de mapas.
     final List<dynamic> data = response;
 
-    // 2. Transforma os dados e adiciona o nome do módulo
-    final List<Map<String, dynamic>> jovensComModulo = data.map<Map<String, dynamic>>((item) {
-      final Map<String, dynamic> dadosJovem = Map.from(item['jovem_json']);
-      dadosJovem['nome_modulo'] = item['nome_modulo'];
-      return dadosJovem;
-    }).toList();
+    // Mapa para agrupar os jovens por ID para não haver duplicatas
+    final Map<String, Map<String, dynamic>> jovensAgrupados = {};
 
-    // 3. Ordena a lista de jovens pelo nome
-    jovensComModulo.sort((a, b) {
-      // Acessa o campo 'nome' para fazer a comparação
+    // Mapa para armazenar a lista de módulos de cada jovem
+    final Map<String, List<String>> modulosPorJovem = {};
+
+    // 2. Itera sobre a resposta para agrupar os dados por jovem
+    for (final item in data) {
+      // Pega o JSON do jovem e o nome do módulo
+      final Map<String, dynamic> dadosJovem = Map.from(item['jovem_json']);
+      final String? nomeModulo = item['nome_modulo'];
+
+      // Usa o ID do jovem como chave única (convertido para String)
+      final String jovemId = dadosJovem['id'].toString();
+
+      // Se o jovem ainda não foi adicionado ao mapa, o adiciona
+      if (!jovensAgrupados.containsKey(jovemId)) {
+        jovensAgrupados[jovemId] = dadosJovem;
+      }
+
+      // Se houver um nome de módulo, adiciona à lista daquele jovem
+      if (nomeModulo != null) {
+        modulosPorJovem.putIfAbsent(jovemId, () => []).add(nomeModulo);
+      }
+    }
+
+    // 3. Monta a lista final com os novos campos
+    final List<Map<String, dynamic>> resultadoFinal = [];
+    jovensAgrupados.forEach((jovemId, dadosJovem) {
+      final List<String>? modulos = modulosPorJovem[jovemId];
+
+      // Adiciona os campos de nomes e quantidade
+      if (modulos != null && modulos.isNotEmpty) {
+        dadosJovem['nomes_modulos'] = modulos.join(', ');
+        dadosJovem['qtd_modulos'] = modulos.length;
+      } else {
+        dadosJovem['nomes_modulos'] = 'Nenhum módulo';
+        dadosJovem['qtd_modulos'] = 0;
+      }
+      resultadoFinal.add(dadosJovem);
+    });
+
+    // 4. Ordena a lista final pelo nome do jovem
+    resultadoFinal.sort((a, b) {
       final nomeA = a['nome'] as String? ?? '';
       final nomeB = b['nome'] as String? ?? '';
       return nomeA.compareTo(nomeB);
     });
 
-    return jovensComModulo;
+    return resultadoFinal;
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDaEscola(String status) async {
     final currentUser = supabase.auth.currentUser;
     if (currentUser == null) {
-      // Retorna uma lista vazia se não houver usuário logado
       return [];
     }
 
     String? escolaId;
 
-    // 1. Determinar o ID da escola com base no tipo de usuário
     if (auth.tipoUsuario == "escola") {
       escolaId = currentUser.id;
     } else if (auth.tipoUsuario == "professor_externo") {
@@ -89,49 +120,151 @@ class JovemService {
           escolaId = professorData['id_colegio'].toString();
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Erro ao buscar escola do professor: $e");
-        }
+        if (kDebugMode) print("Erro ao buscar escola do professor: $e");
         return [];
       }
     }
 
-    // 2. Se não foi possível determinar o ID da escola, retorna uma lista vazia
     if (escolaId == null) {
-      if (kDebugMode) {
-        print("Não foi possível determinar a escola para o usuário: ${currentUser.id}");
-      }
+      if (kDebugMode) print("Não foi possível determinar a escola para o usuário: ${currentUser.id}");
       return [];
     }
 
-    // 3. Executar a busca usando o 'escolaId' determinado
     try {
-      final response = await supabase
+      final jovensResponse = await supabase
           .from('jovens_aprendizes')
           .select('*, turmas(codigo_turma)')
-          .eq('escola_id', escolaId) // <- ID agora é determinado internamente
-          .eq('status', status)
-          .order('nome', ascending: true);
+          .eq('escola_id', escolaId)
+          .eq('status', status);
 
-      return response;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Erro ao buscar jovens da escola: $e");
+      if (jovensResponse.isEmpty) return [];
+
+      final List<String> turmaIds = jovensResponse
+          .map((jovem) => jovem['turma_id'].toString())
+          .where((id) => id != 'null')
+          .toSet()
+          .toList();
+
+      if (turmaIds.isEmpty) {
+        return jovensResponse.map((jovem) {
+          final Map<String, dynamic> dadosJovem = Map.from(jovem);
+          dadosJovem['nomes_modulos'] = 'Nenhum módulo';
+          dadosJovem['qtd_modulos'] = 0;
+          return dadosJovem;
+        }).toList()..sort((a,b) => (a['nome'] as String? ?? '').compareTo(b['nome'] as String? ?? ''));
       }
+
+      // Solução alternativa para o filtro 'in', usando 'or'
+      final orFilter = turmaIds.map((id) => 'turma_id.eq.$id').join(',');
+
+      final modulosResponse = await supabase
+          .from('modulos')
+          .select('id, nome, turma_id')
+          .or(orFilter)
+          .eq('status', 'ativo');
+
+      final Map<String, List<String>> turmaModulosMap = {};
+      for (final modulo in modulosResponse) {
+        final turmaId = modulo['turma_id'].toString();
+        turmaModulosMap.putIfAbsent(turmaId, () => []).add(modulo['nome']);
+      }
+
+      final List<Map<String, dynamic>> jovensProcessados = [];
+      for (final jovem in jovensResponse) {
+        final Map<String, dynamic> novoJovem = Map.from(jovem);
+        final turmaId = novoJovem['turma_id']?.toString();
+        final List<String>? modulosDaTurma = turmaModulosMap[turmaId];
+
+        novoJovem['cod_turma'] = jovem['turmas']?['codigo_turma'];
+
+        if (modulosDaTurma != null && modulosDaTurma.isNotEmpty) {
+          novoJovem['nomes_modulos'] = modulosDaTurma.join(', ');
+          novoJovem['qtd_modulos'] = modulosDaTurma.length;
+        } else {
+          novoJovem['nomes_modulos'] = 'Nenhum módulo';
+          novoJovem['qtd_modulos'] = 0;
+        }
+
+        jovensProcessados.add(novoJovem);
+      }
+
+      jovensProcessados.sort((a, b) => (a['nome'] as String? ?? '').compareTo(b['nome'] as String? ?? ''));
+
+      return jovensProcessados;
+
+    } catch (e) {
+      if (kDebugMode) print("Erro ao buscar jovens da escola: $e");
       return [];
     }
   }
 
   Future<List<Map<String, dynamic>>> buscarJovensDaEmpresa(String empresaId, String status) async {
-    final response = await supabase
-        .from('jovens_aprendizes')
-        .select('*, turmas(codigo_turma)')
-        .eq('empresa_id', empresaId)
-        .eq('status', status)
-        .order('nome', ascending: true);
-    return response;
-  }
+    try {
+      final jovensResponse = await supabase
+          .from('jovens_aprendizes')
+          .select('*, turmas(codigo_turma)')
+          .eq('empresa_id', empresaId)
+          .eq('status', status);
 
+      if (jovensResponse.isEmpty) return [];
+
+      final List<String> turmaIds = jovensResponse
+          .map((jovem) => jovem['turma_id'].toString())
+          .where((id) => id != 'null')
+          .toSet()
+          .toList();
+
+      if (turmaIds.isEmpty) {
+        return jovensResponse.map((jovem) {
+          final Map<String, dynamic> dadosJovem = Map.from(jovem);
+          dadosJovem['nomes_modulos'] = 'Nenhum módulo';
+          dadosJovem['qtd_modulos'] = 0;
+          return dadosJovem;
+        }).toList()..sort((a,b) => (a['nome'] as String? ?? '').compareTo(b['nome'] as String? ?? ''));
+      }
+
+      final orFilter = turmaIds.map((id) => 'turma_id.eq.$id').join(',');
+
+      final modulosResponse = await supabase
+          .from('modulos')
+          .select('id, nome, turma_id')
+          .or(orFilter)
+          .eq('status', 'ativo');
+
+      final Map<String, List<String>> turmaModulosMap = {};
+      for (final modulo in modulosResponse) {
+        final turmaId = modulo['turma_id'].toString();
+        turmaModulosMap.putIfAbsent(turmaId, () => []).add(modulo['nome']);
+      }
+
+      final List<Map<String, dynamic>> jovensProcessados = [];
+      for (final jovem in jovensResponse) {
+        final Map<String, dynamic> novoJovem = Map.from(jovem);
+        final turmaId = novoJovem['turma_id']?.toString();
+        final List<String>? modulosDaTurma = turmaModulosMap[turmaId];
+
+        novoJovem['cod_turma'] = jovem['turmas']?['codigo_turma'];
+
+        if (modulosDaTurma != null && modulosDaTurma.isNotEmpty) {
+          novoJovem['nomes_modulos'] = modulosDaTurma.join(', ');
+          novoJovem['qtd_modulos'] = modulosDaTurma.length;
+        } else {
+          novoJovem['nomes_modulos'] = 'Nenhum módulo';
+          novoJovem['qtd_modulos'] = 0;
+        }
+
+        jovensProcessados.add(novoJovem);
+      }
+
+      jovensProcessados.sort((a, b) => (a['nome'] as String? ?? '').compareTo(b['nome'] as String? ?? ''));
+
+      return jovensProcessados;
+
+    } catch (e) {
+      if (kDebugMode) print("Erro ao buscar jovens da empresa: $e");
+      return [];
+    }
+  }
 
   Future<void> inativarJovem(String id) async {
     await supabase.from('jovens_aprendizes').update({'status': 'inativo'}).eq('id', id);
