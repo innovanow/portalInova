@@ -714,6 +714,9 @@ class JovemService {
       );
       return null;
     } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
       return e.toString();
     }
   }

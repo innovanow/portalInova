@@ -36,10 +36,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSavedCredentials(); // 🔹 Carrega email e senha salvos ao iniciar
+    _loadSavedCredentials();
   }
 
-  /// 🔹 **Carrega email e senha salvos**
+  /// Carrega email e senha salvos**
   Future<void> _loadSavedCredentials() async {
     final credentials = await _authService.getSavedCredentials();
     if (kDebugMode) {
@@ -646,7 +646,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text("Limpar Dados",
                                       style: TextStyle(color: Color(0xFF0A63AC)),)
                                 ),
-                                Text("Versão: 0.45",
+                                Text("Versão: 0.48",
                                   style: TextStyle(color: Color(0xFF0A63AC)),),
                                 SizedBox(height: 10),
                                 Column(

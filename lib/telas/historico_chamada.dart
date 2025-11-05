@@ -221,9 +221,9 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
     final client = Supabase.instance.client;
     List<Map<String, dynamic>> modulos = [];
     final moduloResponse = await client
-        .from('modulos')
+        .rpc('obter_modulos_com_presenca') // Chamando a função PostgreSQL
         .select('id, nome, sala, professores(nome), datas, turmas(id, codigo_turma)')
-    .order('nome', ascending: true);
+        .order('nome', ascending: true);
 
     modulos = List<Map<String, dynamic>>.from(moduloResponse);
 
@@ -413,7 +413,7 @@ class _HistoricoChamadasPageState extends State<HistoricoChamadasPage> {
                         cargaHoraria: cargaHoraria,
                         horario: '${_moduloSelecionadoParaRelatorio!['datas'][0].split('T')[1]} - ${_moduloSelecionadoParaRelatorio!['datas'][1].split('T')[1]}',
                         mes: numeroMes,
-                        ano: 2025,
+                        ano: anoSelecionado,
                         context: context,
                       );
                     },

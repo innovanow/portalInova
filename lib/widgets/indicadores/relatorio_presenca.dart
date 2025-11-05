@@ -27,7 +27,7 @@ class RelatorioService {
     required String cargaHoraria,
     required String horario,
     required int? mes,
-    required int ano,
+    required int? ano,
     required BuildContext context,
   }) async {
     // --- Carrega a imagem do logo dos assets ---
@@ -300,7 +300,7 @@ class RelatorioService {
     sheet.getRangeByName('A2:${String.fromCharCode(64 + lastColIndex)}4').cellStyle = infoStyle;
 
     // --- CABEÇALHO DA TABELA ---
-    final monthName = DateFormat.MMMM('pt_BR').format(DateTime(ano, mes!)).toUpperCase();
+    final monthName = DateFormat.MMMM('pt_BR').format(DateTime(ano!, mes!)).toUpperCase();
 
     // Linha 5
     sheet.getRangeByName('A5').setText('Nº');
@@ -481,7 +481,7 @@ class RelatorioService {
       final url = html.Url.createObjectUrlFromBlob(blob);
       final anchor = html.AnchorElement(href: url)
         ..style.display = 'none'
-        ..setAttribute("download", "Relatorio_Jovens.xlsx");
+        ..setAttribute("download", "Presenças-$moduloNome-$mes-$ano.xlsx");
       html.document.body!.append(anchor);
       anchor.click();
       anchor.remove();
