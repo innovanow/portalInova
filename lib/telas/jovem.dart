@@ -455,8 +455,6 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                           _info("Endereço", widget.jovem['endereco'] ?? '-'),
                           _info("Número", widget.jovem['numero'] ?? '-'),
                           _info("Bairro", widget.jovem['bairro'] ?? '-'),
-                          _info("Cidade", widget.jovem['cidade'] ?? '-'),
-                          _info("Estado", widget.jovem['estado'] ?? '-'),
                           _info("CEP", widget.jovem['cep'] ?? '-'),
                         ]),
                         _buildSection("🎓 Educação", [
@@ -512,7 +510,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                           _info("Possui Filhos?", widget.jovem['possui_filhos'] ?? '-'),
                           _info("Qtd. Membros Família", widget.jovem['qtd_membros_familia'] ?? '-'),
                           _info("Recebe Benefício?", widget.jovem['beneficio_assistencial'] ?? '-'),
-                          _info("Cadastro no CRAS", widget.jovem['cadastro_cras'].toString()),
+                          _info("Cadastro no CRAS", widget.jovem['cadastro_cras'] ?? '-'),
                           _info("Cometeu Infração?", widget.jovem['infracao'].toString()),
                           _info("Renda Mensal", widget.jovem['renda_mensal'] != null
                               ? "R\$ ${formatarParaDuasCasas(double.parse(widget.jovem['renda_mensal'].toString()))}"

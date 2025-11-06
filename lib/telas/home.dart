@@ -1265,14 +1265,14 @@ class _HomeState extends State<Home> {
                                                   getTitlesWidget: (value, meta) {
                                                     switch (value.toInt()) {
                                                       case 0:
-                                                        return const Text('Falta', style: TextStyle(fontSize: 12));
+                                                        return const Text('F', style: TextStyle(fontSize: 12));
                                                       case 1:
-                                                        return const Text('Presente', style: TextStyle(fontSize: 12));
+                                                        return const Text('P', style: TextStyle(fontSize: 12));
                                                       default:
                                                         return const SizedBox.shrink();
                                                     }
                                                   },
-                                                  reservedSize: 60,
+                                                  reservedSize: 20,
                                                   interval: 1,
                                                 ),
                                               ),
