@@ -360,8 +360,7 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                     fileName = fullName.substring(fullName.lastIndexOf('-') + 1);
                                   }
                                 }
-                                else if (defaultTargetPlatform == TargetPlatform.iOS) {
-                                  // ✅ iOS — usa image_picker (sem permission_handler)
+                                else {
                                   final picker = ImagePicker();
                                   final picked = await picker.pickImage(source: ImageSource.gallery);
                                   if (picked != null) {
@@ -369,37 +368,7 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                                     String fullName = picked.name;
                                     fileName = fullName.substring(fullName.lastIndexOf('-') + 1);
                                   }
-                                } else {
-                                  // ✅ Android — mantém file_picker com permissões
-                                  final status = await Permission.photos.request();
-                                  if (kDebugMode) {
-                                    print(status);
-                                  }
-                                  if (!status.isGranted) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          backgroundColor: Color(0xFF0A63AC),
-                                          content: Text('Permissão negada para acessar arquivos',
-                                              style: TextStyle(color: Colors.white)),
-                                        ),
-                                      );
-                                    }
-                                    return;
-                                  }
-
-                                  final result = await FilePicker.platform.pickFiles(
-                                    type: FileType.image,
-                                    allowMultiple: false,
-                                    withData: true,
-                                  );
-
-                                  if (result != null && result.files.single.bytes != null) {
-                                    bytes = result.files.single.bytes;
-                                    fileName = sanitizeFileName(result.files.single.name);
-                                  }
                                 }
-
                                 if (bytes != null) {
                                   final result = await _docsService.uploadDocumento(m['id'], fileName, bytes);
                                   setState(() {
