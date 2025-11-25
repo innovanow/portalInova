@@ -40,7 +40,7 @@ class ProfessorService {
     required String formacao,
     required String cpf,
     required String rg,
-    required String codCarteiraTrabalho,
+    required String? codCarteiraTrabalho,
     required String? estadoCivil,
     required String? nacionalidade,
     required String? cidadeEstadoNatal,

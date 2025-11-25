@@ -724,7 +724,9 @@ class JovemService {
   Future<String?> buscarStatusDoJovemLogado() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return null;
-
+    if (kDebugMode) {
+      print("UserID: $userId");
+    }
     final response = await supabase
         .from('jovens_aprendizes')
         .select('status')

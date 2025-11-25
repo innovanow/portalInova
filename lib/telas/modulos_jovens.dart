@@ -1,11 +1,9 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../services/uploud_docs.dart';
 import '../widgets/drawer.dart';
 import '../widgets/wave.dart';
@@ -66,40 +64,48 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
     }
 
     // --- Processamento dos resultados ---
-    final List<Map<String, dynamic>> resultado = [];
+    final List<Future<Map<String, dynamic>>> futures = [];
 
     for (var modulo in modulosResponse) {
-      // Busca os materiais no Storage
-      final materiais = await supabase
-          .storage
-          .from('fotosjovens')
-          .list(path: '${modulo["id"]}/documentos/');
-
-      // Gera os links de acesso para os materiais
-      final links = await Future.wait(materiais.map((file) async {
-        final signedUrl = await supabase.storage
+      // Envolve o processamento de CADA módulo em um Future
+      final future = () async {
+        // Busca os materiais no Storage (Pode ser o ponto de falha 504)
+        final materiais = await supabase
+            .storage
             .from('fotosjovens')
-            .createSignedUrl('${modulo["id"]}/documentos/${file.name}', 3600);
-        return {"nome": file.name, "url": signedUrl};
-      }));
+            .list(path: '${modulo["id"]}/documentos/');
 
-      // Define o nome do professor
-      String professorNome = "Não informado";
-      if (modulo['professores'] != null) {
-        professorNome = modulo['professores']['nome'];
-      } else if (auth.tipoUsuario == "professor") {
-        professorNome = "Você";
-      }
+        // Gera os links de acesso para os materiais
+        final links = await Future.wait(materiais.map((file) async {
+          final signedUrl = await supabase.storage
+              .from('fotosjovens')
+              .createSignedUrl('${modulo["id"]}/documentos/${file.name}', 3600);
+          return {"nome": file.name, "url": signedUrl};
+        }));
 
-      resultado.add({
-        "nomeModulo": modulo['nome'],
-        "professor": professorNome,
-        "materiais": links,
-        "id": modulo['id'],
-      });
+        // Define o nome do professor
+        String professorNome = "Não informado";
+        if (modulo['professores'] != null) {
+          professorNome = modulo['professores']['nome'];
+        } else if (auth.tipoUsuario == "professor") {
+          professorNome = "Você";
+        }
+
+        return {
+          "nomeModulo": modulo['nome'],
+          "professor": professorNome,
+          "materiais": links,
+          "id": modulo['id'],
+        };
+      }(); // Chama a função anônima imediatamente
+
+      futures.add(future); // Adiciona o Future à lista
     }
 
-    // Atualiza o estado da UI
+// AGORA, espere que TODOS os futures sejam concluídos em paralelo.
+    final resultado = await Future.wait(futures);
+
+// Atualiza o estado da UI
     setState(() {
       modulos = resultado;
       carregando = false;
@@ -116,6 +122,293 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
         .replaceAll(RegExp(r"[óòõôö]"), "o")
         .replaceAll(RegExp(r"[úùûü]"), "u")
         .replaceAll(RegExp(r"[^\w.]+"), "_"); // Substitui outros caracteres especiais por _
+  }
+
+  // Esta função deve ser adicionada à sua classe _TelaModulosDoJovemState
+  List<Widget> _buildMaterialWidgets(List<dynamic> materiais, String moduloId) {
+    final List<Widget> widgets = [];
+
+    // Separar imagens e outros
+    final List<dynamic> images = [];
+    final List<dynamic> otherDocs = [];
+
+    for (var doc in materiais) {
+      final isImage = doc["nome"].contains(RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false));
+      if (isImage) {
+        images.add(doc);
+      } else {
+        otherDocs.add(doc);
+      }
+    }
+
+    // 1. Exibir outros documentos (PDFs, etc.) em ListTiles
+    for (var doc in otherDocs) {
+      final isPdf = doc["nome"].contains(".pdf");
+      final trailingWidget = auth.tipoUsuario == "professor" || auth.tipoUsuario == "administrador"
+          ? IconButton(
+        tooltip: "Excluir",
+        focusColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        enableFeedback: false,
+        icon: const Icon(Icons.close, color: Colors.black),
+        onPressed: () async {
+          // Lógica de exclusão (DEIXADA INALTERADA)
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              backgroundColor: Color(0xFF0A63AC),
+              title: const Text("Confirma exclusão?",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontFamily: 'LeagueSpartan',
+                ),),
+              content: Text("Deseja excluir \"${doc["nome"]}\"?",
+                style: TextStyle(
+                  color: Colors.white,
+                ),),
+              actions: [
+                TextButton(
+                    style: ButtonStyle(
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Cancelar",style: TextStyle(color: Colors.orange,
+                      fontFamily: 'LeagueSpartan',
+                      fontSize: 15,
+                    ))),
+                TextButton(
+                    style: ButtonStyle(
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    ),
+                    onPressed: () async {
+                      if (kDebugMode) {
+                        print("$moduloId/documentos/${doc["nome"]}");
+                      }
+                      final result = await _docsService.excluirDocumento("$moduloId/documentos/${doc["nome"]}");
+                      if (result == null) {
+                        setState(() {
+                          _uploadStatus = "Documento excluído com sucesso.";
+                        });
+                      } else {
+                        setState(() {
+                          _uploadStatus = result;
+                        });
+                      }
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              backgroundColor: Color(0xFF0A63AC),
+                              content: Text( _uploadStatus == null ? 'Algo deu errado!' : 'Excluído com sucesso!',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                  ))
+                          ),
+                        );
+                        carregarModulos();
+                      }
+                    },
+                    child: const Text("Excluir",style: TextStyle(color: Colors.red,
+                      fontFamily: 'LeagueSpartan',
+                      fontSize: 15,
+                    )
+                    )),
+              ],
+            ),
+          );
+        },
+      ) : null;
+
+      widgets.add(
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(doc['nome'], style: const TextStyle(fontSize: 14)),
+          leading: isPdf
+              ? const Icon(Icons.picture_as_pdf, color: Colors.red)
+              : const Icon(Icons.insert_drive_file, color: Colors.green),
+          trailing: trailingWidget,
+          onTap: () => launchUrl(
+            Uri.parse(doc['url']),
+            mode: LaunchMode.externalApplication,
+          ),
+        ),
+      );
+    }
+
+    // 2. Exibir imagens em um GridView com Scroll
+    if (images.isNotEmpty) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 10.0, bottom: 5.0),
+          child: const Text("Imagens:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        ),
+      );
+      widgets.add(
+        // Altura fixa para permitir o scroll.
+        // 340.0 é suficiente para mostrar cerca de 3 linhas de imagens quadradas (100x100).
+        SizedBox(
+          height: 340.0,
+          child: GridView.builder(
+            // Mantém a rolagem, permitindo ver todas as imagens.
+            // Não precisa de `physics` explícito, mas o padrão será usado.
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3, // 3 imagens por linha
+              crossAxisSpacing: 8.0,
+              mainAxisSpacing: 8.0,
+              childAspectRatio: 1.0, // Deixa as imagens quadradas (pequenos quadros)
+            ),
+            itemCount: images.length,
+            itemBuilder: (context, index) {
+              final doc = images[index];
+
+              // Botão de Exclusão (recriado para cada item da grade)
+              final trailingWidget = auth.tipoUsuario == "professor" || auth.tipoUsuario == "administrador"
+                  ? IconButton(
+                tooltip: "Excluir",
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                enableFeedback: false,
+                icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                onPressed: () async {
+                  // Lógica de exclusão (inclusa no novo bloco)
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      backgroundColor: Color(0xFF0A63AC),
+                      title: const Text("Confirma exclusão?",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontFamily: 'LeagueSpartan',
+                        ),),
+                      content: Text("Deseja excluir \"${doc["nome"]}\"?",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),),
+                      actions: [
+                        TextButton(
+                            style: ButtonStyle(
+                              overlayColor: WidgetStateProperty.all(Colors.transparent),
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Cancelar",style: TextStyle(color: Colors.orange,
+                              fontFamily: 'LeagueSpartan',
+                              fontSize: 15,
+                            ))),
+                        TextButton(
+                            style: ButtonStyle(
+                              overlayColor: WidgetStateProperty.all(Colors.transparent),
+                            ),
+                            onPressed: () async {
+                              if (kDebugMode) {
+                                print("$moduloId/documentos/${doc["nome"]}");
+                              }
+                              final result = await _docsService.excluirDocumento("$moduloId/documentos/${doc["nome"]}");
+                              if (result == null) {
+                                setState(() {
+                                  _uploadStatus = "Documento excluído com sucesso.";
+                                });
+                              } else {
+                                setState(() {
+                                  _uploadStatus = result;
+                                });
+                              }
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                              }
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      backgroundColor: Color(0xFF0A63AC),
+                                      content: Text( _uploadStatus == null ? 'Algo deu errado!' : 'Excluído com sucesso!',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ))
+                                  ),
+                                );
+                                carregarModulos();
+                              }
+                            },
+                            child: const Text("Excluir",style: TextStyle(color: Colors.red,
+                              fontFamily: 'LeagueSpartan',
+                              fontSize: 15,
+                            )
+                            )),
+                      ],
+                    ),
+                  );
+                },
+              ) : null;
+
+              return GestureDetector(
+                onTap: () => launchUrl(
+                  Uri.parse(doc['url']),
+                  mode: LaunchMode.externalApplication,
+                ),
+                child: Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xFF0A63AC), width: 1.5), // Moldura mais fina
+                        borderRadius: BorderRadius.circular(6.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                            spreadRadius: 0.5,
+                            blurRadius: 2,
+                            offset: const Offset(0, 1), // Sombra menor
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(5.0),
+                        child: Image.network(
+                          doc['url'],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: CircularProgressIndicator(color: Color(0xFF0A63AC), strokeWidth: 2),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.red[100],
+                            child: const Center(child: Icon(Icons.broken_image, color: Colors.red)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Botão de Exclusão (sobreposto)
+                    if (trailingWidget != null)
+                      Positioned(
+                        top: -10, // Ajuste para ficar no canto
+                        right: -10, // Ajuste para ficar no canto
+                        child: trailingWidget,
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return widgets;
   }
 
   @override
@@ -240,177 +533,95 @@ class _TelaModulosDoJovemState extends State<TelaModulosDoJovem> {
                           children: [
                             Text("Professor: ${m['professor']}"),
                             const SizedBox(height: 5),
-                            Text("Materiais do Módulo:"),
-                            ...m['materiais'].map<Widget>((doc) {
-                              return ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(doc['nome'], style: const TextStyle(fontSize: 14)),
-                                leading: doc["nome"].contains(".pdf") ?  Icon(Icons.picture_as_pdf, color: Colors.red) : doc["nome"].contains(".jpg") || doc["nome"].contains(".png") ? Icon(Icons.image, color: Colors.blue) : Icon(Icons.insert_drive_file, color: Colors.green),
-                                trailing: auth.tipoUsuario == "professor" || auth.tipoUsuario == "administrador"
-                                    ? IconButton(
-                                  tooltip: "Excluir",
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  splashColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  enableFeedback: false,
-                                  icon: const Icon(Icons.close, color: Colors.black),
-                                  onPressed: () async {
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                        backgroundColor: Color(0xFF0A63AC),
-                                        title: const Text("Confirma exclusão?",
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.white,
-                                            fontFamily: 'LeagueSpartan',
-                                          ),),
-                                        content: Text("Deseja excluir \"${doc["nome"]}\"?",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ),),
-                                        actions: [
-                                          TextButton(
-                                              style: ButtonStyle(
-                                                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
-                                              ),
-                                              onPressed: () => Navigator.pop(context),
-                                              child: const Text("Cancelar",style: TextStyle(color: Colors.orange,
-                                                fontFamily: 'LeagueSpartan',
-                                                fontSize: 15,
-                                              ))),
-                                          TextButton(
-                                              style: ButtonStyle(
-                                                overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove o destaque ao passar o mouse
-                                              ),
-                                              onPressed: () async {
-                                                if (kDebugMode) {
-                                                  print("${m["id"]}/documentos/${doc["nome"]}");
-                                                }
-                                                final result = await _docsService.excluirDocumento("${m["id"]}/documentos/${doc["nome"]}");
-                                                if (result == null) {
-                                                  setState(() {
-                                                    _uploadStatus = "Documento excluído com sucesso.";
-                                                  });
-                                                } else {
-                                                  setState(() {
-                                                    _uploadStatus = result;
-                                                  });
-                                                }
-                                                if (context.mounted) {
-                                                  Navigator.pop(context);
-                                                }
+                            const Text("Materiais do Módulo:"),
+                            const SizedBox(height: 10), // Espaçamento entre o título e os materiais
 
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                        backgroundColor: Color(0xFF0A63AC),
-                                                        content: Text( _uploadStatus == null ? 'Algo deu errado!' : 'Excluído com sucesso!',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                            ))
-                                                    ),
-                                                  );
-                                                  carregarModulos();
-                                                }
-                                              },
-                                              child: const Text("Excluir",style: TextStyle(color: Colors.red,
-                                                fontFamily: 'LeagueSpartan',
-                                                fontSize: 15,
-                                              )
-                                              )),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ) : null,
-                                onTap: () => launchUrl(
-                                  Uri.parse(doc['url']),
-                                  mode: LaunchMode.externalApplication,
-                                ),
-                              );
-                            }).toList(),
+                            // Separar imagens e outros documentos
+                            ..._buildMaterialWidgets(m['materiais'], m['id']), // Nova função para construir os widgets
                           ],
                         ),
+                        // ... O restante do Card permanece o mesmo (upload button)
                         trailing: auth.tipoUsuario == "professor" || auth.tipoUsuario == "administrador"
                             ? IconButton(
-                          color: Colors.blue,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          enableFeedback: false,
-                          tooltip: "Enviar fotos",
-                          icon: const Icon(Icons.upload_file_outlined,
-                              color: Color(0xFF0A63AC)),
+                            color: Colors.blue,
+                            focusColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            enableFeedback: false,
+                            tooltip: "Enviar fotos",
+                            icon: const Icon(Icons.upload_file_outlined,
+                                color: Color(0xFF0A63AC)),
                             onPressed: ()  async {
-                            if (m['id'] != null) {
-                              try {
-                                Uint8List? bytes;
-                                String fileName = 'documento.jpg';
+                              if (m['id'] != null) {
+                                try {
+                                  Uint8List? bytes;
+                                  String fileName = 'documento.jpg';
 
-                                if (kIsWeb) {
-                                  // ✅ Web
-                                  final picker = ImagePicker();
-                                  final picked = await picker.pickImage(source: ImageSource.gallery);
-                                  if (picked != null) {
-                                    bytes = await picked.readAsBytes();
-                                    String fullName = picked.name;
-                                    fileName = fullName.substring(fullName.lastIndexOf('-') + 1);
+                                  if (kIsWeb) {
+                                    // ✅ Web
+                                    final picker = ImagePicker();
+                                    final picked = await picker.pickImage(source: ImageSource.gallery);
+                                    if (picked != null) {
+                                      bytes = await picked.readAsBytes();
+                                      String fullName = picked.name;
+                                      fileName = fullName.substring(fullName.lastIndexOf('-') + 1);
+                                    }
                                   }
-                                }
-                                else {
-                                  final picker = ImagePicker();
-                                  final picked = await picker.pickImage(source: ImageSource.gallery);
-                                  if (picked != null) {
-                                    bytes = await picked.readAsBytes();
-                                    String fullName = picked.name;
-                                    fileName = fullName.substring(fullName.lastIndexOf('-') + 1);
+                                  else {
+                                    final picker = ImagePicker();
+                                    final picked = await picker.pickImage(source: ImageSource.gallery);
+                                    final pickedFile = picked; // Armazena o valor de picked
+                                    if (pickedFile != null) {
+                                      // Modifica a leitura do arquivo para dispositivos móveis, se necessário
+                                      bytes = await pickedFile.readAsBytes();
+                                      String fullName = pickedFile.name; // Use pickedFile.name em vez de picked.name
+                                      fileName = fullName.substring(fullName.lastIndexOf('/') + 1); // Ajustado para pegar o nome do arquivo corretamente em mobile/desktop
+                                    }
                                   }
-                                }
-                                if (bytes != null) {
-                                  final result = await _docsService.uploadDocumento(m['id'], fileName, bytes);
-                                  setState(() {
-                                    _uploadStatus = result?.startsWith("Erro") == true
-                                        ? result
-                                        : "Arquivo \"$fileName\" enviado com sucesso!";
-                                  });
-                                  if (kDebugMode) {
-                                    print(_uploadStatus);
+                                  if (bytes != null) {
+                                    final result = await _docsService.uploadDocumento(m['id'], fileName, bytes);
+                                    setState(() {
+                                      _uploadStatus = result?.startsWith("Erro") == true
+                                          ? result
+                                          : "Arquivo \"$fileName\" enviado com sucesso!";
+                                    });
+                                    if (kDebugMode) {
+                                      print(_uploadStatus);
+                                    }
+                                    carregarModulos();
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            backgroundColor: Color(0xFF0A63AC),
+                                            content: Text( _uploadStatus == null ? 'Algo deu errado!' : 'Enviado com sucesso!',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ))
+                                        ),
+                                      );
+                                    }
                                   }
-                                  carregarModulos();
+                                } catch (e) {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                          backgroundColor: Color(0xFF0A63AC),
-                                          content: Text( _uploadStatus == null ? 'Algo deu errado!' : 'Enviado com sucesso!',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              ))
+                                        backgroundColor: Color(0xFF0A63AC),
+                                        content: Text('Erro ao fazer upload da imagem: $e',
+                                            style: TextStyle(color: Colors.white)),
                                       ),
                                     );
                                   }
                                 }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: Color(0xFF0A63AC),
-                                      content: Text('Erro ao fazer upload da imagem: $e',
-                                          style: TextStyle(color: Colors.white)),
-                                    ),
-                                  );
+                              } else {
+                                if (kDebugMode) {
+                                  print('ID do módulo não encontrado.');
                                 }
                               }
-                            } else {
-                              if (kDebugMode) {
-                                print('ID do módulo não encontrado.');
-                              }
-                            }
                             }
                         ) : null,
-                    ));
+                      ),
+                    );
                   },
                   ) : const Center(
                     child: Text('Nenhum módulo encontrado.',

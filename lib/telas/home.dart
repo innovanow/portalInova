@@ -116,6 +116,9 @@ class _HomeState extends State<Home> {
 
   void _carregarStatus() async {
     final status = await _jovemService.buscarStatusDoJovemLogado();
+    if (kDebugMode) {
+      print("Status Jovem: $status");
+    }
     setState(() {
       statusJovem = status;
     });

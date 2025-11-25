@@ -814,6 +814,8 @@ class _CadastroJovemState extends State<CadastroJovem> {
                                           setState(() => _uploadStatus = null),
                                   mime: [
                                     "application/pdf",
+                                    "image/jpeg",
+                                    "image/png",
                                     "image/*",
                                     "application/msword",
                                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -822,7 +824,7 @@ class _CadastroJovemState extends State<CadastroJovem> {
                               ),
                               const Center(
                                 child: Text(
-                                  "Arraste os documentos em PDF aqui",
+                                  "Arraste os documentos aqui",
                                   style: TextStyle(color: Colors.black54),
                                 ),
                               ),
