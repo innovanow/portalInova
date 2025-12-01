@@ -1,11 +1,9 @@
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:inova/telas/splash.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../cadastros/register_jovem.dart';
 import '../services/jovem_service.dart';
@@ -408,7 +406,12 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                         ),
                         const SizedBox(height: 20),
                         _buildSection("📋 Dados Pessoais", [
-                          _info("Data de Nascimento", formatarDataParaExibicao(widget.jovem['data_nascimento'])),
+                          _info(
+                            "Data de Nascimento",
+                            widget.jovem['data_nascimento'] == null
+                                ? '-'
+                                : formatarDataParaExibicao(widget.jovem['data_nascimento']),
+                          ),
                           _info("CPF", widget.jovem['cpf'] ?? '-'),
                           _info("RG", widget.jovem['rg'] ?? '-'),
                           _info("Código PIS", widget.jovem['cod_pis'] ?? '-'),
@@ -484,7 +487,7 @@ class _JovemAprendizDetalhesState extends State<JovemAprendizDetalhes> {
                           _info("Qtd. Membros Família", widget.jovem['qtd_membros_familia'] ?? '-'),
                           _info("Recebe Benefício?", widget.jovem['beneficio_assistencial'] ?? '-'),
                           _info("Cadastro no CRAS", widget.jovem['cadastro_cras'] ?? '-'),
-                          _info("Cometeu Infração?", widget.jovem['infracao'].toString()),
+                          _info("Cometeu Infração?", widget.jovem['infracao'] ??  '-'),
                           _info("Renda Mensal", widget.jovem['renda_mensal'] != null
                               ? "R\$ ${formatarParaDuasCasas(double.parse(widget.jovem['renda_mensal'].toString()))}"
                               : "-"),
@@ -690,7 +693,7 @@ class _FormjovemState extends State<_Formjovem> {
   String? _estadoCivilPaiSelecionado = "Solteiro";
   String? _estadoCivilMaeSelecionado = "Solteiro";
   String? _estadoCivilResponsavelSelecionado = "Solteiro";
-  String? _moraComSelecionado;
+  String? _moraComSelecionado = "Mãe";
   String? _filhosSelecionado = "Não";
   String? _membrosSelecionado = "1";
   String? _escolaridadeSelecionado;
@@ -747,7 +750,7 @@ class _FormjovemState extends State<_Formjovem> {
       _jovemId = widget.jovem!['id'] ?? "";
       _nomeController.text = widget.jovem!['nome'] ?? "";
       _dataNascimentoController.text = formatarDataParaExibicao(
-        widget.jovem!['data_nascimento'] ?? "",
+        widget.jovem!['data_nascimento'] ?? DateTime.now().toIso8601String(),
       );
       _nomePaiController.text = widget.jovem!['nome_pai'] ?? "";
       _estadoCivilPaiSelecionado = widget.jovem!['estado_civil_pai'] ?? "Solteiro";
@@ -781,7 +784,7 @@ class _FormjovemState extends State<_Formjovem> {
         double.tryParse(widget.jovem?['remuneracao']?.toString() ?? '0.0') ?? 0.0,
       );
       _outraEscolaController.text = widget.jovem!['outra_escola'] ?? "Outro";
-      _turmaSelecionada = widget.jovem!['turma_id'] ?? "Sem turma";
+      _turmaSelecionada = widget.jovem!['turma_id'] ?? "af53d51d-16dd-4e49-b0e3-a8531d24d45c";
       _sexoSelecionado = widget.jovem!['sexo_biologico'] ?? "Prefiro não responder";
       _orientacaoSelecionado = widget.jovem!['orientacao_sexual'] ?? "Prefiro não responder";
       _identidadeSelecionado = widget.jovem!['identidade_genero'] ?? "Prefiro não responder";
@@ -806,7 +809,7 @@ class _FormjovemState extends State<_Formjovem> {
       _turnoColegioSelecionado = widget.jovem!['turno_escola'] ?? "Matutino";
       _anoInicioColegioController.text = widget.jovem!['ano_inicio_escola'] == null ? "2025" : widget.jovem!['ano_inicio_escola'].toString();
       _anoFimColegioController.text = widget.jovem!['ano_conclusao_escola']  == null ? "2025" : widget.jovem!['ano_conclusao_escola'].toString();
-      _instituicaoSelecionado = widget.jovem!['instituicao_escola'] ?? "Outro";
+      _instituicaoSelecionado = widget.jovem!['instituicao_escola'] ?? "Pública";
       _informaticaSelecionado = widget.jovem!['informatica'] ?? "Não";
       _habilidadeSelecionado = widget.jovem!['habilidade_destaque'] ?? "Flexibilidade";
       _estaTrabalhandoSelecionado = widget.jovem!['trabalhando'] ?? "Não";
@@ -1414,7 +1417,7 @@ class _FormjovemState extends State<_Formjovem> {
                 ),
               const SizedBox(height: 10),
               buildTextField(
-                _cpfController, true,
+                _cpfController, false,
                 "CPF",
                 isCpf: true,
                 onChangedState: () => setState(() {}),
@@ -1913,23 +1916,23 @@ class _FormjovemState extends State<_Formjovem> {
                 onChangedState: () => setState(() {}),
               ),
               buildTextField(
-                _cepController, true,
+                _cepController, false,
                 "CEP",
                 isCep: true,
                 onChangedState: () => setState(() {}),
               ),
               buildTextField(
-                _enderecoController, true,
+                _enderecoController, false,
                 "Endereço",
                 onChangedState: () => setState(() {}),
               ),
               buildTextField(
-                _numeroController, true,
+                _numeroController, false,
                 "Número",
                 onChangedState: () => setState(() {}),
               ),
               buildTextField(
-                _bairroController, true,
+                _bairroController, false,
                 "Bairro",
                 onChangedState: () => setState(() {}),
               ),
@@ -2137,12 +2140,6 @@ class _FormjovemState extends State<_Formjovem> {
                 const SizedBox(height: 10),
               if (_estaEstudandoSelecionado.toString().contains('Sim'))
                 DropdownButtonFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, selecione uma opção';
-                    }
-                    return null;
-                  },
                   initialValue:
                   (_escolaSelecionada != null &&
                       _escolas.any(
@@ -2544,6 +2541,7 @@ class _FormjovemState extends State<_Formjovem> {
                   isDinheiro: true,
                   onChangedState: () => setState(() {}),
                 ),
+              if (widget.jovem?['status'].toString() != 'candidato')
               DropdownButtonFormField(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -2598,6 +2596,7 @@ class _FormjovemState extends State<_Formjovem> {
                 dropdownColor: const Color(0xFF0A63AC),
                 style: const TextStyle(color: Colors.white),
               ),
+              if (widget.jovem?['status'].toString() != 'candidato')
               const SizedBox(height: 10),
               buildTextField(
                 _instagramController, false,

@@ -380,8 +380,8 @@ Widget buildStatusCard(String? statusJovem) {
   }
 
   return SizedBox(
-    width: 300,
-    height: 100,
+    width: 400,
+    height: 120,
     child: Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
@@ -393,7 +393,8 @@ Widget buildStatusCard(String? statusJovem) {
             Icon(icon, color: color, size: 30),
             const SizedBox(width: 12),
             Text(
-              'Status: $label',
+              'Status:\n$label',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,

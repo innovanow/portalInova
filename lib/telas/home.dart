@@ -1187,6 +1187,33 @@ class _HomeState extends State<Home> {
                         if (auth.tipoUsuario == "jovem_aprendiz")
                           if (statusJovem != null)
                             buildStatusCard(statusJovem),
+                        if (statusJovem == 'candidato')
+                          SizedBox(
+                            width: 600,
+                            height: 150,
+                            child: Card(
+                              margin: const EdgeInsets.all(16),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.person, color: Color(0xFF0A63AC), size: 30),
+                                    Text(
+                                      "Enquanto aguarda seu processo seletivo,\nvocê pode preencher seus dados no menu Meu Perfil.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: Colors.black
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         if (auth.tipoUsuario == "jovem_aprendiz")
                           FutureBuilder<List<Map<String, dynamic>>>(
                             future: _dadosHistoricoPresencaJovem,
